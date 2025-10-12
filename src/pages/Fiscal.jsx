@@ -30,7 +30,8 @@ export default function Fiscal() {
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
   ];
 
-  const years = [2024, 2025, 2026];
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
 
   return (
     <div className="space-y-6">
