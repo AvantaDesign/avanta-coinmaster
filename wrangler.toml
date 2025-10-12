@@ -8,6 +8,7 @@ pages_build_output_dir = "dist"
 [[d1_databases]]
 binding = "DB"
 database_name = "avanta-finance"
+# TODO: Replace the placeholder below with the actual database ID from `wrangler d1 create`
 database_id = "your-database-id-here"
 
 # R2 Bucket binding
