@@ -178,3 +178,114 @@ export async function applyReconciliation(action, transactionIds) {
   if (!response.ok) throw new Error('Failed to apply reconciliation');
   return response.json();
 }
+
+// Receivables API
+export async function fetchReceivables(params = {}) {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/receivables${queryString ? '?' + queryString : ''}`;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error('Failed to fetch receivables');
+  return response.json();
+}
+
+export async function createReceivable(data) {
+  const response = await fetch(`${API_BASE}/receivables`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error('Failed to create receivable');
+  return response.json();
+}
+
+export async function updateReceivable(id, data) {
+  const response = await fetch(`${API_BASE}/receivables`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, ...data })
+  });
+  if (!response.ok) throw new Error('Failed to update receivable');
+  return response.json();
+}
+
+export async function deleteReceivable(id) {
+  const response = await fetch(`${API_BASE}/receivables?id=${id}`, {
+    method: 'DELETE'
+  });
+  if (!response.ok) throw new Error('Failed to delete receivable');
+  return response.json();
+}
+
+// Payables API
+export async function fetchPayables(params = {}) {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/payables${queryString ? '?' + queryString : ''}`;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error('Failed to fetch payables');
+  return response.json();
+}
+
+export async function createPayable(data) {
+  const response = await fetch(`${API_BASE}/payables`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error('Failed to create payable');
+  return response.json();
+}
+
+export async function updatePayable(id, data) {
+  const response = await fetch(`${API_BASE}/payables`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, ...data })
+  });
+  if (!response.ok) throw new Error('Failed to update payable');
+  return response.json();
+}
+
+export async function deletePayable(id) {
+  const response = await fetch(`${API_BASE}/payables?id=${id}`, {
+    method: 'DELETE'
+  });
+  if (!response.ok) throw new Error('Failed to delete payable');
+  return response.json();
+}
+
+// Automation API
+export async function fetchAutomationRules(params = {}) {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/automation${queryString ? '?' + queryString : ''}`;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error('Failed to fetch automation rules');
+  return response.json();
+}
+
+export async function createAutomationRule(data) {
+  const response = await fetch(`${API_BASE}/automation`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error('Failed to create automation rule');
+  return response.json();
+}
+
+export async function updateAutomationRule(id, data) {
+  const response = await fetch(`${API_BASE}/automation`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, ...data })
+  });
+  if (!response.ok) throw new Error('Failed to update automation rule');
+  return response.json();
+}
+
+export async function deleteAutomationRule(id) {
+  const response = await fetch(`${API_BASE}/automation?id=${id}`, {
+    method: 'DELETE'
+  });
+  if (!response.ok) throw new Error('Failed to delete automation rule');
+  return response.json();
+}
