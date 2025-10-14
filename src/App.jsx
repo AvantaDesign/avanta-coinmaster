@@ -1,12 +1,33 @@
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import Home from './pages/Home';
 import Transactions from './pages/Transactions';
 import Fiscal from './pages/Fiscal';
 import Invoices from './pages/Invoices';
+import { initializeAnalytics, trackPageView } from './utils/analytics';
+import { initializeErrorMonitoring } from './utils/errorMonitoring';
+
+// Analytics page tracking component
+function AnalyticsTracker() {
+  const location = useLocation();
+
+  useEffect(() => {
+    trackPageView(location.pathname);
+  }, [location]);
+
+  return null;
+}
 
 function App() {
+  // Initialize analytics and error monitoring on app load
+  useEffect(() => {
+    initializeAnalytics();
+    initializeErrorMonitoring();
+  }, []);
+
   return (
     <Router>
+      <AnalyticsTracker />
       <div className="min-h-screen bg-gray-100">
         <nav className="bg-white shadow-lg">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
