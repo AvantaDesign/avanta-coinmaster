@@ -59,18 +59,7 @@ pages_build_output_dir = "dist"
 #
 # ============================================================================
 
-[[d1_databases]]
-# Variable name accessible in Workers code via env.DB
-binding = "DB"
-
-# Database name (must match the name used in wrangler d1 create)
-database_name = "avanta-finance"
-
-# Database ID from Cloudflare
-# TODO: Replace this with your actual database ID after running:
-#       wrangler d1 create avanta-finance
-# Example: database_id = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-database_id = "7b6bcbdc-457d-4a13-a500-246cd8f3d4e6"
+# D1 Database binding moved to [env.production] section below
 
 # ============================================================================
 # R2 STORAGE BINDING (S3-Compatible Object Storage)
@@ -101,15 +90,7 @@ database_id = "7b6bcbdc-457d-4a13-a500-246cd8f3d4e6"
 #
 # ============================================================================
 
-[[r2_buckets]]
-# Variable name accessible in Workers code via env.RECEIPTS
-binding = "RECEIPTS"
-
-# Bucket name (must match the name used in wrangler r2 bucket create)
-bucket_name = "avanta-receipts"
-
-# Optional: Preview bucket for development/staging
-# preview_bucket_name = "avanta-receipts-preview"
+# R2 Bucket binding moved to [env.production] section below
 
 # ============================================================================
 # ENVIRONMENT VARIABLES
@@ -179,6 +160,25 @@ ENVIRONMENT = "production"
 ENABLE_DEBUG_LOGS = "false"
 ENABLE_RATE_LIMITING = "true"
 ENABLE_ANALYTICS = "true"
+APP_VERSION = "1.0.0"
+API_TIMEOUT_MS = "30000"
+DB_QUERY_TIMEOUT_MS = "10000"
+DB_MAX_RETRIES = "3"
+MAX_FILE_SIZE_MB = "10"
+ALLOWED_FILE_TYPES = "pdf,jpg,jpeg,png,xml,csv"
+ISR_RATE = "0.20"
+IVA_RATE = "0.16"
+
+# D1 Database binding for production
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "avanta-finance"
+database_id = "7b6bcbdc-457d-4a13-a500-246cd8f3d4e6"
+
+# R2 Bucket binding for production
+[[env.production.r2_buckets]]
+binding = "RECEIPTS"
+bucket_name = "avanta-receipts"
 
 # ============================================================================
 # WORKERS FUNCTIONS CONFIGURATION
