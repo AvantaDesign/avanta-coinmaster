@@ -2,6 +2,8 @@
 
 This guide explains how to test the Cloudflare Workers API endpoints locally using Wrangler.
 
+**Important:** As of October 2025, the mock data system has been deprecated. All testing now uses real Cloudflare Workers backend with D1 database. This ensures consistency between development and production environments.
+
 ## Prerequisites
 
 1. **Install Wrangler CLI** (if not already installed):
@@ -72,27 +74,13 @@ wrangler d1 execute avanta-finance --local --file=schema.sql
 npx wrangler pages dev dist --d1 DB=avanta-finance --local --r2 RECEIPTS=avanta-receipts --port 8788
 ```
 
-### Method 3: Frontend Separate (Development Only)
+### Method 3: Frontend Separate (DEPRECATED - Not Recommended)
 
-Run frontend and Workers separately:
+**Note:** This method is no longer recommended since the mock data system was removed. The frontend requires the real backend API to function.
 
-**Terminal 1 - Frontend:**
-```bash
-npm run dev
-# Available at http://localhost:5173
-```
+~~Run frontend and Workers separately:~~
 
-**Terminal 2 - Workers:**
-```bash
-npm run build
-npx wrangler pages dev dist --d1 DB=avanta-finance --r2 RECEIPTS=avanta-receipts --port 8788
-# API available at http://localhost:8788/api/*
-```
-
-Update `src/utils/api.js` to point to the Workers port:
-```javascript
-const API_BASE = 'http://localhost:8788/api';
-```
+For development, use Method 1 (Wrangler Pages Dev) instead.
 
 ## Running the Test Script
 

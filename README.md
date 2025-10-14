@@ -471,7 +471,9 @@ Email: [tu-email]
 
 All features from the plan have been fully implemented and tested. The application is production-ready and can be deployed to Cloudflare Pages.
 
-See [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) for complete details.
+**Latest Update:** Mock data system has been deprecated. All API calls now use real Cloudflare Workers backend with D1 database integration. See [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) for complete details.
+
+**Development Note:** To run locally, use `npx wrangler pages dev dist --d1 DB=avanta-finance --r2 RECEIPTS=avanta-receipts --port 8788` after building.
 
 ---
 

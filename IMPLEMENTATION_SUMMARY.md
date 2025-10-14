@@ -4,6 +4,8 @@
 
 I have successfully created a complete, production-ready financial management application based on the README plan. This is a full-stack application built with modern web technologies and deployed on Cloudflare's edge network.
 
+**LATEST UPDATE (October 2025):** The application has been fully migrated to use real backend endpoints. Mock data system has been deprecated and all API calls now connect directly to Cloudflare Workers with D1 database integration.
+
 ## ✅ What Has Been Implemented
 
 ### Core Application (Semana 1 MVP - 100% Complete)
@@ -227,7 +229,8 @@ I have successfully created a complete, production-ready financial management ap
 - ✅ **Visual feedback** for drag-over state
 
 #### Utilities
-- `api.js` - API client functions for all endpoints
+- `api.js` - API client functions for all endpoints (✅ **NOW USES REAL BACKEND**)
+- `mockData.js` - **DEPRECATED** - Kept for reference only, no longer in use
 - `calculations.js` - Fiscal calculations (ISR, IVA) and formatting
 
 ### Documentation (9 Files) - **NEW: API_DOCUMENTATION.md + D1_TESTING_GUIDE.md + R2_SETUP_GUIDE.md**
@@ -980,6 +983,67 @@ All code follows best practices, includes comprehensive error handling, and is f
 5. Start using the application!
 
 **Questions?** Check the documentation or open an issue on GitHub.
+
+---
+
+## 🔄 Backend Migration Complete (Latest Update)
+
+### What Changed
+As of October 2025, the application has been fully migrated from the mock data system to real backend endpoints:
+
+**Before:**
+- Development mode used mock data (`USE_MOCK_DATA = import.meta.env.DEV`)
+- Production used real API endpoints
+- Two code paths to maintain
+
+**After:**
+- All environments use real backend endpoints from Cloudflare Workers + D1
+- Mock data system deprecated (kept for reference only)
+- Single, consistent code path
+- Simplified maintenance and testing
+
+### Files Modified
+- **src/utils/api.js**: Removed mock data conditionals, now always uses real endpoints
+- **src/utils/mockData.js**: Marked as DEPRECATED with historical note
+- **IMPLEMENTATION_SUMMARY.md**: Updated documentation to reflect changes
+
+### Benefits
+1. ✅ **Consistency**: Same behavior in dev and production
+2. ✅ **Simplicity**: Fewer conditionals, easier to maintain
+3. ✅ **Testing**: Real backend testing from the start
+4. ✅ **Reliability**: Catch integration issues earlier
+5. ✅ **Performance**: No mock data overhead
+
+### Development Setup Required
+To work with the real backend locally:
+
+```bash
+# 1. Build the frontend
+npm run build
+
+# 2. Start wrangler dev server with D1 and R2
+npx wrangler pages dev dist --d1 DB=avanta-finance --r2 RECEIPTS=avanta-receipts --port 8788
+
+# 3. Open http://localhost:8788
+```
+
+See [LOCAL_DEV_WITH_D1.md](LOCAL_DEV_WITH_D1.md) and [TESTING_PLAN.md](TESTING_PLAN.md) for detailed setup instructions.
+
+### API Compatibility
+All endpoints remain fully compatible:
+- ✅ `/api/dashboard` - Financial summary
+- ✅ `/api/transactions` - CRUD operations
+- ✅ `/api/accounts` - Account management
+- ✅ `/api/fiscal` - ISR/IVA calculations (20%/16%)
+- ✅ `/api/invoices` - CFDI management
+- ✅ `/api/upload` - R2 file storage
+
+### Tax System Integrity
+Mexican tax calculations remain unchanged:
+- ✅ ISR: 20% simplified rate (maintained)
+- ✅ IVA: 16% standard rate (maintained)
+- ✅ Deductible expense tracking (maintained)
+- ✅ Monthly fiscal summaries (maintained)
 
 ---
 
