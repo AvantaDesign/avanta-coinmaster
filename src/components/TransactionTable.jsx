@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { formatCurrency, formatDate } from '../utils/calculations';
-import { deleteTransaction, updateTransaction } from '../utils/api';
+import { deleteTransaction, updateTransaction, restoreTransaction } from '../utils/api';
 import { showSuccess, showError, showWarning } from '../utils/notifications';
 
 export default function TransactionTable({ transactions, onUpdate }) {
@@ -11,14 +11,24 @@ export default function TransactionTable({ transactions, onUpdate }) {
   const [sortOrder, setSortOrder] = useState('desc');
 
   const handleDelete = async (id) => {
-    if (confirm('¿Estás seguro de eliminar esta transacción?')) {
+    if (confirm('¿Estás seguro de eliminar esta transacción? (Se puede restaurar después)')) {
       try {
         await deleteTransaction(id);
-        showSuccess('Transacción eliminada exitosamente');
+        showSuccess('Transacción eliminada exitosamente (soft delete)');
         if (onUpdate) onUpdate();
       } catch (error) {
         showError(`Error al eliminar: ${error.message}`);
       }
+    }
+  };
+
+  const handleRestore = async (id) => {
+    try {
+      await restoreTransaction(id);
+      showSuccess('Transacción restaurada exitosamente');
+      if (onUpdate) onUpdate();
+    } catch (error) {
+      showError(`Error al restaurar: ${error.message}`);
     }
   };
 
@@ -80,7 +90,11 @@ export default function TransactionTable({ transactions, onUpdate }) {
       type: transaction.type,
       category: transaction.category,
       account: transaction.account || '',
-      is_deductible: transaction.is_deductible ? 1 : 0
+      is_deductible: transaction.is_deductible ? 1 : 0,
+      transaction_type: transaction.transaction_type || 'personal',
+      category_id: transaction.category_id || null,
+      linked_invoice_id: transaction.linked_invoice_id || null,
+      notes: transaction.notes || ''
     });
   };
 
@@ -210,6 +224,7 @@ export default function TransactionTable({ transactions, onUpdate }) {
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Clasificación</th>
               <th 
                 className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('amount')}
@@ -275,6 +290,17 @@ export default function TransactionTable({ transactions, onUpdate }) {
                       </select>
                     </td>
                     <td className="px-4 py-3 text-sm">
+                      <select
+                        value={editForm.transaction_type || 'personal'}
+                        onChange={(e) => setEditForm({ ...editForm, transaction_type: e.target.value })}
+                        className="border rounded px-2 py-1 w-full text-xs"
+                      >
+                        <option value="personal">👤 Personal</option>
+                        <option value="business">💼 Negocio</option>
+                        <option value="transfer">🔄 Transfer</option>
+                      </select>
+                    </td>
+                    <td className="px-4 py-3 text-sm">
                       <input
                         type="number"
                         step="0.01"
@@ -330,6 +356,25 @@ export default function TransactionTable({ transactions, onUpdate }) {
                       }`}>
                         {transaction.category}
                       </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        transaction.transaction_type === 'business' 
+                          ? 'bg-purple-100 text-purple-800' 
+                          : transaction.transaction_type === 'transfer'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {transaction.transaction_type === 'business' ? '💼 Negocio' : 
+                         transaction.transaction_type === 'transfer' ? '🔄 Transfer' : 
+                         '👤 Personal'}
+                      </span>
+                      {transaction.linked_invoice_id && (
+                        <span className="ml-1 text-xs" title="Factura vinculada">📄</span>
+                      )}
+                      {transaction.notes && (
+                        <span className="ml-1 text-xs" title={transaction.notes}>📝</span>
+                      )}
                     </td>
                     <td className={`px-4 py-3 text-sm text-right font-medium ${
                       transaction.type === 'ingreso' ? 'text-green-600' : 'text-red-600'
@@ -476,7 +521,7 @@ export default function TransactionTable({ transactions, onUpdate }) {
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
                   <span className={`px-2 py-0.5 rounded-full text-xs ${
                     transaction.type === 'ingreso' 
                       ? 'bg-green-100 text-green-800' 
@@ -491,9 +536,30 @@ export default function TransactionTable({ transactions, onUpdate }) {
                   }`}>
                     {transaction.category}
                   </span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs ${
+                    transaction.transaction_type === 'business' 
+                      ? 'bg-purple-100 text-purple-800' 
+                      : transaction.transaction_type === 'transfer'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : 'bg-gray-100 text-gray-800'
+                  }`}>
+                    {transaction.transaction_type === 'business' ? '💼 Negocio' : 
+                     transaction.transaction_type === 'transfer' ? '🔄 Transfer' : 
+                     '👤 Personal'}
+                  </span>
                   {transaction.is_deductible && (
                     <span className="px-2 py-0.5 rounded-full text-xs bg-purple-100 text-purple-800">
                       Deducible
+                    </span>
+                  )}
+                  {transaction.linked_invoice_id && (
+                    <span className="px-2 py-0.5 rounded-full text-xs bg-indigo-100 text-indigo-800">
+                      📄 Factura
+                    </span>
+                  )}
+                  {transaction.notes && (
+                    <span className="px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-800" title={transaction.notes}>
+                      📝 Notas
                     </span>
                   )}
                 </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { createTransaction, fetchTransactions } from '../utils/api';
+import { createTransaction, fetchTransactions, fetchCategories, fetchInvoices } from '../utils/api';
 import { showSuccess, showError } from '../utils/notifications';
 import SmartSuggestions from './SmartSuggestions';
 
@@ -13,15 +13,24 @@ export default function AddTransaction({ onSuccess }) {
     account: '',
     is_deductible: false,
     economic_activity: '',
-    receipt_url: ''
+    receipt_url: '',
+    // Phase 1: Advanced Transaction Classification fields
+    transaction_type: 'personal',
+    category_id: null,
+    linked_invoice_id: null,
+    notes: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [transactionHistory, setTransactionHistory] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [invoices, setInvoices] = useState([]);
 
   // Load transaction history for smart suggestions
   useEffect(() => {
     loadHistory();
+    loadCategories();
+    loadInvoices();
   }, []);
 
   const loadHistory = async () => {
@@ -31,6 +40,26 @@ export default function AddTransaction({ onSuccess }) {
     } catch (err) {
       // Silent fail - suggestions will work without history
       console.error('Failed to load history:', err);
+    }
+  };
+
+  const loadCategories = async () => {
+    try {
+      const result = await fetchCategories();
+      setCategories(result.data || result || []);
+    } catch (err) {
+      // Silent fail - categories are optional
+      console.error('Failed to load categories:', err);
+    }
+  };
+
+  const loadInvoices = async () => {
+    try {
+      const result = await fetchInvoices();
+      setInvoices(result.data || result || []);
+    } catch (err) {
+      // Silent fail - invoices are optional
+      console.error('Failed to load invoices:', err);
     }
   };
 
@@ -57,7 +86,11 @@ export default function AddTransaction({ onSuccess }) {
         account: '',
         is_deductible: false,
         economic_activity: '',
-        receipt_url: ''
+        receipt_url: '',
+        transaction_type: 'personal',
+        category_id: null,
+        linked_invoice_id: null,
+        notes: ''
       });
       
       if (onSuccess) onSuccess();
@@ -194,6 +227,78 @@ export default function AddTransaction({ onSuccess }) {
             />
             <span className="text-sm font-medium">Deducible</span>
           </label>
+        </div>
+
+        {/* Phase 1: Advanced Transaction Classification Fields */}
+        <div className="md:col-span-2 border-t pt-4 mt-4">
+          <h3 className="text-lg font-semibold mb-3 text-gray-700">Clasificación Avanzada</h3>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Tipo de Transacción</label>
+          <select
+            name="transaction_type"
+            value={formData.transaction_type}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border rounded-md"
+          >
+            <option value="personal">Personal</option>
+            <option value="business">Negocio</option>
+            <option value="transfer">Transferencia</option>
+          </select>
+          <p className="text-xs text-gray-500 mt-1">Clasificación fiscal de la transacción</p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Categoría Personalizada</label>
+          <select
+            name="category_id"
+            value={formData.category_id || ''}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border rounded-md"
+          >
+            <option value="">Sin categoría</option>
+            {categories.filter(cat => cat.is_active).map(cat => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-500 mt-1">Opcional: Categoría personalizada</p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Vincular Factura (CFDI)</label>
+          <select
+            name="linked_invoice_id"
+            value={formData.linked_invoice_id || ''}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border rounded-md"
+          >
+            <option value="">Sin factura</option>
+            {invoices.filter(inv => inv.status === 'active').map(inv => (
+              <option key={inv.id} value={inv.id}>
+                {inv.uuid?.substring(0, 8)}... - ${inv.total.toFixed(2)} ({inv.date})
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-500 mt-1">Opcional: Vincular con factura existente</p>
+        </div>
+
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium mb-1">Notas</label>
+          <textarea
+            name="notes"
+            value={formData.notes}
+            onChange={handleChange}
+            rows="3"
+            maxLength="1000"
+            className="w-full px-3 py-2 border rounded-md resize-none"
+            placeholder="Notas adicionales sobre esta transacción..."
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            {formData.notes.length}/1000 caracteres
+          </p>
         </div>
       </div>
 
