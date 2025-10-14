@@ -3,8 +3,10 @@
 
 const API_BASE = '/api';
 
-export async function fetchDashboard() {
-  const response = await fetch(`${API_BASE}/dashboard`);
+export async function fetchDashboard(params = {}) {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/dashboard${queryString ? '?' + queryString : ''}`;
+  const response = await fetch(url);
   if (!response.ok) throw new Error('Failed to fetch dashboard');
   return response.json();
 }
