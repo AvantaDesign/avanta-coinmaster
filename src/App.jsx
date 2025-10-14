@@ -4,6 +4,8 @@ import Home from './pages/Home';
 import Transactions from './pages/Transactions';
 import Fiscal from './pages/Fiscal';
 import Invoices from './pages/Invoices';
+import Accounts from './pages/Accounts';
+import Categories from './pages/Categories';
 import { initializeAnalytics, trackPageView } from './utils/analytics';
 import { initializeErrorMonitoring } from './utils/errorMonitoring';
 
@@ -50,6 +52,18 @@ function App() {
                     Transacciones
                   </Link>
                   <Link
+                    to="/accounts"
+                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
+                  >
+                    Cuentas
+                  </Link>
+                  <Link
+                    to="/categories"
+                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
+                  >
+                    Categorías
+                  </Link>
+                  <Link
                     to="/fiscal"
                     className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
                   >
@@ -75,6 +89,8 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/transactions" element={<Transactions />} />
+              <Route path="/accounts" element={<Accounts />} />
+              <Route path="/categories" element={<Categories />} />
               <Route path="/fiscal" element={<Fiscal />} />
               <Route path="/invoices" element={<Invoices />} />
             </Routes>

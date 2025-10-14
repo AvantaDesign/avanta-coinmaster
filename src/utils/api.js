@@ -53,6 +53,16 @@ export async function fetchAccounts() {
   return response.json();
 }
 
+export async function createAccount(data) {
+  const response = await fetch(`${API_BASE}/accounts`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error('Failed to create account');
+  return response.json();
+}
+
 export async function updateAccount(id, data) {
   const response = await fetch(`${API_BASE}/accounts/${id}`, {
     method: 'PUT',
@@ -60,6 +70,48 @@ export async function updateAccount(id, data) {
     body: JSON.stringify(data)
   });
   if (!response.ok) throw new Error('Failed to update account');
+  return response.json();
+}
+
+export async function deleteAccount(id) {
+  const response = await fetch(`${API_BASE}/accounts/${id}`, {
+    method: 'DELETE'
+  });
+  if (!response.ok) throw new Error('Failed to delete account');
+  return response.json();
+}
+
+export async function fetchCategories() {
+  const response = await fetch(`${API_BASE}/categories`);
+  if (!response.ok) throw new Error('Failed to fetch categories');
+  return response.json();
+}
+
+export async function createCategory(data) {
+  const response = await fetch(`${API_BASE}/categories`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error('Failed to create category');
+  return response.json();
+}
+
+export async function updateCategory(id, data) {
+  const response = await fetch(`${API_BASE}/categories/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error('Failed to update category');
+  return response.json();
+}
+
+export async function deleteCategory(id) {
+  const response = await fetch(`${API_BASE}/categories/${id}`, {
+    method: 'DELETE'
+  });
+  if (!response.ok) throw new Error('Failed to delete category');
   return response.json();
 }
 

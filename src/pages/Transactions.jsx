@@ -10,17 +10,50 @@ export default function Transactions() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filter, setFilter] = useState('all');
   const [showCSVImport, setShowCSVImport] = useState(false);
   const [accounts, setAccounts] = useState([]);
   const [statistics, setStatistics] = useState(null);
   
-  // Filter states
-  const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState('all');
-  const [accountFilter, setAccountFilter] = useState('all');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  // Filter states - Load from localStorage on mount
+  const loadFiltersFromStorage = () => {
+    try {
+      const saved = localStorage.getItem('transactionFilters');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (err) {
+      console.error('Error loading filters from localStorage:', err);
+    }
+    return {
+      filter: 'all',
+      searchTerm: '',
+      typeFilter: 'all',
+      accountFilter: 'all',
+      dateFrom: '',
+      dateTo: ''
+    };
+  };
+
+  const savedFilters = loadFiltersFromStorage();
+  const [filter, setFilter] = useState(savedFilters.filter);
+  const [searchTerm, setSearchTerm] = useState(savedFilters.searchTerm);
+  const [typeFilter, setTypeFilter] = useState(savedFilters.typeFilter);
+  const [accountFilter, setAccountFilter] = useState(savedFilters.accountFilter);
+  const [dateFrom, setDateFrom] = useState(savedFilters.dateFrom);
+  const [dateTo, setDateTo] = useState(savedFilters.dateTo);
+
+  // Save filters to localStorage whenever they change
+  useEffect(() => {
+    const filtersToSave = {
+      filter,
+      searchTerm,
+      typeFilter,
+      accountFilter,
+      dateFrom,
+      dateTo
+    };
+    localStorage.setItem('transactionFilters', JSON.stringify(filtersToSave));
+  }, [filter, searchTerm, typeFilter, accountFilter, dateFrom, dateTo]);
 
   useEffect(() => {
     loadAccounts();
