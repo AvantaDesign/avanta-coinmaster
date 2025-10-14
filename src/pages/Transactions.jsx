@@ -2,12 +2,15 @@ import { useState, useEffect } from 'react';
 import { fetchTransactions } from '../utils/api';
 import AddTransaction from '../components/AddTransaction';
 import TransactionTable from '../components/TransactionTable';
+import CSVImport from '../components/CSVImport';
+import { exportToCSV, downloadCSV } from '../utils/csvParser';
 
 export default function Transactions() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all');
+  const [showCSVImport, setShowCSVImport] = useState(false);
 
   useEffect(() => {
     loadTransactions();
@@ -23,6 +26,16 @@ export default function Transactions() {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExportCSV = () => {
+    try {
+      const csv = exportToCSV(transactions);
+      const filename = `transacciones-${new Date().toISOString().split('T')[0]}.csv`;
+      downloadCSV(csv, filename);
+    } catch (err) {
+      alert('Error al exportar: ' + err.message);
     }
   };
 
@@ -64,7 +77,32 @@ export default function Transactions() {
         </div>
       </div>
 
+      {/* Import/Export Actions */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => setShowCSVImport(true)}
+          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 flex items-center gap-2"
+        >
+          📥 Importar CSV
+        </button>
+        <button
+          onClick={handleExportCSV}
+          disabled={transactions.length === 0}
+          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400 flex items-center gap-2"
+        >
+          📤 Exportar CSV
+        </button>
+      </div>
+
       <AddTransaction onSuccess={loadTransactions} />
+
+      {/* CSV Import Modal */}
+      {showCSVImport && (
+        <CSVImport
+          onSuccess={loadTransactions}
+          onClose={() => setShowCSVImport(false)}
+        />
+      )}
 
       {loading && (
         <div className="text-center py-8">
