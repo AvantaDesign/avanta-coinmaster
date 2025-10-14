@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/3" xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Version="3.3" Serie="A" Folio="12345" Fecha="2025-01-15T10:30:00" FormaPago="03" SubTotal="12068.97" Moneda="MXN" Total="14000.00" TipoDeComprobante="I" MetodoPago="PUE" LugarExpedicion="06000">
+  <cfdi:Emisor Rfc="XAXX010101000" Nombre="EMPRESA EJEMPLO SA DE CV" RegimenFiscal="601"/>
+  <cfdi:Receptor Rfc="REGM000905T24" Nombre="REYES GONZALEZ MATEO" UsoCFDI="G03"/>
+  <cfdi:Conceptos>
+    <cfdi:Concepto ClaveProdServ="01010101" Cantidad="1" ClaveUnidad="ACT" Unidad="Actividad" Descripcion="Producción de videoclip comercial para marca" ValorUnitario="12068.97" Importe="12068.97"/>
+  </cfdi:Conceptos>
+  <cfdi:Impuestos TotalImpuestosTrasladados="1931.03">
+    <cfdi:Traslados>
+      <cfdi:Traslado Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="1931.03"/>
+    </cfdi:Traslados>
+  </cfdi:Impuestos>
+  <cfdi:Complemento>
+    <tfd:TimbreFiscalDigital xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" xsi:schemaLocation="http://www.sat.gob.mx/TimbreFiscalDigital" Version="1.1" UUID="12345678-1234-1234-1234-123456789012" FechaTimbrado="2025-01-15T10:35:00" SelloCFD="SELLO_EJEMPLO_CFD" NoCertificadoSAT="00001000000123456789" SelloSAT="SELLO_EJEMPLO_SAT"/>
+  </cfdi:Complemento>
+</cfdi:Comprobante>

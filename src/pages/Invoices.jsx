@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { fetchInvoices, createInvoice } from '../utils/api';
 import { formatCurrency, formatDate } from '../utils/calculations';
 import FileUpload from '../components/FileUpload';
+import CFDIImport from '../components/CFDIImport';
 
 export default function Invoices() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [showCFDIImport, setShowCFDIImport] = useState(false);
   const [formData, setFormData] = useState({
     uuid: '',
     rfc_emisor: '',
@@ -81,13 +83,29 @@ export default function Invoices() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Facturas CFDI</h1>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-        >
-          {showForm ? 'Cancelar' : 'Agregar Factura'}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowCFDIImport(true)}
+            className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 flex items-center gap-2"
+          >
+            📥 Importar XML
+          </button>
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+          >
+            {showForm ? 'Cancelar' : 'Agregar Manual'}
+          </button>
+        </div>
       </div>
+
+      {/* CFDI Import Modal */}
+      {showCFDIImport && (
+        <CFDIImport
+          onSuccess={loadInvoices}
+          onClose={() => setShowCFDIImport(false)}
+        />
+      )}
 
       {showForm && (
         <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md">
