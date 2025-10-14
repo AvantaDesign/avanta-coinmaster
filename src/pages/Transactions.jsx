@@ -21,7 +21,8 @@ export default function Transactions() {
       setLoading(true);
       const params = filter !== 'all' ? { category: filter } : {};
       const result = await fetchTransactions(params);
-      setTransactions(result);
+      // Handle new API response format with data, pagination, filters
+      setTransactions(result.data || result);
     } catch (err) {
       setError(err.message);
     } finally {
