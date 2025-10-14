@@ -3,14 +3,17 @@ import { fetchTransactions, fetchAccounts } from '../utils/api';
 import AddTransaction from '../components/AddTransaction';
 import TransactionTable from '../components/TransactionTable';
 import CSVImport from '../components/CSVImport';
+import ExportDialog from '../components/ExportDialog';
 import { exportToCSV, downloadCSV } from '../utils/csvParser';
 import { formatCurrency } from '../utils/calculations';
+import { showSuccess, showError } from '../utils/notifications';
 
 export default function Transactions() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showCSVImport, setShowCSVImport] = useState(false);
+  const [showExportDialog, setShowExportDialog] = useState(false);
   const [accounts, setAccounts] = useState([]);
   const [statistics, setStatistics] = useState(null);
   
@@ -98,13 +101,30 @@ export default function Transactions() {
   };
 
   const handleExportCSV = () => {
-    try {
-      const csv = exportToCSV(transactions);
-      const filename = `transacciones-${new Date().toISOString().split('T')[0]}.csv`;
-      downloadCSV(csv, filename);
-    } catch (err) {
-      alert('Error al exportar: ' + err.message);
+    if (transactions.length === 0) {
+      showError('No hay transacciones para exportar');
+      return;
     }
+    setShowExportDialog(true);
+  };
+  
+  const handleExportDialogClose = (success) => {
+    setShowExportDialog(false);
+    if (success) {
+      showSuccess('Transacciones exportadas exitosamente');
+    }
+  };
+  
+  // Prepare current filters for export metadata
+  const getCurrentFilters = () => {
+    const filters = {};
+    if (filter !== 'all') filters.categoria = filter;
+    if (searchTerm) filters.busqueda = searchTerm;
+    if (typeFilter !== 'all') filters.tipo = typeFilter;
+    if (accountFilter !== 'all') filters.cuenta = accountFilter;
+    if (dateFrom) filters.desde = dateFrom;
+    if (dateTo) filters.hasta = dateTo;
+    return filters;
   };
 
   const clearFilters = () => {
@@ -277,7 +297,7 @@ export default function Transactions() {
       )}
 
       {/* Import/Export Actions */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         <button
           onClick={() => setShowCSVImport(true)}
           className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 flex items-center gap-2"
@@ -289,7 +309,7 @@ export default function Transactions() {
           disabled={transactions.length === 0}
           className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400 flex items-center gap-2"
         >
-          📤 Exportar CSV
+          📤 Exportar
         </button>
       </div>
 
@@ -300,6 +320,15 @@ export default function Transactions() {
         <CSVImport
           onSuccess={loadTransactions}
           onClose={() => setShowCSVImport(false)}
+        />
+      )}
+
+      {/* Export Dialog */}
+      {showExportDialog && (
+        <ExportDialog
+          transactions={transactions}
+          filters={getCurrentFilters()}
+          onClose={handleExportDialogClose}
         />
       )}
 

@@ -3,9 +3,12 @@ import {
   parseGenericBankStatement, 
   parseBBVAStatement, 
   parseAztecaStatement,
-  validateTransactions 
+  validateTransactions,
+  parseWithMapping
 } from '../utils/csvParser';
 import { createTransaction } from '../utils/api';
+import { showSuccess, showError, showWarning } from '../utils/notifications';
+import CSVImportMapper from './CSVImportMapper';
 
 export default function CSVImport({ onSuccess, onClose }) {
   const [file, setFile] = useState(null);
@@ -15,6 +18,8 @@ export default function CSVImport({ onSuccess, onClose }) {
   const [error, setError] = useState(null);
   const [importing, setImporting] = useState(false);
   const [importProgress, setImportProgress] = useState({ current: 0, total: 0 });
+  const [showMapper, setShowMapper] = useState(false);
+  const [columnMapping, setColumnMapping] = useState(null);
   const fileInputRef = useRef(null);
 
   const handleFileSelect = (e) => {
@@ -58,17 +63,29 @@ export default function CSVImport({ onSuccess, onClose }) {
       const text = await file.text();
       
       let transactions;
-      switch (bankType) {
-        case 'bbva':
-          transactions = parseBBVAStatement(text);
-          break;
-        case 'azteca':
-          transactions = parseAztecaStatement(text);
-          break;
-        case 'auto':
-        default:
-          transactions = parseGenericBankStatement(text);
-          break;
+      
+      // If we have a custom mapping, use it
+      if (columnMapping) {
+        transactions = parseWithMapping(text, columnMapping);
+      } else {
+        // Use automatic bank detection
+        switch (bankType) {
+          case 'bbva':
+            transactions = parseBBVAStatement(text);
+            break;
+          case 'azteca':
+            transactions = parseAztecaStatement(text);
+            break;
+          case 'custom':
+            // Show mapper for custom format
+            setShowMapper(true);
+            setLoading(false);
+            return;
+          case 'auto':
+          default:
+            transactions = parseGenericBankStatement(text);
+            break;
+        }
       }
 
       // Validate transactions
@@ -80,14 +97,23 @@ export default function CSVImport({ onSuccess, onClose }) {
       });
 
       if (!validation.allValid) {
-        setError(`${validation.invalidCount} transacciones tienen errores de validación`);
+        showWarning(`${validation.invalidCount} transacciones tienen errores de validación`);
+      } else {
+        showSuccess(`${validation.validCount} transacciones válidas detectadas`);
       }
     } catch (err) {
       setError(err.message);
+      showError(`Error al parsear CSV: ${err.message}`);
       setParseResult(null);
     } finally {
       setLoading(false);
     }
+  };
+  
+  const handleMappingComplete = (mapping) => {
+    setColumnMapping(mapping);
+    setShowMapper(false);
+    parseFile();
   };
 
   const importTransactions = async () => {
@@ -122,11 +148,13 @@ export default function CSVImport({ onSuccess, onClose }) {
       }
 
       if (failed === 0) {
-        alert(`✅ ${imported} transacciones importadas exitosamente`);
+        showSuccess(`${imported} transacciones importadas exitosamente`);
         if (onSuccess) onSuccess();
         if (onClose) onClose();
       } else {
-        setError(`Importadas: ${imported}, Fallidas: ${failed}\n${errors.slice(0, 3).join('\n')}`);
+        const errorMsg = `Importadas: ${imported}, Fallidas: ${failed}`;
+        showError(errorMsg);
+        setError(`${errorMsg}\n${errors.slice(0, 3).join('\n')}`);
       }
     } catch (err) {
       setError('Error durante la importación: ' + err.message);
@@ -150,17 +178,31 @@ export default function CSVImport({ onSuccess, onClose }) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
       <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b sticky top-0 bg-white z-10">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold">Importar CSV de Banco</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 text-2xl"
-            >
-              ✕
-            </button>
+        {/* Show mapper if in custom mode */}
+        {showMapper ? (
+          <div className="p-6">
+            <CSVImportMapper
+              file={file}
+              onMappingComplete={handleMappingComplete}
+              onCancel={() => {
+                setShowMapper(false);
+                setFile(null);
+              }}
+            />
           </div>
-        </div>
+        ) : (
+          <>
+            <div className="p-6 border-b sticky top-0 bg-white z-10">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold">Importar CSV de Banco</h2>
+                <button
+                  onClick={onClose}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
 
         <div className="p-6 space-y-6">
           {/* Step 1: Select File */}
@@ -179,6 +221,7 @@ export default function CSVImport({ onSuccess, onClose }) {
                 <option value="auto">Detectar Automáticamente</option>
                 <option value="bbva">BBVA</option>
                 <option value="azteca">Banco Azteca</option>
+                <option value="custom">Personalizado (Mapear Columnas)</option>
               </select>
             </div>
 
@@ -378,6 +421,8 @@ export default function CSVImport({ onSuccess, onClose }) {
             </div>
           )}
         </div>
+          </>
+        )}
       </div>
     </div>
   );
