@@ -6,6 +6,7 @@ import Fiscal from './pages/Fiscal';
 import Invoices from './pages/Invoices';
 import Accounts from './pages/Accounts';
 import Categories from './pages/Categories';
+import ToastContainer from './components/ToastNotification';
 import { initializeAnalytics, trackPageView } from './utils/analytics';
 import { initializeErrorMonitoring } from './utils/errorMonitoring';
 
@@ -30,6 +31,7 @@ function App() {
   return (
     <Router>
       <AnalyticsTracker />
+      <ToastContainer />
       <div className="min-h-screen bg-gray-100">
         <nav className="bg-white shadow-lg">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

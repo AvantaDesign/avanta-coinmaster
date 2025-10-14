@@ -254,6 +254,83 @@ function findValue(obj, keys) {
 }
 
 /**
+ * Parse CSV with custom column mapping
+ * @param {string} csvText - Raw CSV content
+ * @param {object} mapping - Column mapping { field: csvColumn }
+ * @returns {Array} Array of parsed transactions
+ */
+export function parseWithMapping(csvText, mapping) {
+  try {
+    const rows = parseCSV(csvText);
+    const transactions = [];
+
+    for (const row of rows) {
+      // Map fields based on provided mapping
+      const transaction = {};
+      
+      // Required fields
+      if (mapping.date && row[mapping.date]) {
+        transaction.date = formatDate(row[mapping.date]);
+      }
+      
+      if (mapping.description && row[mapping.description]) {
+        transaction.description = cleanDescription(row[mapping.description]);
+      }
+      
+      if (mapping.amount && row[mapping.amount]) {
+        transaction.amount = parseAmount(row[mapping.amount]);
+      }
+      
+      // Optional fields
+      if (mapping.type && row[mapping.type]) {
+        const typeValue = row[mapping.type].toLowerCase();
+        transaction.type = typeValue.includes('ingreso') || typeValue.includes('income') || typeValue.includes('depósito') || typeValue.includes('deposito') || typeValue.includes('abono')
+          ? 'ingreso'
+          : 'gasto';
+      } else {
+        // Default to gasto if not specified
+        transaction.type = 'gasto';
+      }
+      
+      if (mapping.category && row[mapping.category]) {
+        const catValue = row[mapping.category].toLowerCase();
+        transaction.category = catValue.includes('avanta') || catValue.includes('negocio') || catValue.includes('business')
+          ? 'avanta'
+          : 'personal';
+      } else {
+        transaction.category = 'personal';
+      }
+      
+      if (mapping.account && row[mapping.account]) {
+        transaction.account = row[mapping.account];
+      } else {
+        transaction.account = 'Importado CSV';
+      }
+      
+      if (mapping.balance && row[mapping.balance]) {
+        transaction.balance = parseAmount(row[mapping.balance]);
+      }
+      
+      transaction.is_deductible = false;
+      transaction.source = 'Custom CSV Import';
+      
+      // Only add if we have the required fields
+      if (transaction.date && transaction.description && transaction.amount > 0) {
+        transactions.push(transaction);
+      }
+    }
+
+    if (transactions.length === 0) {
+      throw new Error('No se pudieron encontrar transacciones válidas con el mapeo proporcionado.');
+    }
+
+    return transactions;
+  } catch (error) {
+    throw new Error(`Error parsing CSV with mapping: ${error.message}`);
+  }
+}
+
+/**
  * Helper: Parse monetary amount from string
  * Handles: $1,234.56, 1.234,56, 1234.56, (1234.56) for negatives
  */

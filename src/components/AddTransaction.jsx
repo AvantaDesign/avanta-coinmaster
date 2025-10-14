@@ -1,5 +1,7 @@
-import { useState } from 'react';
-import { createTransaction } from '../utils/api';
+import { useState, useEffect } from 'react';
+import { createTransaction, fetchTransactions } from '../utils/api';
+import { showSuccess, showError } from '../utils/notifications';
+import SmartSuggestions from './SmartSuggestions';
 
 export default function AddTransaction({ onSuccess }) {
   const [formData, setFormData] = useState({
@@ -15,6 +17,22 @@ export default function AddTransaction({ onSuccess }) {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [transactionHistory, setTransactionHistory] = useState([]);
+
+  // Load transaction history for smart suggestions
+  useEffect(() => {
+    loadHistory();
+  }, []);
+
+  const loadHistory = async () => {
+    try {
+      const result = await fetchTransactions({ limit: 100 });
+      setTransactionHistory(result.data || result || []);
+    } catch (err) {
+      // Silent fail - suggestions will work without history
+      console.error('Failed to load history:', err);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,6 +44,8 @@ export default function AddTransaction({ onSuccess }) {
         ...formData,
         amount: parseFloat(formData.amount)
       });
+      
+      showSuccess('Transacción creada exitosamente');
       
       // Reset form
       setFormData({
@@ -43,9 +63,18 @@ export default function AddTransaction({ onSuccess }) {
       if (onSuccess) onSuccess();
     } catch (err) {
       setError(err.message);
+      showError(`Error al crear transacción: ${err.message}`);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSuggestionSelect = (suggestedCategory) => {
+    setFormData(prev => ({
+      ...prev,
+      category: suggestedCategory
+    }));
+    showSuccess(`Categoría cambiada a ${suggestedCategory}`);
   };
 
   const handleChange = (e) => {
@@ -129,6 +158,19 @@ export default function AddTransaction({ onSuccess }) {
             <option value="avanta">Avanta</option>
           </select>
         </div>
+        
+        {/* Smart Suggestions - Show after description and amount are entered */}
+        {formData.description && formData.amount && (
+          <div className="md:col-span-2">
+            <SmartSuggestions
+              description={formData.description}
+              amount={parseFloat(formData.amount) || 0}
+              history={transactionHistory}
+              onSelect={handleSuggestionSelect}
+              currentCategory={formData.category}
+            />
+          </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium mb-1">Cuenta</label>

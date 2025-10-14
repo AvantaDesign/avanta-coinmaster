@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { formatCurrency, formatDate } from '../utils/calculations';
 import { deleteTransaction, updateTransaction } from '../utils/api';
+import { showSuccess, showError, showWarning } from '../utils/notifications';
 
 export default function TransactionTable({ transactions, onUpdate }) {
   const [selectedIds, setSelectedIds] = useState([]);
@@ -13,9 +14,10 @@ export default function TransactionTable({ transactions, onUpdate }) {
     if (confirm('¿Estás seguro de eliminar esta transacción?')) {
       try {
         await deleteTransaction(id);
+        showSuccess('Transacción eliminada exitosamente');
         if (onUpdate) onUpdate();
       } catch (error) {
-        alert('Error al eliminar: ' + error.message);
+        showError(`Error al eliminar: ${error.message}`);
       }
     }
   };
@@ -27,9 +29,10 @@ export default function TransactionTable({ transactions, onUpdate }) {
       try {
         await Promise.all(selectedIds.map(id => deleteTransaction(id)));
         setSelectedIds([]);
+        showSuccess(`${selectedIds.length} transacciones eliminadas exitosamente`);
         if (onUpdate) onUpdate();
       } catch (error) {
-        alert('Error al eliminar: ' + error.message);
+        showError(`Error al eliminar: ${error.message}`);
       }
     }
   };
@@ -45,9 +48,10 @@ export default function TransactionTable({ transactions, onUpdate }) {
         })
       );
       setSelectedIds([]);
+      showSuccess(`${selectedIds.length} transacciones actualizadas a categoría ${newCategory}`);
       if (onUpdate) onUpdate();
     } catch (error) {
-      alert('Error al actualizar: ' + error.message);
+      showError(`Error al actualizar: ${error.message}`);
     }
   };
 
@@ -90,9 +94,10 @@ export default function TransactionTable({ transactions, onUpdate }) {
       await updateTransaction(editingId, editForm);
       setEditingId(null);
       setEditForm({});
+      showSuccess('Transacción actualizada exitosamente');
       if (onUpdate) onUpdate();
     } catch (error) {
-      alert('Error al actualizar: ' + error.message);
+      showError(`Error al actualizar: ${error.message}`);
     }
   };
 
