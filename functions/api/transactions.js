@@ -117,6 +117,10 @@ export async function onRequestGet(context) {
     const sortBy = url.searchParams.get('sort_by') || 'date';
     const sortOrder = url.searchParams.get('sort_order') || 'desc';
     const includeStats = url.searchParams.get('include_stats') === 'true';
+    const includeDeleted = url.searchParams.get('include_deleted') === 'true';
+    const transactionType = url.searchParams.get('transaction_type');
+    const categoryId = url.searchParams.get('category_id');
+    const linkedInvoiceId = url.searchParams.get('linked_invoice_id');
 
     // Validate enum values
     if (category && !['personal', 'avanta'].includes(category)) {
@@ -159,9 +163,24 @@ export async function onRequestGet(context) {
       });
     }
 
+    if (transactionType && !['business', 'personal', 'transfer'].includes(transactionType)) {
+      return new Response(JSON.stringify({ 
+        error: 'Invalid transaction_type. Must be "business", "personal", or "transfer"',
+        code: 'INVALID_PARAMETER'
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
+
     // Build dynamic query
     let query = 'SELECT * FROM transactions WHERE 1=1';
     const params = [];
+    
+    // Filter out soft-deleted transactions by default
+    if (!includeDeleted) {
+      query += ' AND (is_deleted IS NULL OR is_deleted = 0)';
+    }
     
     // Add filters
     if (category) {
@@ -209,6 +228,21 @@ export async function onRequestGet(context) {
       params.push(isDeductible === 'true' ? 1 : 0);
     }
 
+    if (transactionType) {
+      query += ' AND transaction_type = ?';
+      params.push(transactionType);
+    }
+
+    if (categoryId) {
+      query += ' AND category_id = ?';
+      params.push(parseInt(categoryId));
+    }
+
+    if (linkedInvoiceId) {
+      query += ' AND linked_invoice_id = ?';
+      params.push(parseInt(linkedInvoiceId));
+    }
+
     // Add sorting
     query += ` ORDER BY ${sortBy} ${sortOrder.toUpperCase()}`;
     
@@ -254,6 +288,11 @@ export async function onRequestGet(context) {
         let statsQuery = 'SELECT COUNT(*) as total, SUM(CASE WHEN type = "ingreso" THEN amount ELSE 0 END) as total_income, SUM(CASE WHEN type = "gasto" THEN amount ELSE 0 END) as total_expenses FROM transactions WHERE 1=1';
         const statsParams = [];
         
+        // Filter out soft-deleted transactions by default
+        if (!includeDeleted) {
+          statsQuery += ' AND (is_deleted IS NULL OR is_deleted = 0)';
+        }
+        
         // Apply same filters
         if (category) {
           statsQuery += ' AND category = ?';
@@ -290,6 +329,18 @@ export async function onRequestGet(context) {
         if (isDeductible !== null && isDeductible !== undefined) {
           statsQuery += ' AND is_deductible = ?';
           statsParams.push(isDeductible === 'true' ? 1 : 0);
+        }
+        if (transactionType) {
+          statsQuery += ' AND transaction_type = ?';
+          statsParams.push(transactionType);
+        }
+        if (categoryId) {
+          statsQuery += ' AND category_id = ?';
+          statsParams.push(parseInt(categoryId));
+        }
+        if (linkedInvoiceId) {
+          statsQuery += ' AND linked_invoice_id = ?';
+          statsParams.push(parseInt(linkedInvoiceId));
         }
 
         const statsResult = await env.DB.prepare(statsQuery).bind(...statsParams).first();
@@ -345,7 +396,11 @@ export async function onRequestGet(context) {
  *   account: string (optional),
  *   is_deductible: boolean (optional, default: false),
  *   economic_activity: string (optional),
- *   receipt_url: string (optional, URL)
+ *   receipt_url: string (optional, URL),
+ *   transaction_type: 'business' | 'personal' | 'transfer' (optional, default: 'personal'),
+ *   category_id: integer (optional, FK to categories table),
+ *   linked_invoice_id: integer (optional, FK to invoices table),
+ *   notes: string (optional)
  * }
  */
 export async function onRequestPost(context) {
@@ -384,7 +439,7 @@ export async function onRequestPost(context) {
       });
     }
 
-    const { date, description, amount, type, category, account, is_deductible, economic_activity, receipt_url } = data;
+    const { date, description, amount, type, category, account, is_deductible, economic_activity, receipt_url, transaction_type, category_id, linked_invoice_id, notes } = data;
     
     // Comprehensive validation
     const errors = [];
@@ -454,6 +509,32 @@ export async function onRequestPost(context) {
       }
     }
 
+    // Validate transaction_type
+    if (transaction_type && !['business', 'personal', 'transfer'].includes(transaction_type)) {
+      errors.push('transaction_type must be "business", "personal", or "transfer"');
+    }
+
+    // Validate category_id if provided
+    if (category_id !== undefined && category_id !== null) {
+      const numCategoryId = parseInt(category_id);
+      if (isNaN(numCategoryId) || numCategoryId <= 0) {
+        errors.push('category_id must be a positive integer');
+      }
+    }
+
+    // Validate linked_invoice_id if provided
+    if (linked_invoice_id !== undefined && linked_invoice_id !== null) {
+      const numInvoiceId = parseInt(linked_invoice_id);
+      if (isNaN(numInvoiceId) || numInvoiceId <= 0) {
+        errors.push('linked_invoice_id must be a positive integer');
+      }
+    }
+
+    // Validate notes length if provided
+    if (notes && notes.length > 1000) {
+      errors.push('notes must be 1000 characters or less');
+    }
+
     // Return validation errors if any
     if (errors.length > 0) {
       return new Response(JSON.stringify({ 
@@ -473,12 +554,16 @@ export async function onRequestPost(context) {
     const sanitizedAccount = account?.trim() || null;
     const sanitizedActivity = economic_activity?.trim() || null;
     const sanitizedReceiptUrl = receipt_url?.trim() || null;
+    const sanitizedTransactionType = transaction_type || 'personal';
+    const numCategoryId = category_id ? parseInt(category_id) : null;
+    const numLinkedInvoiceId = linked_invoice_id ? parseInt(linked_invoice_id) : null;
+    const sanitizedNotes = notes?.trim() || null;
 
     // Insert transaction
     try {
       const result = await env.DB.prepare(
-        `INSERT INTO transactions (date, description, amount, type, category, account, is_deductible, economic_activity, receipt_url)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        `INSERT INTO transactions (date, description, amount, type, category, account, is_deductible, economic_activity, receipt_url, transaction_type, category_id, linked_invoice_id, notes)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       ).bind(
         date,
         sanitizedDescription,
@@ -488,7 +573,11 @@ export async function onRequestPost(context) {
         sanitizedAccount,
         deductibleValue,
         sanitizedActivity,
-        sanitizedReceiptUrl
+        sanitizedReceiptUrl,
+        sanitizedTransactionType,
+        numCategoryId,
+        numLinkedInvoiceId,
+        sanitizedNotes
       ).run();
 
       // Fetch the created transaction to return it
@@ -609,7 +698,7 @@ export async function onRequestPut(context) {
       });
     }
 
-    const { date, description, amount, type, category, account, is_deductible, economic_activity, receipt_url } = data;
+    const { date, description, amount, type, category, account, is_deductible, economic_activity, receipt_url, transaction_type, category_id, linked_invoice_id, notes } = data;
     
     // Validate provided fields
     const errors = [];
@@ -659,6 +748,28 @@ export async function onRequestPut(context) {
           errors.push('receipt_url must be a valid URL or path');
         }
       }
+    }
+
+    if (transaction_type !== undefined && !['business', 'personal', 'transfer'].includes(transaction_type)) {
+      errors.push('transaction_type must be "business", "personal", or "transfer"');
+    }
+
+    if (category_id !== undefined && category_id !== null) {
+      const numCategoryId = parseInt(category_id);
+      if (isNaN(numCategoryId) || numCategoryId <= 0) {
+        errors.push('category_id must be a positive integer');
+      }
+    }
+
+    if (linked_invoice_id !== undefined && linked_invoice_id !== null) {
+      const numInvoiceId = parseInt(linked_invoice_id);
+      if (isNaN(numInvoiceId) || numInvoiceId <= 0) {
+        errors.push('linked_invoice_id must be a positive integer');
+      }
+    }
+
+    if (notes !== undefined && notes !== null && notes.length > 1000) {
+      errors.push('notes must be 1000 characters or less');
     }
 
     if (errors.length > 0) {
@@ -712,6 +823,22 @@ export async function onRequestPut(context) {
       updates.push('receipt_url = ?');
       params.push(receipt_url?.trim() || null);
     }
+    if (transaction_type !== undefined) {
+      updates.push('transaction_type = ?');
+      params.push(transaction_type);
+    }
+    if (category_id !== undefined) {
+      updates.push('category_id = ?');
+      params.push(category_id ? parseInt(category_id) : null);
+    }
+    if (linked_invoice_id !== undefined) {
+      updates.push('linked_invoice_id = ?');
+      params.push(linked_invoice_id ? parseInt(linked_invoice_id) : null);
+    }
+    if (notes !== undefined) {
+      updates.push('notes = ?');
+      params.push(notes?.trim() || null);
+    }
 
     // If no fields to update
     if (updates.length === 0) {
@@ -761,11 +888,24 @@ export async function onRequestPut(context) {
 }
 
 /**
+ * PATCH /api/transactions/:id
+ * Partially update a transaction (alternative to PUT)
+ * 
+ * Request body: Same as PUT (all fields optional, only provided fields will be updated)
+ */
+export async function onRequestPatch(context) {
+  // PATCH is functionally the same as PUT for this API
+  // Both allow partial updates
+  return onRequestPut(context);
+}
+
+/**
  * DELETE /api/transactions/:id
- * Delete a transaction
+ * Soft delete a transaction (sets is_deleted = 1)
  * 
  * Query Parameters:
  *   - confirm: boolean (must be 'true' for safety)
+ *   - permanent: boolean (if 'true', performs hard delete instead of soft delete)
  */
 export async function onRequestDelete(context) {
   const { env, request } = context;
@@ -773,11 +913,12 @@ export async function onRequestDelete(context) {
   const pathParts = url.pathname.split('/').filter(p => p);
   const id = pathParts[pathParts.length - 1];
   const confirm = url.searchParams.get('confirm');
+  const permanent = url.searchParams.get('permanent') === 'true';
   
   const corsHeaders = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
     'Access-Control-Allow-Headers': 'Content-Type',
   };
   
@@ -831,17 +972,37 @@ export async function onRequestDelete(context) {
       });
     }
 
-    // Delete the transaction
-    await env.DB.prepare('DELETE FROM transactions WHERE id = ?').bind(id).run();
-    
-    return new Response(JSON.stringify({
-      success: true,
-      message: 'Transaction deleted successfully',
-      deleted: existingTransaction
-    }), {
-      status: 200,
-      headers: corsHeaders
-    });
+    // Perform soft delete or hard delete based on permanent parameter
+    if (permanent) {
+      // Hard delete - permanently remove from database
+      await env.DB.prepare('DELETE FROM transactions WHERE id = ?').bind(id).run();
+      
+      return new Response(JSON.stringify({
+        success: true,
+        message: 'Transaction permanently deleted',
+        deleted: existingTransaction
+      }), {
+        status: 200,
+        headers: corsHeaders
+      });
+    } else {
+      // Soft delete - set is_deleted = 1
+      await env.DB.prepare('UPDATE transactions SET is_deleted = 1 WHERE id = ?').bind(id).run();
+      
+      // Fetch the updated transaction
+      const deletedTransaction = await env.DB.prepare(
+        'SELECT * FROM transactions WHERE id = ?'
+      ).bind(id).first();
+      
+      return new Response(JSON.stringify({
+        success: true,
+        message: 'Transaction soft deleted successfully',
+        data: deletedTransaction
+      }), {
+        status: 200,
+        headers: corsHeaders
+      });
+    }
 
   } catch (error) {
     console.error('Transactions DELETE Error:', error);
@@ -867,7 +1028,7 @@ export async function onRequestOptions(context) {
     status: 204,
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
       'Access-Control-Allow-Headers': 'Content-Type',
       'Access-Control-Max-Age': '86400',
     }

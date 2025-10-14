@@ -47,6 +47,15 @@ export async function deleteTransaction(id) {
   return response.json();
 }
 
+export async function restoreTransaction(id) {
+  const response = await fetch(`${API_BASE}/transactions/${id}/restore`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!response.ok) throw new Error('Failed to restore transaction');
+  return response.json();
+}
+
 export async function fetchAccounts() {
   const response = await fetch(`${API_BASE}/accounts`);
   if (!response.ok) throw new Error('Failed to fetch accounts');
