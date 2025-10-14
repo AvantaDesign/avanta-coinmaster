@@ -1,47 +1,263 @@
-// Dashboard API - Get balance and summary
+// Dashboard API - Get balance and comprehensive financial summary
+// This endpoint provides a complete overview of financial status including:
+// - Total balance across all accounts
+// - Current month income and expenses
+// - Year-to-date statistics
+// - Recent transactions
+// - Category breakdowns
+// - Spending trends
+// - Account summaries
+
+/**
+ * GET /api/dashboard
+ * Query Parameters:
+ *   - period: 'month' | 'year' | 'all' (default: 'month')
+ *   - include_categories: boolean (default: true)
+ *   - include_accounts: boolean (default: true)
+ *   - include_trends: boolean (default: true)
+ *   - recent_limit: number (default: 10, max: 50)
+ */
 export async function onRequestGet(context) {
-  const { env } = context;
+  const { env, request } = context;
+  const url = new URL(request.url);
+  
+  // Parse query parameters
+  const period = url.searchParams.get('period') || 'month';
+  const includeCategories = url.searchParams.get('include_categories') !== 'false';
+  const includeAccounts = url.searchParams.get('include_accounts') !== 'false';
+  const includeTrends = url.searchParams.get('include_trends') !== 'false';
+  const recentLimit = Math.min(parseInt(url.searchParams.get('recent_limit') || '10'), 50);
+
+  // Add CORS headers for cross-origin requests
+  const corsHeaders = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+  };
   
   try {
-    // Get total balance from accounts
-    const accountsResult = await env.DB.prepare(
-      'SELECT SUM(CASE WHEN type = "banco" THEN balance ELSE -balance END) as totalBalance FROM accounts'
-    ).first();
-    
-    const totalBalance = accountsResult?.totalBalance || 0;
-    
-    // Get this month's income and expenses
-    const now = new Date();
-    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
-    
-    const monthSummary = await env.DB.prepare(`
-      SELECT 
-        SUM(CASE WHEN type = 'ingreso' THEN amount ELSE 0 END) as income,
-        SUM(CASE WHEN type = 'gasto' THEN amount ELSE 0 END) as expenses
-      FROM transactions
-      WHERE date >= ? AND date <= ?
-    `).bind(firstDayOfMonth, lastDayOfMonth).first();
-    
-    // Get recent transactions
-    const recentTransactions = await env.DB.prepare(
-      'SELECT * FROM transactions ORDER BY date DESC, created_at DESC LIMIT 10'
-    ).all();
-    
-    return new Response(JSON.stringify({
-      totalBalance,
+    // Validate database connection
+    if (!env.DB) {
+      return new Response(JSON.stringify({ 
+        error: 'Database connection not available',
+        code: 'DB_NOT_CONFIGURED'
+      }), {
+        status: 503,
+        headers: corsHeaders
+      });
+    }
+
+    // Initialize response object
+    const dashboardData = {
+      timestamp: new Date().toISOString(),
+      period,
+      totalBalance: 0,
       thisMonth: {
-        income: monthSummary?.income || 0,
-        expenses: monthSummary?.expenses || 0
+        income: 0,
+        expenses: 0,
+        net: 0
       },
-      recentTransactions: recentTransactions.results || []
-    }), {
-      headers: { 'Content-Type': 'application/json' }
+      recentTransactions: []
+    };
+
+    // Get total balance from all accounts
+    try {
+      const accountsResult = await env.DB.prepare(
+        'SELECT SUM(CASE WHEN type = "banco" THEN balance ELSE -balance END) as totalBalance FROM accounts'
+      ).first();
+      
+      dashboardData.totalBalance = accountsResult?.totalBalance || 0;
+    } catch (error) {
+      console.error('Error fetching account balance:', error);
+      dashboardData.totalBalance = 0;
+      dashboardData.warnings = dashboardData.warnings || [];
+      dashboardData.warnings.push('Could not fetch account balance');
+    }
+    
+    // Calculate date ranges based on period
+    const now = new Date();
+    let startDate, endDate;
+    
+    if (period === 'year') {
+      startDate = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
+      endDate = new Date(now.getFullYear(), 11, 31).toISOString().split('T')[0];
+    } else if (period === 'all') {
+      startDate = '2000-01-01'; // Far past date to include all
+      endDate = '2099-12-31'; // Far future date
+    } else { // default to 'month'
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+    }
+
+    // Get current period income and expenses summary
+    try {
+      const monthSummary = await env.DB.prepare(`
+        SELECT 
+          SUM(CASE WHEN type = 'ingreso' THEN amount ELSE 0 END) as income,
+          SUM(CASE WHEN type = 'gasto' THEN amount ELSE 0 END) as expenses,
+          COUNT(*) as transaction_count
+        FROM transactions
+        WHERE date >= ? AND date <= ?
+      `).bind(startDate, endDate).first();
+      
+      dashboardData.thisMonth.income = monthSummary?.income || 0;
+      dashboardData.thisMonth.expenses = monthSummary?.expenses || 0;
+      dashboardData.thisMonth.net = dashboardData.thisMonth.income - dashboardData.thisMonth.expenses;
+      dashboardData.thisMonth.transaction_count = monthSummary?.transaction_count || 0;
+    } catch (error) {
+      console.error('Error fetching period summary:', error);
+      dashboardData.warnings = dashboardData.warnings || [];
+      dashboardData.warnings.push('Could not fetch period summary');
+    }
+
+    // Get category breakdown if requested
+    if (includeCategories) {
+      try {
+        const categoryBreakdown = await env.DB.prepare(`
+          SELECT 
+            category,
+            type,
+            SUM(amount) as total,
+            COUNT(*) as count
+          FROM transactions
+          WHERE date >= ? AND date <= ?
+          GROUP BY category, type
+          ORDER BY total DESC
+        `).bind(startDate, endDate).all();
+        
+        dashboardData.categoryBreakdown = categoryBreakdown.results || [];
+      } catch (error) {
+        console.error('Error fetching category breakdown:', error);
+        dashboardData.warnings = dashboardData.warnings || [];
+        dashboardData.warnings.push('Could not fetch category breakdown');
+      }
+    }
+
+    // Get account summaries if requested
+    if (includeAccounts) {
+      try {
+        const accounts = await env.DB.prepare(
+          'SELECT id, name, type, balance, updated_at FROM accounts ORDER BY type, name'
+        ).all();
+        
+        dashboardData.accounts = accounts.results || [];
+      } catch (error) {
+        console.error('Error fetching accounts:', error);
+        dashboardData.warnings = dashboardData.warnings || [];
+        dashboardData.warnings.push('Could not fetch accounts');
+      }
+    }
+
+    // Get spending trends if requested (last 6 months)
+    if (includeTrends && period !== 'all') {
+      try {
+        const trendsData = [];
+        for (let i = 5; i >= 0; i--) {
+          const trendMonth = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const trendStart = new Date(trendMonth.getFullYear(), trendMonth.getMonth(), 1).toISOString().split('T')[0];
+          const trendEnd = new Date(trendMonth.getFullYear(), trendMonth.getMonth() + 1, 0).toISOString().split('T')[0];
+          
+          const trendSummary = await env.DB.prepare(`
+            SELECT 
+              SUM(CASE WHEN type = 'ingreso' THEN amount ELSE 0 END) as income,
+              SUM(CASE WHEN type = 'gasto' THEN amount ELSE 0 END) as expenses
+            FROM transactions
+            WHERE date >= ? AND date <= ?
+          `).bind(trendStart, trendEnd).first();
+          
+          trendsData.push({
+            month: trendMonth.toISOString().slice(0, 7), // YYYY-MM format
+            income: trendSummary?.income || 0,
+            expenses: trendSummary?.expenses || 0,
+            net: (trendSummary?.income || 0) - (trendSummary?.expenses || 0)
+          });
+        }
+        
+        dashboardData.trends = trendsData;
+      } catch (error) {
+        console.error('Error fetching trends:', error);
+        dashboardData.warnings = dashboardData.warnings || [];
+        dashboardData.warnings.push('Could not fetch spending trends');
+      }
+    }
+
+    // Get recent transactions
+    try {
+      const recentTransactions = await env.DB.prepare(
+        'SELECT * FROM transactions ORDER BY date DESC, created_at DESC LIMIT ?'
+      ).bind(recentLimit).all();
+      
+      dashboardData.recentTransactions = recentTransactions.results || [];
+    } catch (error) {
+      console.error('Error fetching recent transactions:', error);
+      dashboardData.warnings = dashboardData.warnings || [];
+      dashboardData.warnings.push('Could not fetch recent transactions');
+    }
+
+    // Get deductible expenses summary for tax purposes
+    try {
+      const deductibleSummary = await env.DB.prepare(`
+        SELECT 
+          SUM(CASE WHEN is_deductible = 1 THEN amount ELSE 0 END) as deductible,
+          COUNT(CASE WHEN is_deductible = 1 THEN 1 END) as deductible_count
+        FROM transactions
+        WHERE date >= ? AND date <= ? AND type = 'gasto'
+      `).bind(startDate, endDate).first();
+      
+      dashboardData.deductible = {
+        amount: deductibleSummary?.deductible || 0,
+        count: deductibleSummary?.deductible_count || 0
+      };
+    } catch (error) {
+      console.error('Error fetching deductible summary:', error);
+      dashboardData.warnings = dashboardData.warnings || [];
+      dashboardData.warnings.push('Could not fetch deductible expenses');
+    }
+
+    // Calculate quick financial health indicators
+    dashboardData.indicators = {
+      savingsRate: dashboardData.thisMonth.income > 0 
+        ? ((dashboardData.thisMonth.net / dashboardData.thisMonth.income) * 100).toFixed(2)
+        : 0,
+      expenseRatio: dashboardData.thisMonth.income > 0
+        ? ((dashboardData.thisMonth.expenses / dashboardData.thisMonth.income) * 100).toFixed(2)
+        : 0,
+      isPositive: dashboardData.thisMonth.net >= 0
+    };
+
+    return new Response(JSON.stringify(dashboardData), {
+      status: 200,
+      headers: corsHeaders
     });
+
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error('Dashboard API Error:', error);
+    
+    return new Response(JSON.stringify({ 
+      error: 'Internal server error',
+      message: error.message,
+      code: 'INTERNAL_ERROR',
+      timestamp: new Date().toISOString()
+    }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
+      headers: corsHeaders
     });
   }
+}
+
+/**
+ * Handle OPTIONS requests for CORS preflight
+ */
+export async function onRequestOptions(context) {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Max-Age': '86400',
+    }
+  });
 }

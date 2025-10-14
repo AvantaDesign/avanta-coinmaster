@@ -1,21 +1,259 @@
+# ============================================================================
+# Cloudflare Workers Configuration for Avanta Finance
+# ============================================================================
+# 
+# This configuration file defines the settings for deploying Avanta Finance
+# to Cloudflare Pages with Workers Functions, D1 Database, and R2 Storage.
+#
+# Documentation: https://developers.cloudflare.com/workers/wrangler/configuration/
+#
+# ============================================================================
+
+# Application name (must be unique across Cloudflare)
 name = "avanta-finance"
+
+# Compatibility date determines which Cloudflare Workers runtime features are available
+# Format: YYYY-MM-DD
+# See: https://developers.cloudflare.com/workers/platform/compatibility-dates/
 compatibility_date = "2024-01-01"
 
-# Pages configuration
+# ============================================================================
+# CLOUDFLARE PAGES CONFIGURATION
+# ============================================================================
+
+# Directory containing the built static assets
+# This is where Vite outputs the production build
 pages_build_output_dir = "dist"
 
-# D1 Database binding
+# ============================================================================
+# D1 DATABASE BINDING (SQLite at the Edge)
+# ============================================================================
+# 
+# D1 is Cloudflare's distributed SQLite database running at the edge.
+# It provides low-latency SQL database access from Workers.
+#
+# Setup Instructions:
+# 1. Create the database:
+#    wrangler d1 create avanta-finance
+# 
+# 2. Copy the database_id from the output and replace the placeholder below
+#
+# 3. Run migrations to create tables:
+#    wrangler d1 execute avanta-finance --file=schema.sql
+#
+# 4. (Optional) Load seed data:
+#    wrangler d1 execute avanta-finance --file=seed.sql
+#
+# Local Development:
+#   wrangler pages dev dist --d1 DB=avanta-finance
+#
+# Database Operations:
+#   List databases:     wrangler d1 list
+#   Query database:     wrangler d1 execute avanta-finance --command="SELECT * FROM transactions LIMIT 5"
+#   Backup database:    wrangler d1 export avanta-finance --output=backup.sql
+#
+# Free Tier Limits:
+#   - Storage: 5 GB
+#   - Reads: 5 million per day
+#   - Writes: 100,000 per day
+#
+# ============================================================================
+
 [[d1_databases]]
+# Variable name accessible in Workers code via env.DB
 binding = "DB"
+
+# Database name (must match the name used in wrangler d1 create)
 database_name = "avanta-finance"
-# TODO: Replace the placeholder below with the actual database ID from `wrangler d1 create`
+
+# Database ID from Cloudflare
+# TODO: Replace this with your actual database ID after running:
+#       wrangler d1 create avanta-finance
+# Example: database_id = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
 database_id = "your-database-id-here"
 
-# R2 Bucket binding
+# ============================================================================
+# R2 STORAGE BINDING (S3-Compatible Object Storage)
+# ============================================================================
+#
+# R2 is Cloudflare's object storage service for files, images, and documents.
+# It's S3-compatible with zero egress fees.
+#
+# Setup Instructions:
+# 1. Create the R2 bucket:
+#    wrangler r2 bucket create avanta-receipts
+#
+# 2. The bucket will be automatically bound based on the configuration below
+#
+# Local Development:
+#   wrangler pages dev dist --r2 RECEIPTS=avanta-receipts
+#
+# R2 Operations:
+#   List buckets:       wrangler r2 bucket list
+#   List objects:       wrangler r2 object list avanta-receipts
+#   Delete bucket:      wrangler r2 bucket delete avanta-receipts
+#
+# Free Tier Limits:
+#   - Storage: 10 GB
+#   - Class A Operations: 1 million per month (writes)
+#   - Class B Operations: 10 million per month (reads)
+#   - Egress: FREE (no data transfer fees)
+#
+# ============================================================================
+
 [[r2_buckets]]
+# Variable name accessible in Workers code via env.RECEIPTS
 binding = "RECEIPTS"
+
+# Bucket name (must match the name used in wrangler r2 bucket create)
 bucket_name = "avanta-receipts"
 
-# Environment variables (optional)
+# Optional: Preview bucket for development/staging
+# preview_bucket_name = "avanta-receipts-preview"
+
+# ============================================================================
+# ENVIRONMENT VARIABLES
+# ============================================================================
+#
+# These variables are accessible in Workers code via env.VARIABLE_NAME
+# They can be overridden per environment (production, preview)
+#
+# ============================================================================
+
 [vars]
+# Environment identifier
 ENVIRONMENT = "production"
+
+# Application version (update with each deployment)
+APP_VERSION = "1.0.0"
+
+# API Configuration
+API_TIMEOUT_MS = "30000"
+
+# Feature flags (can be toggled without code changes)
+ENABLE_DEBUG_LOGS = "false"
+ENABLE_RATE_LIMITING = "false"
+ENABLE_ANALYTICS = "true"
+
+# Database Configuration
+DB_QUERY_TIMEOUT_MS = "5000"
+DB_MAX_RETRIES = "3"
+
+# File Upload Configuration
+MAX_FILE_SIZE_MB = "10"
+ALLOWED_FILE_TYPES = "image/jpeg,image/png,image/gif,application/pdf,text/xml"
+
+# Fiscal Configuration (Mexican Tax System)
+ISR_RATE = "0.20"  # 20% ISR rate (simplified)
+IVA_RATE = "0.16"  # 16% IVA rate
+
+# ============================================================================
+# PREVIEW ENVIRONMENT VARIABLES (for staging/testing)
+# ============================================================================
+# 
+# These override the main [vars] when deploying to preview branches
+#
+# ============================================================================
+
+[env.preview.vars]
+ENVIRONMENT = "preview"
+ENABLE_DEBUG_LOGS = "true"
+ENABLE_RATE_LIMITING = "false"
+
+# ============================================================================
+# PRODUCTION ENVIRONMENT (explicit configuration)
+# ============================================================================
+
+[env.production.vars]
+ENVIRONMENT = "production"
+ENABLE_DEBUG_LOGS = "false"
+ENABLE_RATE_LIMITING = "true"
+ENABLE_ANALYTICS = "true"
+
+# ============================================================================
+# WORKERS FUNCTIONS CONFIGURATION
+# ============================================================================
+#
+# Configuration for Cloudflare Pages Functions (Workers)
+# Functions are automatically deployed from the /functions directory
+#
+# Routes:
+#   /api/dashboard        - GET: Financial dashboard summary
+#   /api/transactions     - GET, POST: List/Create transactions
+#   /api/transactions/:id - GET, PUT, DELETE: Single transaction operations
+#   /api/accounts         - GET: List accounts
+#   /api/accounts/:id     - PUT: Update account balance
+#   /api/fiscal           - GET: Tax calculations (ISR, IVA)
+#   /api/invoices         - GET, POST: CFDI invoice management
+#   /api/upload           - POST: File upload to R2
+#
+# ============================================================================
+
+# ============================================================================
+# ADVANCED CONFIGURATION (Optional)
+# ============================================================================
+
+# Limits and Performance
+# [limits]
+# CPU time limit per request (in milliseconds, max 30000 for Bundled)
+# cpu_ms = 50
+
+# Observability Configuration
+# [observability]
+# enabled = true
+# head_sampling_rate = 1
+
+# Custom Routes (if needed)
+# [[routes]]
+# pattern = "/api/*"
+# custom_domain = true
+
+# ============================================================================
+# DEPLOYMENT INSTRUCTIONS
+# ============================================================================
+#
+# Local Development:
+#   1. Install dependencies:         npm install
+#   2. Build the application:        npm run build
+#   3. Start dev server:             npm run dev
+#   4. Preview with Workers:         npx wrangler pages dev dist
+#
+# Production Deployment:
+#   1. Login to Cloudflare:          wrangler login
+#   2. Create D1 database:           wrangler d1 create avanta-finance
+#   3. Update database_id above with the output ID
+#   4. Run migrations:               wrangler d1 execute avanta-finance --file=schema.sql
+#   5. Create R2 bucket:             wrangler r2 bucket create avanta-receipts
+#   6. Build application:            npm run build
+#   7. Deploy to Pages:              wrangler pages deploy dist
+#   8. Configure bindings in Dashboard (if not auto-configured)
+#
+# Continuous Deployment:
+#   - Push to main branch triggers automatic deployment via GitHub Actions
+#   - See .github/workflows/deploy.yml for CI/CD configuration
+#
+# Troubleshooting:
+#   - List databases:     wrangler d1 list
+#   - List buckets:       wrangler r2 bucket list
+#   - View logs:          wrangler pages deployment tail
+#   - Test query:         wrangler d1 execute avanta-finance --command="SELECT COUNT(*) FROM transactions"
+#
+# Documentation:
+#   - Wrangler:          https://developers.cloudflare.com/workers/wrangler/
+#   - D1:                https://developers.cloudflare.com/d1/
+#   - R2:                https://developers.cloudflare.com/r2/
+#   - Pages Functions:   https://developers.cloudflare.com/pages/functions/
+#
+# ============================================================================
+
+# ============================================================================
+# NOTES
+# ============================================================================
+#
+# 1. Database ID: Must be replaced with actual ID from `wrangler d1 create`
+# 2. Bindings: Ensure D1 and R2 bindings are configured in Cloudflare Dashboard
+# 3. Secrets: For sensitive data, use `wrangler secret put` instead of vars
+# 4. Custom Domain: Configure in Cloudflare Dashboard under Pages settings
+# 5. Analytics: Enable in Cloudflare Dashboard for detailed metrics
+#
+# ============================================================================
