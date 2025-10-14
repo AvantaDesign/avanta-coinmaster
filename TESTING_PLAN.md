@@ -10,14 +10,56 @@
 
 ## 🎯 Plan de Pruebas Completo
 
-### 1. **Dashboard Principal** (`/`)
-**Objetivo:** Verificar que el dashboard muestre datos reales
+### 0. **Base de Datos D1** (Pre-requisito)
+**Objetivo:** Verificar configuración y operación de Cloudflare D1
 
 **Pruebas a realizar:**
-- [ ] **Balance Total:** Debe mostrar $116,500 (cuentas bancarias - créditos)
-- [ ] **Ingresos del Mes:** Debe mostrar $18,200 (enero 2025)
-- [ ] **Gastos del Mes:** Debe mostrar $9,900 (enero 2025)
-- [ ] **Últimas Transacciones:** Debe mostrar 5 transacciones más recientes
+- [ ] **Infraestructura D1:**
+  - [ ] Wrangler CLI instalado y autenticado
+  - [ ] Database creada: `wrangler d1 list` muestra `avanta-finance`
+  - [ ] Database ID configurado en wrangler.toml
+  - [ ] Conexión verificada: `wrangler d1 execute avanta-finance --command="SELECT 1"`
+- [ ] **Schema y Migraciones:**
+  - [ ] Tabla `transactions` creada con todos los campos
+  - [ ] Tabla `accounts` creada con datos por defecto
+  - [ ] Tabla `invoices` creada con constraints UUID
+  - [ ] Tabla `fiscal_payments` creada con unique constraint
+  - [ ] Todos los índices creados (5 índices)
+- [ ] **Operaciones CRUD:**
+  - [ ] INSERT: Agregar nueva transacción
+  - [ ] SELECT: Leer transacciones con filtros
+  - [ ] UPDATE: Modificar transacción existente
+  - [ ] DELETE: Eliminar transacción de prueba
+  - [ ] Constraints: Validar tipos (ingreso/gasto) y categorías (personal/avanta)
+- [ ] **Queries de Negocio:**
+  - [ ] Balance total: SUM de cuentas banco - crédito
+  - [ ] Ingresos mensuales: SUM con filtro fecha y tipo='ingreso'
+  - [ ] Gastos deducibles: SUM con filtro is_deductible=1
+  - [ ] Cálculo ISR: (ingresos - gastos deducibles) * 0.20
+  - [ ] Cálculo IVA: (IVA cobrado - IVA pagado) * 0.16
+- [ ] **Performance:**
+  - [ ] Query con índice de fecha < 100ms
+  - [ ] Agregaciones SUM/COUNT < 200ms
+  - [ ] INSERT/UPDATE/DELETE < 50ms
+- [ ] **Error Handling:**
+  - [ ] Conexión fallida retorna error 503
+  - [ ] Query inválido retorna error 500
+  - [ ] Constraint violation retorna error apropiado
+
+**Script de Prueba:** `./test-d1-database.sh test`
+
+**Documentación:** Ver `D1_TESTING_GUIDE.md` para detalles completos
+
+---
+
+### 1. **Dashboard Principal** (`/`)
+**Objetivo:** Verificar que el dashboard muestre datos reales desde D1
+
+**Pruebas a realizar:**
+- [ ] **Balance Total:** Debe mostrar balance correcto desde accounts table
+- [ ] **Ingresos del Mes:** Calculado desde transactions con filtro fecha
+- [ ] **Gastos del Mes:** Calculado desde transactions con filtro fecha
+- [ ] **Últimas Transacciones:** Top 5-10 de transactions ORDER BY date DESC
 - [ ] **Botones de Acción:** 
   - [ ] "Ver Transacciones" → navega a `/transactions`
   - [ ] "Vista Fiscal" → navega a `/fiscal`
@@ -26,60 +68,80 @@
   - [ ] "Ver Cálculo Fiscal" → navega a `/fiscal`
 
 ### 2. **Página de Transacciones** (`/transactions`)
-**Objetivo:** Verificar CRUD completo de transacciones
+**Objetivo:** Verificar CRUD completo de transacciones con D1
 
 **Pruebas a realizar:**
-- [ ] **Lista de Transacciones:** Debe mostrar todas las 6 transacciones mock
+- [ ] **Lista de Transacciones:** Debe mostrar todas las transacciones desde D1
+- [ ] **Conexión D1:** Verificar que datos vienen de database, no mock
 - [ ] **Filtros:** 
   - [ ] Filtrar por categoría (Personal/Avanta)
   - [ ] Filtrar por tipo (Ingreso/Gasto)
+  - [ ] Filtrar por rango de fechas
+  - [ ] Filtrar por cuenta
+  - [ ] Filtrar por deducible/no deducible
 - [ ] **Agregar Transacción:**
   - [ ] Formulario se abre correctamente
-  - [ ] Campos requeridos funcionan
-  - [ ] Nueva transacción aparece en la lista
+  - [ ] Campos requeridos funcionan (validación frontend)
+  - [ ] Validación backend (API retorna errores apropiados)
+  - [ ] Nueva transacción se guarda en D1
+  - [ ] Nueva transacción aparece en la lista sin recargar
+  - [ ] ID generado por D1 (AUTOINCREMENT)
 - [ ] **Editar Transacción:**
   - [ ] Botón de editar funciona
-  - [ ] Formulario se pre-llena con datos existentes
-  - [ ] Cambios se guardan correctamente
+  - [ ] Formulario se pre-llena con datos desde D1
+  - [ ] Cambios se guardan en D1 (UPDATE)
+  - [ ] Cambios se reflejan inmediatamente en lista
 - [ ] **Eliminar Transacción:**
-  - [ ] Confirmación de eliminación
-  - [ ] Transacción se elimina de la lista
+  - [ ] Confirmación de eliminación (confirm=true)
+  - [ ] Transacción se elimina de D1
+  - [ ] Transacción desaparece de la lista
+  - [ ] No se puede eliminar sin confirmación
 
 ### 3. **Vista Fiscal** (`/fiscal`)
-**Objetivo:** Verificar cálculos fiscales correctos
+**Objetivo:** Verificar cálculos fiscales correctos desde D1
 
 **Pruebas a realizar:**
-- [ ] **Datos del Mes Actual (Enero 2025):**
-  - [ ] Ingresos: $18,200
-  - [ ] Gastos Deducibles: $9,900
-  - [ ] Utilidad: $8,300
-  - [ ] ISR Provisional: $1,660 (20% de utilidad)
-  - [ ] IVA a Pagar: $1,328 (16% de diferencia)
-  - [ ] Fecha Límite: 17 de Febrero 2025
+- [ ] **Datos del Mes Actual:**
+  - [ ] Ingresos: Calculados desde D1 (SUM where type='ingreso')
+  - [ ] Gastos Deducibles: Calculados desde D1 (SUM where is_deductible=1)
+  - [ ] Utilidad: Ingresos - Gastos Deducibles
+  - [ ] ISR Provisional: Utilidad × 20%
+  - [ ] IVA a Pagar: (IVA Cobrado - IVA Pagado) = 16% diferencia
+  - [ ] Fecha Límite: 17 del mes siguiente
 - [ ] **Selector de Mes/Año:**
-  - [ ] Cambiar a diferentes meses
-  - [ ] Cálculos se actualizan correctamente
-- [ ] **Historial de Pagos:** Debe estar vacío (nuevo sistema)
+  - [ ] Cambiar a diferentes meses actualiza query D1
+  - [ ] Cálculos se actualizan con datos del mes seleccionado
+  - [ ] Manejo de meses sin transacciones (valores en 0)
+- [ ] **Historial de Pagos:** 
+  - [ ] Lee desde fiscal_payments table
+  - [ ] Muestra status (pending/paid/overdue)
+  - [ ] Permite registrar nuevo pago
 
 ### 4. **Página de Facturas** (`/invoices`)
-**Objetivo:** Verificar gestión de facturas CFDI
+**Objetivo:** Verificar gestión de facturas CFDI con D1
 
 **Pruebas a realizar:**
-- [ ] **Lista de Facturas:** Debe mostrar 2 facturas mock
+- [ ] **Lista de Facturas:** Debe mostrar facturas desde invoices table
 - [ ] **Filtros:**
-  - [ ] Facturas Emitidas (RFC: REGM000905T24 como emisor)
-  - [ ] Facturas Recibidas (RFC: REGM000905T24 como receptor)
+  - [ ] Facturas Emitidas (rfc_emisor = REGM000905T24)
+  - [ ] Facturas Recibidas (rfc_receptor = REGM000905T24)
+  - [ ] Status (active/cancelled)
 - [ ] **Detalles de Factura:**
-  - [ ] UUID único para cada factura
+  - [ ] UUID único (constraint UNIQUE en D1)
   - [ ] RFC emisor y receptor correctos
   - [ ] Montos (subtotal, IVA, total)
-  - [ ] Estado (vigente)
+  - [ ] Cálculo IVA = total - subtotal
+  - [ ] Estado (vigente/cancelada)
+  - [ ] URL XML (si existe)
 - [ ] **Agregar Factura:**
-  - [ ] Formulario funciona
+  - [ ] Formulario funciona con validación
+  - [ ] Validación UUID único (D1 constraint)
+  - [ ] Nueva factura se guarda en D1
   - [ ] Nueva factura aparece en la lista
 - [ ] **Subir Archivo:**
-  - [ ] Simulación de upload funciona
-  - [ ] URL generada correctamente
+  - [ ] Upload XML a R2
+  - [ ] URL generada y guardada en D1
+  - [ ] Archivo accesible desde URL
 
 ### 5. **Navegación y UI**
 **Objetivo:** Verificar experiencia de usuario completa
@@ -100,84 +162,287 @@
   - [ ] Sombras y bordes redondeados
 
 ### 6. **Funcionalidades Avanzadas**
-**Objetivo:** Verificar características específicas del sistema fiscal mexicano
+**Objetivo:** Verificar características específicas del sistema fiscal mexicano con D1
 
 **Pruebas a realizar:**
 - [ ] **Actividades Económicas:**
-  - [ ] 512191 - Producción videoclips (21%)
-  - [ ] 463111 - Comercio artesanías (19%)
+  - [ ] 512191 - Producción videoclips (guardado en D1)
+  - [ ] 463111 - Comercio artesanías (guardado en D1)
   - [ ] Otras actividades disponibles
+  - [ ] Query de agregación por actividad económica
 - [ ] **Clasificación de Gastos:**
-  - [ ] Gastos deducibles vs no deducibles
-  - [ ] Categorización Personal vs Avanta
+  - [ ] Gastos deducibles vs no deducibles (is_deductible field)
+  - [ ] Categorización Personal vs Avanta (category field)
+  - [ ] Filtros en queries funcionan correctamente
 - [ ] **Cálculos Fiscales:**
-  - [ ] Tasa ISR 20% simplificada
-  - [ ] IVA 16% correcto
-  - [ ] Fechas límite día 17
+  - [ ] Tasa ISR 20% simplificada (desde D1 aggregations)
+  - [ ] IVA 16% correcto (desde D1 aggregations)
+  - [ ] Fechas límite día 17 (calculado en fiscal_payments)
+- [ ] **Integridad de Datos:**
+  - [ ] Constraints de tipo y categoría funcionan
+  - [ ] UUIDs únicos en invoices
+  - [ ] Year/month únicos en fiscal_payments
+  - [ ] Foreign keys respetados (si aplican)
+- [ ] **Performance D1:**
+  - [ ] Queries con índices son rápidos (< 100ms)
+  - [ ] Aggregaciones funcionan eficientemente
+  - [ ] No timeouts en queries normales
+
+---
+
+### 7. **API Endpoints con D1** (Backend Testing)
+**Objetivo:** Verificar que todos los endpoints API funcionan correctamente con D1
+
+**Pruebas a realizar:**
+
+#### Dashboard API (`/api/dashboard`)
+- [ ] GET request retorna datos desde D1
+- [ ] Balance total calculado desde accounts table
+- [ ] Ingresos/gastos del mes desde transactions
+- [ ] Recent transactions desde D1
+- [ ] Manejo de error si D1 no disponible (503)
+- [ ] CORS headers presentes
+
+#### Transactions API (`/api/transactions`)
+- [ ] GET all transactions desde D1
+- [ ] GET single transaction by ID
+- [ ] POST create transaction guarda en D1
+- [ ] PUT update transaction actualiza D1
+- [ ] DELETE transaction elimina de D1
+- [ ] Filtros funcionan (category, type, date range)
+- [ ] Paginación funciona (limit, offset)
+- [ ] Validación de campos (400 errors)
+- [ ] Transaction not found (404 error)
+- [ ] Database errors manejados (500 error)
+
+#### Accounts API (`/api/accounts`)
+- [ ] GET lista cuentas desde D1
+- [ ] PUT actualiza balance en D1
+- [ ] Validación de balance requerido
+- [ ] Error handling para ID inválido
+
+#### Fiscal API (`/api/fiscal`)
+- [ ] GET calcula ISR/IVA desde D1 transactions
+- [ ] Filtro por mes/año funciona
+- [ ] Aggregaciones correctas (SUM)
+- [ ] Handling de meses sin datos
+- [ ] Due date calculado correctamente
+
+#### Invoices API (`/api/invoices`)
+- [ ] GET lista facturas desde D1
+- [ ] POST crea factura en D1
+- [ ] Validación UUID único (D1 constraint)
+- [ ] Campos requeridos validados
+- [ ] Status field correcto
+
+#### Upload API (`/api/upload`)
+- [ ] POST sube archivo a R2
+- [ ] Filename único generado
+- [ ] URL retornado correctamente
+- [ ] Content-Type preservado
+- [ ] Error handling para file missing
+
+**Script de Prueba:** `./test-api.sh http://localhost:8788`
 
 ---
 
 ## 🚀 Instrucciones de Prueba
 
-### Paso 1: Acceder a la Aplicación
-1. Abrir navegador en `http://localhost:5173/`
-2. Verificar que no hay errores en consola (F12)
-3. Dashboard debe cargar con datos reales
+### Paso 0: Setup D1 Database (Pre-requisito)
+**IMPORTANTE: Debe completarse antes de cualquier otra prueba**
 
-### Paso 2: Probar Cada Sección
-1. **Dashboard:** Verificar balances y transacciones recientes
-2. **Transacciones:** Probar agregar/editar/eliminar
-3. **Fiscal:** Verificar cálculos del mes actual
-4. **Facturas:** Revisar facturas mock y agregar nueva
+1. Instalar y autenticar Wrangler
+   ```bash
+   npm install -g wrangler
+   wrangler login
+   ```
 
-### Paso 3: Pruebas de Integración
-1. Agregar nueva transacción desde Dashboard
-2. Verificar que aparece en lista de transacciones
-3. Verificar que cálculos fiscales se actualizan
-4. Probar navegación entre todas las páginas
+2. Crear y configurar D1 database
+   ```bash
+   # Opción A: Automated setup (recomendado)
+   ./test-d1-database.sh setup
+   
+   # Opción B: Manual setup
+   wrangler d1 create avanta-finance
+   # Copiar database_id a wrangler.toml
+   wrangler d1 execute avanta-finance --file=schema.sql
+   ```
+
+3. Cargar datos de prueba
+   ```bash
+   ./test-d1-database.sh seed
+   ```
+
+4. Verificar setup
+   ```bash
+   ./test-d1-database.sh verify
+   ```
+
+5. Ejecutar tests de D1
+   ```bash
+   ./test-d1-database.sh test
+   ```
+
+**Documentación completa:** Ver `D1_TESTING_GUIDE.md`
 
 ---
 
-## 📊 Datos Mock Incluidos
+### Paso 1: Iniciar Servidor de Desarrollo con D1
+1. Build el frontend
+   ```bash
+   npm install
+   npm run build
+   ```
 
-### Transacciones (6 registros):
-1. **Pago cliente - Proyecto videoclip:** $15,000 (ingreso, Avanta)
-2. **Compra equipo de cámara:** $8,500 (gasto, Avanta, deducible)
-3. **Supermercado:** $1,200 (gasto, personal, no deducible)
-4. **Servicio de internet:** $800 (gasto, Avanta, deducible)
-5. **Venta artesanías:** $3,200 (ingreso, Avanta)
-6. **Gasolina:** $600 (gasto, Avanta, deducible)
+2. Iniciar Wrangler dev server con D1 binding
+   ```bash
+   npx wrangler pages dev dist --d1 DB=avanta-finance --r2 RECEIPTS=avanta-receipts --port 8788
+   ```
 
-### Cuentas (2 registros):
-1. **BBVA Cuenta Principal:** $125,000
-2. **Tarjeta de Crédito BBVA:** -$8,500
+3. Abrir navegador en `http://localhost:8788/`
+4. Verificar que no hay errores en consola (F12)
+5. Dashboard debe cargar con datos reales desde D1
 
-### Facturas (2 registros):
-1. **Factura recibida:** $15,000 (IVA: $2,068.97)
-2. **Factura emitida:** $8,500 (IVA: $1,172.41)
+### Paso 2: Probar Cada Sección
+1. **Dashboard:** Verificar balances y transacciones recientes desde D1
+2. **Transacciones:** Probar agregar/editar/eliminar con D1
+3. **Fiscal:** Verificar cálculos del mes actual desde D1
+4. **Facturas:** Revisar facturas y agregar nueva en D1
+
+### Paso 3: Pruebas de Integración con D1
+1. Agregar nueva transacción desde Dashboard
+2. Verificar que se guarda en D1 (check en wrangler)
+3. Verificar que aparece en lista de transacciones
+4. Verificar que cálculos fiscales se actualizan automáticamente
+5. Probar navegación entre todas las páginas
+
+### Paso 4: Pruebas de API con D1
+```bash
+# Asegurar que el servidor con D1 está corriendo
+npx wrangler pages dev dist --d1 DB=avanta-finance --r2 RECEIPTS=avanta-receipts --port 8788
+
+# En otra terminal, ejecutar tests de API
+./test-api.sh http://localhost:8788
+```
+
+---
+
+## 📊 Datos de Prueba en D1
+
+**Fuente:** `seed.sql` - Se cargan automáticamente con `./test-d1-database.sh seed`
+
+### Transacciones (14 registros en Octubre 2025):
+1. **Venta servicio diseño web:** $15,000 (ingreso, Avanta)
+2. **Compra equipo fotografía:** $8,500 (gasto, Avanta, deducible)
+3. **Pago renta local:** $5,000 (gasto, Avanta, deducible)
+4. **Ingreso por videoclip:** $25,000 (ingreso, Avanta)
+5. **Compra software Adobe:** $1,200 (gasto, Avanta, deducible)
+6. **Supermercado:** $2,500 (gasto, personal, no deducible)
+7. **Ingreso venta artesanías:** $3,500 (ingreso, Avanta)
+8. **Gasolina:** $800 (gasto, personal, no deducible)
+9. **Servicio publicidad:** $12,000 (ingreso, Avanta)
+10. **Materiales producción:** $4,500 (gasto, Avanta, deducible)
+11. **Internet y hosting:** $850 (gasto, Avanta, deducible)
+12. **Producción video:** $18,000 (ingreso, Avanta)
+13. **Restaurante:** $1,200 (gasto, personal, no deducible)
+14. **Servicios profesionales:** $9,500 (ingreso, Avanta)
+
+**Totales calculados:**
+- Ingresos Avanta: $83,000
+- Gastos deducibles: $20,050
+- Utilidad: $62,950
+- ISR (20%): $12,590
+- IVA a pagar: ~$10,072
+
+### Cuentas (3 registros):
+1. **BBVA Cuenta Principal:** $45,000
+2. **Banco Azteca:** $8,000
+3. **Tarjeta de Crédito BBVA:** -$2,050
+
+**Balance Total:** $50,950
+
+### Facturas (4 registros):
+1. **Factura 1:** $15,000 (Emitida, IVA: $2,068.97)
+2. **Factura 2:** $8,500 (Recibida, IVA: $1,172.41)
+3. **Factura 3:** $25,000 (Emitida, IVA: $3,448.28)
+4. **Factura 4:** $12,000 (Emitida, IVA: $1,655.17)
+
+### Pagos Fiscales (2 registros):
+1. **Septiembre 2025:** ISR $4,500, IVA $3,200 (pagado)
+2. **Octubre 2025:** Pendiente (due 17-Nov-2025)
 
 ---
 
 ## ✅ Criterios de Éxito
 
 **La aplicación está lista cuando:**
-- [ ] Todas las páginas cargan sin errores
-- [ ] Los datos mock se muestran correctamente
+- [ ] D1 database creada y configurada correctamente
+- [ ] Schema migrations ejecutadas sin errores
+- [ ] Datos de prueba cargados (seed.sql)
+- [ ] `./test-d1-database.sh test` pasa todos los tests
+- [ ] Todas las páginas cargan sin errores desde D1
+- [ ] Los datos mostrados provienen de D1 (no mock)
 - [ ] La navegación funciona perfectamente
-- [ ] Los cálculos fiscales son precisos
+- [ ] Los cálculos fiscales son precisos desde D1
+- [ ] CRUD operations funcionan (Create, Read, Update, Delete)
 - [ ] El diseño es responsive y profesional
 - [ ] No hay errores en la consola del navegador
+- [ ] API tests pasan: `./test-api.sh http://localhost:8788`
+- [ ] Error handling funciona (DB connection, queries, constraints)
+- [ ] Performance aceptable (queries < 100ms)
 
 ---
 
-## 🎉 ¡Listo para Probar!
+## 📋 Checklist de D1 Integration
 
-**Tu aplicación Avanta Finance está completamente funcional con datos realistas. Puedes probar todas las características del sistema de contabilidad fiscal mexicano sin necesidad de configurar el backend.**
+### Pre-deployment
+- [ ] Wrangler CLI instalado y configurado
+- [ ] Cloudflare account autenticado
+- [ ] D1 database creada
+- [ ] Database ID en wrangler.toml
+- [ ] Schema migrations aplicadas
+- [ ] Seed data cargado
+- [ ] Database tests pasados
 
-**Próximos pasos opcionales:**
-1. Configurar Cloudflare Workers para backend real
-2. Configurar base de datos D1
-3. Configurar almacenamiento R2
-4. Deploy a producción
+### API Integration
+- [ ] Todos los endpoints conectan a D1
+- [ ] Error handling implementado
+- [ ] CORS configurado correctamente
+- [ ] Validation en place
+- [ ] Queries optimizadas con índices
 
-**¡Disfruta probando tu sistema de contabilidad!** 🚀
+### Testing
+- [ ] Unit tests para queries
+- [ ] Integration tests para API
+- [ ] End-to-end tests para frontend
+- [ ] Performance tests
+- [ ] Error scenario tests
+
+### Documentation
+- [ ] D1_TESTING_GUIDE.md completa
+- [ ] TESTING_PLAN.md actualizada
+- [ ] IMPLEMENTATION_SUMMARY.md actualizada
+- [ ] DEPLOYMENT.md incluye D1 setup
+- [ ] README.md menciona D1
+
+---
+
+## 🎉 ¡Listo para Probar con D1!
+
+**Tu aplicación Avanta Finance está completamente funcional con Cloudflare D1 database. Puedes probar todas las características del sistema de contabilidad fiscal mexicano con datos reales almacenados en D1.**
+
+**Próximos pasos:**
+1. ✅ Completar setup D1: `./test-d1-database.sh setup`
+2. ✅ Cargar datos de prueba: `./test-d1-database.sh seed`
+3. ✅ Ejecutar tests D1: `./test-d1-database.sh test`
+4. ✅ Iniciar dev server con D1
+5. ✅ Probar API endpoints: `./test-api.sh http://localhost:8788`
+6. ✅ Verificar frontend con datos reales
+7. 🚀 Deploy a producción (ver DEPLOYMENT.md)
+
+**Scripts disponibles:**
+- `./test-d1-database.sh` - Setup y testing de D1
+- `./test-api.sh` - Testing de API endpoints
+- Ver `D1_TESTING_GUIDE.md` para guía completa
+
+**¡Disfruta probando tu sistema de contabilidad con D1!** 🚀
