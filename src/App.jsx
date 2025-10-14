@@ -6,6 +6,10 @@ import Fiscal from './pages/Fiscal';
 import Invoices from './pages/Invoices';
 import Accounts from './pages/Accounts';
 import Categories from './pages/Categories';
+import AccountsReceivable from './components/AccountsReceivable';
+import AccountsPayable from './components/AccountsPayable';
+import InvoiceAutomation from './components/InvoiceAutomation';
+import FinancialDashboard from './components/FinancialDashboard';
 import ToastContainer from './components/ToastNotification';
 import { initializeAnalytics, trackPageView } from './utils/analytics';
 import { initializeErrorMonitoring } from './utils/errorMonitoring';
@@ -77,6 +81,12 @@ function App() {
                   >
                     Facturas
                   </Link>
+                  <Link
+                    to="/automation"
+                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
+                  >
+                    Automatización
+                  </Link>
                 </div>
               </div>
               <div className="flex items-center">
@@ -95,6 +105,10 @@ function App() {
               <Route path="/categories" element={<Categories />} />
               <Route path="/fiscal" element={<Fiscal />} />
               <Route path="/invoices" element={<Invoices />} />
+              <Route path="/automation" element={<FinancialDashboard />} />
+              <Route path="/receivables" element={<AccountsReceivable />} />
+              <Route path="/payables" element={<AccountsPayable />} />
+              <Route path="/invoice-automation" element={<InvoiceAutomation />} />
             </Routes>
           </div>
         </main>
