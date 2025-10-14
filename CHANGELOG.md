@@ -5,6 +5,43 @@ All notable changes to Avanta Finance will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-10-14 - Backend Integration Update
+
+### 🔄 Changed
+- **BREAKING:** Removed mock data system - all environments now require real backend
+- Simplified `src/utils/api.js` from 145 to 99 lines (-46 lines)
+- Development and production now use identical code paths
+
+### ✨ Added
+- `BACKEND_INTEGRATION_GUIDE.md` - Comprehensive migration documentation (450+ lines)
+- `QUICK_REFERENCE.md` - Developer quick reference guide (150+ lines)
+- Safety confirmation parameter for delete operations (`?confirm=true`)
+
+### 📝 Updated
+- `IMPLEMENTATION_SUMMARY.md` - Added migration section with benefits
+- `README.md` - Updated Implementation Status with backend notes
+- `TESTING_PLAN.md` - Marked mock data as deprecated
+- `LOCAL_TESTING.md` - Updated with deprecation notices
+- `src/utils/mockData.js` - Added deprecation notice (kept for reference)
+
+### 🐛 Fixed
+- Consistent behavior between development and production environments
+- Eliminated dual code paths that could cause integration issues
+
+### ✅ Verified
+- Build successful: 192.49 kB bundle (59.51 kB gzipped)
+- Mexican tax calculations intact: ISR 20%, IVA 16%
+- All 6 API endpoints functional with D1 database
+- No breaking changes to API contracts
+
+### 📊 Statistics
+- Total files modified: 8
+- Code improvements: -46 lines in api.js
+- New documentation: +600 lines
+- Build modules: 45 (optimized)
+
+---
+
 ## [1.0.0] - 2025-10-12
 
 ### Added - Initial Release (Semana 1 MVP)
