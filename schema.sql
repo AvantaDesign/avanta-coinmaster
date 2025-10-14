@@ -13,7 +13,13 @@ CREATE TABLE IF NOT EXISTS transactions (
     is_deductible INTEGER DEFAULT 0 CHECK(is_deductible IN (0, 1)),
     economic_activity TEXT,
     receipt_url TEXT,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    -- Phase 1: Advanced Transaction Classification fields
+    transaction_type TEXT CHECK(transaction_type IN ('business', 'personal', 'transfer')) DEFAULT 'personal',
+    category_id INTEGER,
+    linked_invoice_id INTEGER,
+    notes TEXT,
+    is_deleted INTEGER DEFAULT 0 CHECK(is_deleted IN (0, 1))
 );
 
 -- Accounts table: Bank accounts and credit cards
@@ -72,6 +78,10 @@ CREATE TABLE IF NOT EXISTS fiscal_payments (
 CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date);
 CREATE INDEX IF NOT EXISTS idx_transactions_category ON transactions(category);
 CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type);
+CREATE INDEX IF NOT EXISTS idx_transactions_transaction_type ON transactions(transaction_type);
+CREATE INDEX IF NOT EXISTS idx_transactions_is_deleted ON transactions(is_deleted);
+CREATE INDEX IF NOT EXISTS idx_transactions_category_id ON transactions(category_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_linked_invoice_id ON transactions(linked_invoice_id);
 CREATE INDEX IF NOT EXISTS idx_invoices_date ON invoices(date);
 CREATE INDEX IF NOT EXISTS idx_fiscal_payments_year_month ON fiscal_payments(year, month);
 CREATE INDEX IF NOT EXISTS idx_categories_name ON categories(name);
