@@ -70,7 +70,7 @@ database_name = "avanta-finance"
 # TODO: Replace this with your actual database ID after running:
 #       wrangler d1 create avanta-finance
 # Example: database_id = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-database_id = "your-database-id-here"
+database_id = "7b6bcbdc-457d-4a13-a500-246cd8f3d4e6"
 
 # ============================================================================
 # R2 STORAGE BINDING (S3-Compatible Object Storage)
