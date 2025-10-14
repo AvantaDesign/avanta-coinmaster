@@ -1,106 +1,93 @@
 # 🤖 GitHub Copilot Agent Session Prompt - Avanta CoinMaster 2.0
-## Phase 0 Complete: Advanced Import/Export + Smart Automation (Sections 4 & 5)
+## Phase 1: Advanced Transaction Classification (Official Plan)
 
 ## Project Context
 You are working on **Avanta CoinMaster 2.0**, a financial management application for Personas Físicas con Actividad Empresarial (PFAE) in Mexico. We're transforming it from a basic transaction aggregator into an intelligent financial assistant.
 
 ## Current Status
-- ✅ **Phase 0, Section 1: COMPLETE** - Table interactions, filtering, search, sorting, bulk operations
-- ✅ **Phase 0, Section 2: COMPLETE** - Data visualization, account breakdown, period controls, mobile card view
-- ✅ **Phase 0, Section 3: COMPLETE** - Account & category management (CRUD), filter persistence
+- ✅ **Phase 0: COMPLETE** - All usability improvements implemented
 - ✅ **Production Ready:** React frontend + Cloudflare Workers backend + D1 database + R2 storage
 - ✅ **Deployed:** Live at Cloudflare Pages with full functionality
 
-## This Session: Complete Phase 0 - Advanced Features
+## This Session: Phase 1 - Advanced Transaction Classification
 
-**Objective:** Complete Phase 0 by implementing advanced import/export capabilities and smart automation features in one comprehensive session.
+**Objective:** Allow users to differentiate granularly between personal and business transactions, and link expenses to their fiscal receipts.
 
-### Features to Implement (4 total):
+### Tasks to Implement (2 total):
 
-#### Section 4: Enhanced Import/Export
-1. **Column Mapping for CSV Import** - Drag-and-drop column mapping interface
-2. **Export Current View to CSV/Excel** - Export filtered/sorted data with metadata
+#### 1.1. Update Data Model
+**Task:** Modify the database schema to support the new logic.
+**File:** `schema.sql`
+**Changes:**
+1. In the `transactions` table, add the following columns:
+   - `type` TEXT CHECK(type IN ('business', 'personal', 'transfer')) NOT NULL DEFAULT 'personal';
+   - `category_id` INTEGER; -- FK to categories table
+   - `linked_invoice_id` INTEGER; -- FK to invoices/CFDIs table
+   - `notes` TEXT;
+   - `is_deleted` BOOLEAN DEFAULT FALSE;
 
-#### Section 5: Smart Automation
-3. **Toast Notifications** - Success/error notifications for all actions
-4. **Smart Category Suggestions** - AI-powered category suggestions based on history
+#### 1.2. Extend Transactions API
+**Task:** Update backend endpoints to handle the new fields.
+**File:** `functions/api/transactions.js`
+**Changes:**
+1. Modify the `POST` endpoint to accept the new fields.
+2. Create a `PATCH /:id` endpoint for editing.
+3. Modify the `DELETE /:id` endpoint to perform logical deletion (set `is_deleted` to `true`).
+4. Create a `POST /:id/restore` endpoint to revert logical deletion.
 
 ### Files to Create/Modify:
 
-#### New Components (4):
-- **NEW:** `src/components/CSVImportMapper.jsx` - Column mapping interface with drag-and-drop
-- **NEW:** `src/components/ExportDialog.jsx` - Export options dialog (CSV/Excel)
-- **NEW:** `src/components/ToastNotification.jsx` - Toast notification system
-- **NEW:** `src/components/SmartSuggestions.jsx` - Category suggestion component
+#### Database Schema:
+- `schema.sql` - Add new transaction columns
 
-#### Enhanced Components (6):
-- `src/components/CSVImport.jsx` - Add column mapping functionality
-- `src/pages/Transactions.jsx` - Add export button and smart suggestions
-- `src/components/TransactionTable.jsx` - Add export button and toast integration
-- `src/components/AddTransaction.jsx` - Add smart category suggestions
-- `src/utils/api.js` - Add export and suggestion API functions
-- `src/utils/csvParser.js` - Enhance with mapping support
+#### Backend API:
+- `functions/api/transactions.js` - Extend with new fields and endpoints
 
-#### Backend APIs (2):
-- `functions/api/upload.js` - Enhanced CSV processing with mapping
-- `functions/api/transactions.js` - Add export endpoint and suggestion logic
-
-#### New Utilities (2):
-- **NEW:** `src/utils/notifications.js` - Toast notification management
-- **NEW:** `src/utils/suggestions.js` - Category suggestion algorithms
+#### Frontend Components (as needed):
+- Update existing transaction components to handle new fields
+- Add UI for transaction type selection (business/personal/transfer)
+- Add UI for linking transactions to invoices
+- Add UI for soft delete/restore functionality
 
 ## Implementation Plan
 
-### Step 1: Advanced CSV Import with Column Mapping (1,500 lines)
-- Create drag-and-drop column mapping interface
-- Support BBVA, Azteca, and custom CSV formats
-- Preview mapped data before import
-- Validate required fields and data types
-- Handle different date formats and currencies
-- Show import progress and detailed results
+### Step 1: Database Schema Update (300 lines)
+- Add new columns to transactions table
+- Ensure proper constraints and defaults
+- Update existing data with default values
 
-### Step 2: Export System (1,000 lines)
-- Create export dialog with format options (CSV/Excel)
-- Export current filtered/sorted view
-- Include metadata (filters, export date, record count)
-- Support field selection
-- Generate Excel files with formatting
+### Step 2: Backend API Extension (1,500 lines)
+- Modify POST endpoint for new fields
+- Create PATCH endpoint for updates
+- Implement soft delete (DELETE sets is_deleted = true)
+- Create restore endpoint (POST /:id/restore)
+- Handle new field validation
 
-### Step 3: Toast Notification System (800 lines)
-- Create toast notification component
-- Implement notification manager
-- Add notifications to all CRUD operations
-- Success, error, warning, and info types
-- Auto-dismiss with manual close option
-- Stack multiple notifications
+### Step 3: Frontend Integration (1,200 lines)
+- Update transaction forms to include new fields
+- Add transaction type selection UI
+- Add invoice linking interface
+- Add soft delete/restore functionality
+- Update transaction display to show new fields
 
-### Step 4: Smart Category Suggestions (1,200 lines)
-- Analyze transaction history for patterns
-- Suggest categories based on description keywords
-- Machine learning approach for better suggestions
-- Show suggestions in transaction forms
-- Learn from user corrections
-- Cache suggestions for performance
-
-### Step 5: Integration & Polish (500 lines)
-- Integrate all components seamlessly
-- Add loading states and error handling
-- Ensure mobile responsiveness
-- Test all features together
-- Update documentation
+### Step 4: Testing & Validation (500 lines)
+- Test all new API endpoints
+- Verify database schema changes
+- Test frontend integration
+- Validate soft delete functionality
 
 ## Key Files to Know
-- `docs/IMPLEMENTATION_PLAN.md` - Complete roadmap
+- `docs/IMPLEMENTATION_PLAN.md` - Official implementation plan
 - `IMPLEMENTATION_SUMMARY.md` - Current project status
-- `src/components/CSVImport.jsx` - Existing CSV import component
-- `src/utils/csvParser.js` - CSV parsing utilities
-- `samples/` - Sample CSV files for testing
-- `functions/api/upload.js` - File upload API
+- `schema.sql` - Database schema
+- `functions/api/transactions.js` - Transactions API
+- `src/components/AddTransaction.jsx` - Transaction creation
+- `src/components/TransactionTable.jsx` - Transaction display
 
 ## Session Guidelines
 
 ### **Session Length:** 50 minutes maximum
-### **Code Output:** 5,000+ lines of production-ready code
+### **Code Output:** 3,500+ lines of production-ready code
 ### **Documentation:** Update `IMPLEMENTATION_SUMMARY.md` after completion
 
 ## Development Commands
@@ -119,100 +106,114 @@ npx wrangler pages dev dist --d1 DB=avanta-finance --r2 RECEIPTS=avanta-receipts
 ```
 
 ## Success Criteria
-- ✅ Column mapping interface with drag-and-drop
-- ✅ CSV import with mapping and validation
-- ✅ Export current view to CSV/Excel with metadata
-- ✅ Toast notifications for all actions
-- ✅ Smart category suggestions based on history
-- ✅ Support for Mexican bank CSV formats
-- ✅ Mobile-responsive design
-- ✅ Comprehensive error handling
-- ✅ Performance optimization
-- ✅ Complete documentation
+- ✅ Database schema updated with new transaction fields
+- ✅ POST endpoint accepts new fields
+- ✅ PATCH endpoint for transaction updates
+- ✅ Soft delete functionality (DELETE sets is_deleted = true)
+- ✅ Restore endpoint (POST /:id/restore)
+- ✅ Frontend integration with new fields
+- ✅ Transaction type selection UI
+- ✅ Invoice linking interface
+- ✅ Soft delete/restore UI
+- ✅ No breaking changes to existing functionality
 
 ## Testing Checklist
-1. **CSV Import with Mapping:**
-   - Upload BBVA CSV and map columns
-   - Upload Azteca CSV and map columns
-   - Test custom CSV format
-   - Verify data accuracy and validation
+1. **Database Schema:**
+   - Verify new columns are added
+   - Test constraints work properly
+   - Verify default values
 
-2. **Export Functionality:**
-   - Export filtered transactions as CSV
-   - Export filtered transactions as Excel
-   - Verify metadata inclusion
-   - Test with different filter combinations
+2. **API Endpoints:**
+   - Test POST with new fields
+   - Test PATCH for updates
+   - Test soft delete functionality
+   - Test restore functionality
 
-3. **Toast Notifications:**
-   - Test success notifications
-   - Test error notifications
-   - Test multiple notifications
-   - Test auto-dismiss functionality
+3. **Frontend Integration:**
+   - Test transaction creation with new fields
+   - Test transaction editing
+   - Test soft delete/restore
+   - Test invoice linking
 
-4. **Smart Suggestions:**
-   - Test category suggestions
-   - Verify learning from corrections
-   - Test performance with large datasets
-   - Verify suggestion accuracy
+## Database Schema Changes Required
 
-## Sample CSV Formats to Support
-
-### BBVA Format:
-```csv
-Fecha,Concepto,Referencia,Importe,Saldo
-2025-10-01,TRANSFERENCIA RECIBIDA,1234567890,15000.00,50000.00
-2025-10-02,COMPRA TARJETA,9876543210,-2500.00,47500.00
+```sql
+-- Add new columns to transactions table
+ALTER TABLE transactions ADD COLUMN type TEXT CHECK(type IN ('business', 'personal', 'transfer')) NOT NULL DEFAULT 'personal';
+ALTER TABLE transactions ADD COLUMN category_id INTEGER;
+ALTER TABLE transactions ADD COLUMN linked_invoice_id INTEGER;
+ALTER TABLE transactions ADD COLUMN notes TEXT;
+ALTER TABLE transactions ADD COLUMN is_deleted BOOLEAN DEFAULT FALSE;
 ```
 
-### Azteca Format:
-```csv
-Fecha,Movimiento,Descripcion,Monto,Saldo
-01/10/2025,ABONO,VENTA SERVICIOS,15000,50000
-02/10/2025,CARGO,COMPRA EQUIPO,-2500,47500
-```
+## API Endpoints to Implement
 
-## Smart Suggestions Algorithm
-- Analyze description keywords
-- Match with existing category patterns
-- Consider transaction amount ranges
-- Learn from user corrections
-- Cache results for performance
-- Suggest confidence scores
+### POST /api/transactions
+- Accept new fields: type, category_id, linked_invoice_id, notes
+- Validate transaction type
+- Handle foreign key relationships
 
-## Toast Notification Types
-- **Success:** Green - Operation completed successfully
-- **Error:** Red - Operation failed with error message
-- **Warning:** Yellow - Potential issues or confirmations
-- **Info:** Blue - General information or tips
+### PATCH /api/transactions/:id
+- Update existing transaction with new fields
+- Validate changes
+- Return updated transaction
+
+### DELETE /api/transactions/:id
+- Set is_deleted = true (soft delete)
+- Don't actually delete the record
+- Return success confirmation
+
+### POST /api/transactions/:id/restore
+- Set is_deleted = false
+- Restore soft-deleted transaction
+- Return restored transaction
+
+## Frontend Integration Points
+
+### Transaction Creation Form
+- Add transaction type selector (business/personal/transfer)
+- Add category selection (if category_id is used)
+- Add invoice linking field
+- Add notes field
+
+### Transaction Display
+- Show transaction type with visual indicators
+- Show linked invoice information
+- Show notes if present
+- Add soft delete/restore buttons
+
+### Transaction Editing
+- Allow editing of new fields
+- Maintain data integrity
+- Show edit history
 
 ## Next Steps After This Session
-- **Phase 1:** Advanced transaction classification (business/personal/transfer)
 - **Phase 2:** Fiscal module and reconciliation
 - **Phase 3:** Automation and accounts receivable/payable
+- **Phase 4:** Advanced analytics and UX improvements
 
 ## Important Notes
-- **Comprehensive Implementation** - This session completes Phase 0
-- **User Experience Focus** - Make all features intuitive and fast
-- **Performance** - Handle large datasets efficiently
-- **Error Handling** - Provide clear, helpful error messages
-- **Mobile First** - Ensure all features work on mobile
-- **Documentation** - Update all relevant documentation
+- **Follow Official Plan** - Only implement what's explicitly stated in the plan
+- **Database Migration** - Update schema.sql with new columns
+- **Backward Compatibility** - Ensure existing data works with new schema
+- **Soft Delete** - Implement logical deletion, not physical deletion
+- **Foreign Keys** - Handle category_id and linked_invoice_id relationships
+- **Validation** - Ensure transaction type constraints are enforced
 
 ## Previous Session Context
-The previous session completed Phase 0, Section 3 with:
-- ✅ Account CRUD operations
-- ✅ Category CRUD operations
-- ✅ Filter persistence
-- ✅ Database schema updates
-- ✅ New navigation pages
+The previous session completed Phase 0 with:
+- ✅ CSV import with column mapping
+- ✅ Export system (CSV/Excel)
+- ✅ Toast notifications
+- ✅ Smart category suggestions
+- ✅ Complete usability improvements
 
-**Ready to complete Phase 0 with advanced features! 🚀**
+**Ready to implement Phase 1 according to the official plan! 🚀**
 
 ## Session Scope Summary
-- **4 Major Features** in one session
-- **4 New Components** to create
-- **6 Existing Components** to enhance
-- **2 Backend APIs** to extend
-- **2 New Utilities** to create
-- **5,000+ Lines** of code expected
-- **Complete Phase 0** implementation
+- **2 Official Tasks** from the plan
+- **Database schema update** with 5 new columns
+- **4 API endpoints** to implement/modify
+- **Frontend integration** for new fields
+- **3,500+ Lines** of code expected
+- **Complete Phase 1** implementation
