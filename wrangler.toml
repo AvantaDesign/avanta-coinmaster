@@ -147,6 +147,16 @@ ALLOWED_FILE_TYPES = "image/jpeg,image/png,image/gif,application/pdf,text/xml"
 ISR_RATE = "0.20"  # 20% ISR rate (simplified)
 IVA_RATE = "0.16"  # 16% IVA rate
 
+# n8n Webhook Configuration
+# N8N_WEBHOOK_CLASSIFY = "https://n8n.your-domain.com/webhook/classify"
+# N8N_WEBHOOK_IMPORT = "https://n8n.your-domain.com/webhook/import"
+# N8N_NOTIFICATION_WEBHOOK = "https://n8n.your-domain.com/webhook/notify"
+# N8N_REMINDER_WEBHOOK = "https://n8n.your-domain.com/webhook/reminder"
+# ERROR_ALERT_WEBHOOK = "https://n8n.your-domain.com/webhook/alert"
+
+# Note: Use wrangler secret for sensitive values:
+# wrangler secret put N8N_WEBHOOK_SECRET
+
 # ============================================================================
 # PREVIEW ENVIRONMENT VARIABLES (for staging/testing)
 # ============================================================================
