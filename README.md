@@ -478,3 +478,5 @@ All features from the plan have been fully implemented and tested. The applicati
 ---
 
 **Built with ❤️ by Mateo Reyes González / Avanta Design**
+#   T r i g g e r   d e p l o y m e n t  
+ 
