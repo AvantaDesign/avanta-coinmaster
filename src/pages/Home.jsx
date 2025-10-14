@@ -1,20 +1,24 @@
 import { useState, useEffect } from 'react';
 import { fetchDashboard } from '../utils/api';
+import { fetchFiscal } from '../utils/api';
 import BalanceCard from '../components/BalanceCard';
 import MonthlyChart from '../components/MonthlyChart';
 import TransactionTable from '../components/TransactionTable';
 import AccountBreakdown from '../components/AccountBreakdown';
 import PeriodSelector from '../components/PeriodSelector';
 import { Link } from 'react-router-dom';
+import { formatCurrency } from '../utils/calculations';
 
 export default function Home() {
   const [data, setData] = useState(null);
+  const [fiscalData, setFiscalData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [period, setPeriod] = useState('month');
 
   useEffect(() => {
     loadDashboard();
+    loadFiscalSummary();
   }, [period]);
 
   const loadDashboard = async () => {
@@ -26,6 +30,17 @@ export default function Home() {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadFiscalSummary = async () => {
+    try {
+      const currentMonth = new Date().getMonth() + 1;
+      const currentYear = new Date().getFullYear();
+      const result = await fetchFiscal(currentMonth, currentYear);
+      setFiscalData(result);
+    } catch (err) {
+      console.error('Error loading fiscal summary:', err);
     }
   };
 
@@ -88,6 +103,56 @@ export default function Home() {
           type="negative"
         />
       </div>
+
+      {/* Fiscal Summary Cards */}
+      {fiscalData && (
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg shadow-md">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">Resumen Fiscal del Mes</h2>
+            <Link
+              to="/fiscal"
+              className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+            >
+              Ver detalles →
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-white p-3 rounded-lg">
+              <div className="text-xs text-gray-600">Utilidad</div>
+              <div className="text-lg font-bold text-purple-700">
+                {formatCurrency(fiscalData.utilidad)}
+              </div>
+            </div>
+            <div className="bg-white p-3 rounded-lg">
+              <div className="text-xs text-gray-600">ISR</div>
+              <div className="text-lg font-bold text-red-700">
+                {formatCurrency(fiscalData.isr)}
+              </div>
+            </div>
+            <div className="bg-white p-3 rounded-lg">
+              <div className="text-xs text-gray-600">IVA</div>
+              <div className="text-lg font-bold text-orange-700">
+                {formatCurrency(fiscalData.iva)}
+              </div>
+            </div>
+            <div className="bg-white p-3 rounded-lg">
+              <div className="text-xs text-gray-600">Total Impuestos</div>
+              <div className="text-lg font-bold text-blue-700">
+                {formatCurrency(fiscalData.isr + fiscalData.iva)}
+              </div>
+            </div>
+          </div>
+          {fiscalData.dueDate && (
+            <div className="text-xs text-gray-600 mt-3">
+              Fecha límite: {new Date(fiscalData.dueDate).toLocaleDateString('es-MX', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <MonthlyChart data={data?.trends || []} />

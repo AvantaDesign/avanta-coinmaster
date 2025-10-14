@@ -160,3 +160,21 @@ export async function uploadFile(file) {
   if (!response.ok) throw new Error('Failed to upload file');
   return response.json();
 }
+
+export async function fetchReconciliation(params = {}) {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/reconciliation${queryString ? '?' + queryString : ''}`;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error('Failed to fetch reconciliation data');
+  return response.json();
+}
+
+export async function applyReconciliation(action, transactionIds) {
+  const response = await fetch(`${API_BASE}/reconciliation`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, transactionIds })
+  });
+  if (!response.ok) throw new Error('Failed to apply reconciliation');
+  return response.json();
+}
