@@ -448,6 +448,7 @@ Email: [tu-email]
 
 ## 📚 Documentation
 
+### Core Guides
 - **[QUICKSTART.md](QUICKSTART.md)** - Get started in 5 minutes
 - **[DEPLOYMENT.md](DEPLOYMENT.md)** - Detailed deployment guide
 - **[DEVELOPMENT.md](DEVELOPMENT.md)** - Developer guidelines
@@ -455,6 +456,12 @@ Email: [tu-email]
 - **[TESTING.md](TESTING.md)** - Testing checklist
 - **[CHANGELOG.md](CHANGELOG.md)** - Version history
 - **[IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md)** - Complete overview
+
+### Technical Guides
+- **[D1_TESTING_GUIDE.md](D1_TESTING_GUIDE.md)** - ✨ Database setup and testing
+- **[R2_SETUP_GUIDE.md](R2_SETUP_GUIDE.md)** - ✨ File storage setup and testing
+- **[TESTING_PLAN.md](TESTING_PLAN.md)** - Comprehensive testing plan
+- **[API_DOCUMENTATION.md](API_DOCUMENTATION.md)** - Complete API reference
 
 ---
 
