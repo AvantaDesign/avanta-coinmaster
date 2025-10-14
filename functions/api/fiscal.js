@@ -1,5 +1,12 @@
 // Fiscal API - Calculate ISR and IVA
 
+const corsHeaders = {
+  'Content-Type': 'application/json',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
 export async function onRequestGet(context) {
   const { env, request } = context;
   const url = new URL(request.url);
@@ -7,6 +14,38 @@ export async function onRequestGet(context) {
   const year = parseInt(url.searchParams.get('year')) || new Date().getFullYear();
   
   try {
+    // Validate database connection
+    if (!env.DB) {
+      return new Response(JSON.stringify({ 
+        error: 'Database connection not available',
+        code: 'DB_NOT_CONFIGURED'
+      }), {
+        status: 503,
+        headers: corsHeaders
+      });
+    }
+
+    // Validate month and year
+    if (month < 1 || month > 12) {
+      return new Response(JSON.stringify({ 
+        error: 'Invalid month (must be 1-12)',
+        code: 'VALIDATION_ERROR'
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
+
+    if (year < 2000 || year > 2100) {
+      return new Response(JSON.stringify({ 
+        error: 'Invalid year',
+        code: 'VALIDATION_ERROR'
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
+
     // Calculate first and last day of the month
     const firstDay = new Date(year, month - 1, 1).toISOString().split('T')[0];
     const lastDay = new Date(year, month, 0).toISOString().split('T')[0];
@@ -38,19 +77,33 @@ export async function onRequestGet(context) {
     return new Response(JSON.stringify({
       month,
       year,
-      income,
-      deductible,
-      utilidad,
-      isr: Math.max(0, isr),
-      iva: Math.max(0, iva),
+      income: parseFloat(income.toFixed(2)),
+      deductible: parseFloat(deductible.toFixed(2)),
+      utilidad: parseFloat(utilidad.toFixed(2)),
+      isr: parseFloat(Math.max(0, isr).toFixed(2)),
+      iva: parseFloat(Math.max(0, iva).toFixed(2)),
+      ivaCobrado: parseFloat(ivaCobrado.toFixed(2)),
+      ivaPagado: parseFloat(ivaPagado.toFixed(2)),
       dueDate
     }), {
-      headers: { 'Content-Type': 'application/json' }
+      headers: corsHeaders
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error('Fiscal GET error:', error);
+    return new Response(JSON.stringify({ 
+      error: 'Failed to calculate fiscal data',
+      message: error.message,
+      code: 'CALCULATION_ERROR'
+    }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
+      headers: corsHeaders
     });
   }
+}
+
+export async function onRequestOptions(context) {
+  return new Response(null, {
+    status: 204,
+    headers: corsHeaders
+  });
 }
