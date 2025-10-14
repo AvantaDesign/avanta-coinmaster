@@ -1,8 +1,9 @@
 # 🧪 Plan de Pruebas - Avanta Finance
 
 ## ✅ Estado Actual
-- **Servidor de desarrollo:** ✅ Ejecutándose en `http://localhost:5173/`
-- **Datos mock:** ✅ Implementados y funcionando
+- **Servidor de desarrollo:** ✅ Ejecutándose con Wrangler + D1
+- **Backend:** ✅ Cloudflare Workers Functions con D1 database
+- **Mock data:** ❌ **DEPRECATED** - Application now uses real backend only
 - **Errores de API:** ✅ Solucionados
 - **Navegación:** ✅ Funcionando
 

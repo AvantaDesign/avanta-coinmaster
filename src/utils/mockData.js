@@ -1,5 +1,9 @@
-// Mock data service for development
-// This simulates the backend API responses
+// Mock data service for development (DEPRECATED)
+// This file is kept for reference only - the app now uses real backend endpoints
+// See: functions/api/ for the actual backend implementation with Cloudflare D1
+// 
+// Historical note: This was used during initial development to simulate API responses
+// before the backend was fully implemented
 
 // Mock transactions data
 const mockTransactions = [
