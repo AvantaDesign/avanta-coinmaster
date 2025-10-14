@@ -68,8 +68,13 @@ export default function Invoices() {
     }));
   };
 
-  const handleFileUpload = (url) => {
+  const handleFileUpload = (url, result) => {
     setFormData(prev => ({ ...prev, xml_url: url }));
+    console.log('File uploaded successfully:', result);
+  };
+
+  const handleFileError = (error) => {
+    console.error('File upload error:', error);
   };
 
   return (
@@ -178,9 +183,16 @@ export default function Invoices() {
           </div>
 
           <div className="mt-4">
-            <FileUpload onSuccess={handleFileUpload} />
+            <FileUpload 
+              onSuccess={handleFileUpload} 
+              onError={handleFileError}
+              title="Subir XML de la Factura"
+            />
             {formData.xml_url && (
-              <p className="text-sm text-green-600 mt-2">Archivo cargado: {formData.xml_url}</p>
+              <div className="text-sm text-green-600 mt-2 flex items-center">
+                <span className="mr-2">✅</span>
+                <span>Archivo cargado: {formData.xml_url}</span>
+              </div>
             )}
           </div>
 

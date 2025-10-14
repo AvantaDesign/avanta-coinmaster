@@ -236,11 +236,55 @@
 - [ ] Status field correcto
 
 #### Upload API (`/api/upload`)
-- [ ] POST sube archivo a R2
-- [ ] Filename único generado
-- [ ] URL retornado correctamente
-- [ ] Content-Type preservado
-- [ ] Error handling para file missing
+- [ ] **POST /api/upload** - Upload files to R2
+  - [ ] Accepts multipart/form-data with file
+  - [ ] Returns 201 with file URL on success
+  - [ ] Returns 400 if no file provided (FILE_REQUIRED)
+  - [ ] Returns 400 for invalid file type (INVALID_FILE_TYPE)
+  - [ ] Returns 413 for file too large (FILE_TOO_LARGE)
+  - [ ] Returns 503 if R2 not configured (R2_NOT_CONFIGURED)
+  - [ ] Generates unique filename with timestamp
+  - [ ] Sanitizes filename (removes special chars)
+  - [ ] Preserves original filename in metadata
+  - [ ] Returns comprehensive response with metadata
+  - [ ] Response includes file size in bytes and MB
+  - [ ] Response includes upload duration
+  - [ ] Response includes file type icon and category
+  - [ ] Stores file with correct content type
+- [ ] **GET /api/upload/:filename** - Download files from R2
+  - [ ] Returns 200 with file data on success
+  - [ ] Returns 404 if file not found (FILE_NOT_FOUND)
+  - [ ] Returns correct Content-Type header
+  - [ ] Sets Content-Disposition (inline for images/PDF, download for others)
+  - [ ] Sets Cache-Control header for performance
+  - [ ] Returns 503 if R2 not configured
+- [ ] **OPTIONS /api/upload** - CORS preflight
+  - [ ] Returns 204 status
+  - [ ] Includes CORS headers
+  - [ ] Allows GET, POST methods
+- [ ] **File Type Validation**
+  - [ ] Accepts JPEG images (image/jpeg)
+  - [ ] Accepts PNG images (image/png)
+  - [ ] Accepts GIF images (image/gif)
+  - [ ] Accepts PDF documents (application/pdf)
+  - [ ] Accepts XML files (text/xml, application/xml)
+  - [ ] Rejects text files (.txt)
+  - [ ] Rejects executable files
+  - [ ] Rejects other unsupported types
+- [ ] **File Size Validation**
+  - [ ] Accepts files up to 10 MB
+  - [ ] Rejects files larger than 10 MB
+  - [ ] Returns error with size details
+- [ ] **Security Features**
+  - [ ] Filename sanitization works (special chars removed)
+  - [ ] Timestamp prefix prevents collisions
+  - [ ] Content-Type validation on server
+  - [ ] No path traversal vulnerabilities
+- [ ] **Error Handling**
+  - [ ] All errors return JSON format
+  - [ ] Error codes included (machine-readable)
+  - [ ] Detailed error messages provided
+  - [ ] Logging for debugging (console.log/error)
 
 **Script de Prueba:** `./test-api.sh http://localhost:8788`
 
@@ -287,6 +331,46 @@
 
 ---
 
+### Paso 0.5: Setup R2 Bucket (Pre-requisito)
+**IMPORTANTE: Debe completarse para pruebas de file upload**
+
+1. Crear R2 bucket
+   ```bash
+   wrangler r2 bucket create avanta-receipts
+   ```
+
+2. Verificar bucket
+   ```bash
+   wrangler r2 bucket list
+   ```
+
+3. Probar subida de archivo
+   ```bash
+   echo "Test" > test.txt
+   wrangler r2 object put avanta-receipts/test.txt --file=test.txt
+   ```
+
+4. Verificar archivo subido
+   ```bash
+   wrangler r2 object list avanta-receipts
+   ```
+
+5. Limpiar archivo de prueba
+   ```bash
+   wrangler r2 object delete avanta-receipts/test.txt
+   ```
+
+6. Verificar configuración en `wrangler.toml`:
+   ```toml
+   [[r2_buckets]]
+   binding = "RECEIPTS"
+   bucket_name = "avanta-receipts"
+   ```
+
+**Documentación completa:** Ver `R2_SETUP_GUIDE.md`
+
+---
+
 ### Paso 1: Iniciar Servidor de Desarrollo con D1
 1. Build el frontend
    ```bash
@@ -323,6 +407,50 @@ npx wrangler pages dev dist --d1 DB=avanta-finance --r2 RECEIPTS=avanta-receipts
 
 # En otra terminal, ejecutar tests de API
 ./test-api.sh http://localhost:8788
+```
+
+### Paso 5: Pruebas de R2 Upload
+```bash
+# Asegurar que el servidor está corriendo (con R2 binding)
+npx wrangler pages dev dist --d1 DB=avanta-finance --r2 RECEIPTS=avanta-receipts --port 8788
+
+# En otra terminal, ejecutar tests de R2
+./test-r2-upload.sh http://localhost:8788
+```
+
+**El test script verificará:**
+- ✅ CORS preflight requests (OPTIONS)
+- ✅ Valid file uploads (PNG, JPEG, PDF, XML)
+- ✅ File type validation (rejects .txt files)
+- ✅ File size validation (rejects >10MB files)
+- ✅ Filename sanitization (special characters)
+- ✅ Response format and metadata
+- ✅ File download functionality (GET)
+- ✅ Error handling (404 for missing files)
+
+**Pruebas manuales adicionales:**
+1. **Ir a Facturas page** (`http://localhost:8788/invoices`)
+2. **Click "Agregar Factura"**
+3. **Drag and drop un archivo XML o PDF**
+4. **Verificar:**
+   - Preview se muestra (si es imagen)
+   - Progress bar aparece
+   - Success message se muestra
+   - Archivo URL se guarda en form
+5. **Probar con archivo inválido:**
+   - Intentar subir .txt file
+   - Verificar error message
+6. **Probar con archivo grande:**
+   - Intentar subir archivo >10MB
+   - Verificar error message con detalles
+
+**Verificar archivos en R2:**
+```bash
+# Listar archivos subidos
+wrangler r2 object list avanta-receipts
+
+# Ver detalles de un archivo
+wrangler r2 object get avanta-receipts/FILENAME --file=downloaded-file
 ```
 
 ---
