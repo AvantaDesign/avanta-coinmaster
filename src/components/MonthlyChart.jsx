@@ -9,14 +9,21 @@ export default function MonthlyChart({ data }) {
     );
   }
 
+  // Format data for display
+  const chartData = data.map(item => ({
+    label: new Date(item.month + '-01').toLocaleDateString('es-MX', { month: 'short', year: 'numeric' }),
+    income: item.income || 0,
+    expenses: item.expenses || 0
+  }));
+
   // Find max value for scaling
-  const maxValue = Math.max(...data.map(d => Math.max(d.income, d.expenses)));
+  const maxValue = Math.max(...chartData.map(d => Math.max(d.income, d.expenses)));
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h3 className="text-xl font-bold mb-4">Últimos 6 Meses</h3>
       <div className="space-y-4">
-        {data.map((month, index) => (
+        {chartData.map((month, index) => (
           <div key={index} className="space-y-2">
             <div className="text-sm font-medium">{month.label}</div>
             <div className="flex gap-2">

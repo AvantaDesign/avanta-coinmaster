@@ -178,7 +178,8 @@ export default function TransactionTable({ transactions, onUpdate }) {
         </div>
       )}
 
-      <div className="overflow-x-auto">
+      {/* Desktop Table View - hidden on mobile */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
@@ -355,6 +356,161 @@ export default function TransactionTable({ transactions, onUpdate }) {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Card View - visible only on mobile */}
+      <div className="md:hidden">
+        {sortedTransactions.map((transaction) => (
+          <div 
+            key={transaction.id}
+            className={`border-b border-gray-200 p-4 ${selectedIds.includes(transaction.id) ? 'bg-blue-50' : ''}`}
+          >
+            {editingId === transaction.id ? (
+              // Mobile Edit Mode
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs font-medium text-gray-600">Fecha</label>
+                  <input
+                    type="date"
+                    value={editForm.date}
+                    onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
+                    className="border rounded px-2 py-1 w-full mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-600">Descripción</label>
+                  <input
+                    type="text"
+                    value={editForm.description}
+                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                    className="border rounded px-2 py-1 w-full mt-1"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs font-medium text-gray-600">Tipo</label>
+                    <select
+                      value={editForm.type}
+                      onChange={(e) => setEditForm({ ...editForm, type: e.target.value })}
+                      className="border rounded px-2 py-1 w-full mt-1"
+                    >
+                      <option value="ingreso">ingreso</option>
+                      <option value="gasto">gasto</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-600">Categoría</label>
+                    <select
+                      value={editForm.category}
+                      onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                      className="border rounded px-2 py-1 w-full mt-1"
+                    >
+                      <option value="personal">personal</option>
+                      <option value="avanta">avanta</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs font-medium text-gray-600">Monto</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editForm.amount}
+                      onChange={(e) => setEditForm({ ...editForm, amount: parseFloat(e.target.value) })}
+                      className="border rounded px-2 py-1 w-full mt-1"
+                    />
+                  </div>
+                  <div className="flex items-center mt-5">
+                    <label className="flex items-center text-sm">
+                      <input
+                        type="checkbox"
+                        checked={editForm.is_deductible === 1}
+                        onChange={(e) => setEditForm({ ...editForm, is_deductible: e.target.checked ? 1 : 0 })}
+                        className="rounded border-gray-300 mr-2"
+                      />
+                      Deducible
+                    </label>
+                  </div>
+                </div>
+                <div className="flex gap-2 mt-3">
+                  <button
+                    onClick={saveEdit}
+                    className="flex-1 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                  >
+                    Guardar
+                  </button>
+                  <button
+                    onClick={cancelEdit}
+                    className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            ) : (
+              // Mobile View Mode
+              <div>
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(transaction.id)}
+                      onChange={() => handleSelectOne(transaction.id)}
+                      className="rounded border-gray-300"
+                    />
+                    <div>
+                      <div className="font-medium text-gray-900">{transaction.description}</div>
+                      <div className="text-xs text-gray-500">{formatDate(transaction.date)}</div>
+                    </div>
+                  </div>
+                  <div className={`text-lg font-bold ${
+                    transaction.type === 'ingreso' ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {formatCurrency(transaction.amount)}
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2 mb-2">
+                  <span className={`px-2 py-0.5 rounded-full text-xs ${
+                    transaction.type === 'ingreso' 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {transaction.type}
+                  </span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs ${
+                    transaction.category === 'avanta' 
+                      ? 'bg-blue-100 text-blue-800' 
+                      : 'bg-gray-100 text-gray-800'
+                  }`}>
+                    {transaction.category}
+                  </span>
+                  {transaction.is_deductible && (
+                    <span className="px-2 py-0.5 rounded-full text-xs bg-purple-100 text-purple-800">
+                      Deducible
+                    </span>
+                  )}
+                </div>
+                
+                <div className="flex gap-2 mt-2">
+                  <button
+                    onClick={() => startEdit(transaction)}
+                    className="flex-1 bg-blue-50 text-blue-700 px-3 py-1 rounded text-sm hover:bg-blue-100"
+                  >
+                    ✏️ Editar
+                  </button>
+                  <button
+                    onClick={() => handleDelete(transaction.id)}
+                    className="flex-1 bg-red-50 text-red-700 px-3 py-1 rounded text-sm hover:bg-red-100"
+                  >
+                    🗑️ Eliminar
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );
