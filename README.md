@@ -463,6 +463,10 @@ Email: [tu-email]
 - **[docs/CONTRIBUTING.md](docs/CONTRIBUTING.md)** - How to contribute
 - **[docs/CHANGELOG.md](docs/CHANGELOG.md)** - Version history
 
+### Testing & Scripts
+- **[scripts/](scripts/)** - Testing scripts and utilities
+- **[samples/](samples/)** - Sample CSV and CFDI files for testing
+
 ---
 
 ## ✅ Implementation Status
