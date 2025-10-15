@@ -74,9 +74,14 @@ export default function LoginForm() {
    * Initialize Google Sign-In
    */
   const initializeGoogleSignIn = () => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId) {
+      console.error('Google Client ID is not set. Please set VITE_GOOGLE_CLIENT_ID in your environment.');
+      return;
+    }
     if (window.google) {
       window.google.accounts.id.initialize({
-        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID',
+        client_id: clientId,
         callback: handleGoogleLogin,
       });
       window.google.accounts.id.renderButton(
