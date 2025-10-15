@@ -19,6 +19,7 @@ export default function Home() {
   const [period, setPeriod] = useState('month');
   const [showAdvancedAnalytics, setShowAdvancedAnalytics] = useState(false);
   const [healthScore, setHealthScore] = useState(null);
+  const [viewMode, setViewMode] = useState('all'); // 'all', 'business', 'personal'
 
   useEffect(() => {
     loadDashboard();
@@ -109,6 +110,68 @@ export default function Home() {
             Vista Fiscal
           </Link>
         </div>
+      </div>
+
+      {/* Business/Personal View Toggle */}
+      <div className="bg-white p-4 rounded-lg shadow-md">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-medium text-gray-700">Vista</h3>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setViewMode('all')}
+              className={`px-4 py-2 rounded-md text-sm ${
+                viewMode === 'all'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              Todo
+            </button>
+            <button
+              onClick={() => setViewMode('business')}
+              className={`px-4 py-2 rounded-md text-sm ${
+                viewMode === 'business'
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+              }`}
+            >
+              💼 Negocio
+            </button>
+            <button
+              onClick={() => setViewMode('personal')}
+              className={`px-4 py-2 rounded-md text-sm ${
+                viewMode === 'personal'
+                  ? 'bg-green-600 text-white'
+                  : 'bg-green-100 text-green-700 hover:bg-green-200'
+              }`}
+            >
+              👤 Personal
+            </button>
+          </div>
+        </div>
+        
+        {/* Info Banner for filtered views */}
+        {viewMode !== 'all' && (
+          <div className={`mt-3 p-3 rounded-md text-sm ${
+            viewMode === 'business' 
+              ? 'bg-purple-50 text-purple-900 border border-purple-200' 
+              : 'bg-green-50 text-green-900 border border-green-200'
+          }`}>
+            <span className="font-medium">
+              {viewMode === 'business' ? '💼 Vista de Negocio: ' : '👤 Vista Personal: '}
+            </span>
+            {viewMode === 'business' 
+              ? 'Mostrando solo transacciones clasificadas como "Negocio". Los cálculos fiscales se basan en esta clasificación.'
+              : 'Mostrando solo transacciones clasificadas como "Personal". Estas no afectan los cálculos fiscales.'
+            }
+            <Link 
+              to="/fiscal" 
+              className="ml-2 underline hover:no-underline"
+            >
+              Ver cálculos fiscales →
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Period Selector */}
