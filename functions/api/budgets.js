@@ -12,7 +12,7 @@
  * - GET    /api/budgets/summary         - Get budget summary by period
  */
 
-import { authenticateRequest, validateRequired, generateId, getApiResponse } from './errors';
+import { getUserIdFromToken, authenticateRequest, validateRequired, generateId, getApiResponse } from './auth.js';
 
 /**
  * Main request handler

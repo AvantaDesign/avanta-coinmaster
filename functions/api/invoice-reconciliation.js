@@ -11,7 +11,7 @@
  * - GET    /api/invoice-reconciliation/unmatched - Get unmatched transactions and invoices
  */
 
-import { authenticateRequest, validateRequired, generateId, getApiResponse } from './errors';
+import { getUserIdFromToken, authenticateRequest, validateRequired, generateId, getApiResponse } from './auth.js';
 
 /**
  * Main request handler

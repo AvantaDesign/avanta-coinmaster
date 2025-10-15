@@ -9,7 +9,7 @@
  * - GET    /api/fiscal-config/years        - Get available fiscal configuration years
  */
 
-import { authenticateRequest, validateRequired, generateId, getApiResponse } from './errors';
+import { getUserIdFromToken, authenticateRequest, validateRequired, generateId, getApiResponse } from './auth.js';
 
 /**
  * Default ISR brackets for 2025 (can be updated annually)

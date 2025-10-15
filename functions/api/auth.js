@@ -463,3 +463,54 @@ export async function onRequestOptions(context) {
 
 // Export for use in other API modules
 // Note: Functions are already exported individually above
+
+/**
+ * Authenticate request and return user ID
+ */
+export async function authenticateRequest(request, env) {
+  const userId = await getUserIdFromToken(request, env);
+  if (!userId) {
+    throw new Error('Unauthorized');
+  }
+  return userId;
+}
+
+/**
+ * Validate required fields in data object
+ */
+export function validateRequired(data, fields) {
+  for (const field of fields) {
+    if (data[field] === undefined || data[field] === null || data[field] === '') {
+      throw new Error(`Missing required field: ${field}`);
+    }
+  }
+}
+
+/**
+ * Generate unique ID with prefix
+ */
+export function generateId(prefix) {
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substring(2, 8);
+  return `${prefix}_${timestamp}_${random}`;
+}
+
+/**
+ * Create standardized API response
+ */
+export function getApiResponse(data = null, message = 'Success', status = 200) {
+  return new Response(JSON.stringify({
+    success: status >= 200 && status < 300,
+    data,
+    message,
+    timestamp: new Date().toISOString()
+  }), {
+    status,
+    headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+    }
+  });
+}
