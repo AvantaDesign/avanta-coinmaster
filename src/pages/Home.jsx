@@ -183,6 +183,37 @@ export default function Home() {
             </Link>
           </div>
         </div>
+
+        {/* Automation Features Card */}
+        <div className="bg-gradient-to-br from-purple-50 to-blue-50 p-6 rounded-lg shadow-md border border-purple-200">
+          <h2 className="text-xl font-bold mb-4 text-purple-900">🤖 Automatización</h2>
+          <div className="space-y-2">
+            <Link
+              to="/automation"
+              className="block w-full text-center bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 text-sm"
+            >
+              Dashboard de Automatización
+            </Link>
+            <Link
+              to="/receivables"
+              className="block w-full text-center bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 text-sm"
+            >
+              Cuentas por Cobrar
+            </Link>
+            <Link
+              to="/payables"
+              className="block w-full text-center bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 text-sm"
+            >
+              Cuentas por Pagar
+            </Link>
+            <Link
+              to="/invoice-automation"
+              className="block w-full text-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm"
+            >
+              Automatizar Facturas
+            </Link>
+          </div>
+        </div>
         
         {/* Category Breakdown */}
         {data?.categoryBreakdown && data.categoryBreakdown.length > 0 && (
