@@ -462,4 +462,4 @@ export async function onRequestOptions(context) {
 }
 
 // Export for use in other API modules
-export { getUserIdFromToken, validateAuthToken };
+// Note: Functions are already exported individually above
