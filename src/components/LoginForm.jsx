@@ -75,8 +75,8 @@ export default function LoginForm() {
    */
   const initializeGoogleSignIn = () => {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    if (!clientId) {
-      console.error('Google Client ID is not set. Please set VITE_GOOGLE_CLIENT_ID in your environment.');
+    if (!clientId || clientId === 'placeholder_client_id') {
+      console.warn('Google Client ID is not configured. Google OAuth is disabled.');
       return;
     }
     if (window.google) {
@@ -251,10 +251,12 @@ export default function LoginForm() {
           </div>
         </div>
 
-        {/* Google Sign-In Button */}
-        <div className="flex justify-center">
-          <div id="googleSignInButton"></div>
-        </div>
+        {/* Google Sign-In Button - Only show if configured */}
+        {import.meta.env.VITE_GOOGLE_CLIENT_ID && import.meta.env.VITE_GOOGLE_CLIENT_ID !== 'placeholder_client_id' && (
+          <div className="flex justify-center">
+            <div id="googleSignInButton"></div>
+          </div>
+        )}
 
         {/* Demo Credentials */}
         <div className="mt-4">
