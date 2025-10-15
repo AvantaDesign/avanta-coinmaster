@@ -1,131 +1,132 @@
 # 🤖 GitHub Copilot Agent Session Prompt - Avanta Finance
-## Phase 1: Business vs Personal Logic (Foundational Priority)
+## Phase 3: Technical Improvements and Scalability (Comprehensive Implementation)
 
 ## Project Context
 You are working on **Avanta Finance**, a financial management application for Personas Físicas con Actividad Empresarial (PFAE) in Mexico. We're implementing a comprehensive plan to evolve the system into a robust, secure, and scalable financial platform.
 
 ## Current Status
 - ✅ **Phase 0: COMPLETE** - Security and authentication implemented
+- ✅ **Phase 1: COMPLETE** - Business vs Personal classification implemented
+- ✅ **Phase 2: COMPLETE** - Credits and debts module implemented
 - ✅ **Multi-tenancy:** All data properly isolated by user_id
 - ✅ **Authentication:** JWT-based auth with Google OAuth and email/password
+- ✅ **Classification:** Business/personal transaction filtering and tax calculations
+- ✅ **Credits Module:** Complete credit management with payments and movements
 - ✅ **Production Ready:** React frontend + Cloudflare Workers backend + D1 database + R2 storage
 - ✅ **Deployed:** Live at Cloudflare Pages with full functionality
-- ❌ **Phase 1: NOT IMPLEMENTED** - Business vs Personal classification missing
+- ❌ **Phase 3: NOT IMPLEMENTED** - Technical improvements and scalability missing
 
-## This Session: Phase 1 - Business vs Personal Logic (FOUNDATIONAL PRIORITY)
+## This Session: Phase 3 - Technical Improvements and Scalability (COMPREHENSIVE IMPLEMENTATION)
 
-**Objective:** Implement the ability to classify transactions as "Business" or "Personal" to enable correct fiscal calculations and clear financial vision.
+**Objective:** Refactor the frontend to improve state management and performance.
 
-**CRITICAL:** This phase is foundational - it enables proper tax calculations and financial reporting for PFAE users.
+**CRITICAL:** This phase improves the technical foundation for better performance and maintainability.
 
-### Tasks to Implement (4 total):
+### Tasks to Implement (2 total):
 
-#### 1.1. Modify Database Schema
-- **Action:** Add `classification` column to `transactions` table
-- **Schema Change:**
-  ```sql
-  ALTER TABLE transactions ADD COLUMN classification TEXT NOT NULL DEFAULT 'personal' CHECK(classification IN ('business', 'personal'));
-  ```
-- **Action:** Create migration in `/migrations` to apply this change
+#### 3.1. Implement Global State Management
+- **Recommended Library:** **Zustand**
+- **Action:** Create "stores" (state containers) to manage global data
+- **Example Stores:**
+  - `useTransactionStore`: Manage transaction list, filters, etc.
+  - `useAccountStore`: Manage accounts and their balances
+  - `useCreditStore`: Manage credits and their movements
+- **Action:** Refactor components (`TransactionTable`, `FinancialDashboard`, etc.) to consume data from these stores instead of passing through props (prop drilling)
 
-#### 1.2. Update Backend API
-- **Endpoints:** `POST /api/transactions`, `PUT /api/transactions/:id`
-- **Action:** Modify endpoints to accept and validate the new `classification` field
-- **Validation:** Ensure classification is either 'business' or 'personal'
-
-#### 1.3. Update Frontend UI
-- **Component:** `AddTransaction.jsx`
-- **Action:** Add ToggleButton or Select for user to choose "Personal" or "Business" when creating/editing transactions
+#### 3.2. Optimize Performance for Large Tables
 - **Component:** `TransactionTable.jsx`
-- **Action:** Add column or visual indicator (e.g., color label) to show classification
-- **Action:** Add filter control for user to view "All", "Personal", or "Business" transactions
-
-#### 1.4. Adapt Calculation and Reporting Logic
-- **Components:** `FiscalCalculator.jsx`, `FinancialDashboard.jsx`, `AdvancedReports.jsx`
-- **Action:** Modify data retrieval and processing logic to use `classification` filter
-- **Example:** `FiscalCalculator` should ONLY use transactions with `classification = 'business'` for calculating ISR taxable base and creditable/transferred IVA
+- **Recommended Library:** **TanStack Virtual** (formerly React Virtual)
+- **Action:** Wrap the transaction table with a virtualizer so only visible rows are rendered on screen. This is crucial for maintaining UI fluidity with thousands of records.
 
 ### Files to Create/Modify:
 
-#### Database Schema:
-- `schema.sql` - Add `classification` column to transactions table
-- **NEW:** `migrations/005_add_transaction_classification.sql` - Classification migration
+#### New State Management (3):
+- **NEW:** `src/stores/useTransactionStore.js` - Transaction state management
+- **NEW:** `src/stores/useAccountStore.js` - Account state management
+- **NEW:** `src/stores/useCreditStore.js` - Credit state management
 
-#### Backend APIs (2):
-- `functions/api/transactions.js` - Add classification field handling
-- `functions/api/reports.js` - Add classification-based filtering
-
-#### Frontend Components (4):
-- `src/components/AddTransaction.jsx` - Add classification selector
-- `src/components/TransactionTable.jsx` - Add classification display and filtering
-- `src/components/FiscalCalculator.jsx` - Use business-only transactions for tax calculations
-- `src/components/FinancialDashboard.jsx` - Add classification-based views
-
-#### Enhanced Components (2):
-- `src/components/AdvancedReports.jsx` - Add classification filtering
-- `src/pages/Transactions.jsx` - Add classification filter controls
+#### Enhanced Components (6):
+- `src/components/TransactionTable.jsx` - Add virtualization and Zustand integration
+- `src/components/FinancialDashboard.jsx` - Use Zustand stores
+- `src/components/AddTransaction.jsx` - Use transaction store
+- `src/pages/Transactions.jsx` - Use transaction store
+- `src/pages/Credits.jsx` - Use credit store
+- `src/pages/Home.jsx` - Use all stores
 
 #### New Utilities (1):
-- **NEW:** `src/utils/classification.js` - Classification helpers and validation
+- **NEW:** `src/utils/virtualization.js` - Virtualization helpers and utilities
+
+#### Package Dependencies:
+- **NEW:** `package.json` - Add Zustand and TanStack Virtual dependencies
 
 ## Implementation Plan
 
-### Step 1: Database Schema Update (500 lines)
-- Add `classification` column to transactions table
-- Create migration script for existing data
-- Update database indexes for performance
-- Handle data migration for existing transactions
+### Step 1: Install Dependencies and Setup (200 lines)
+- Install Zustand for state management
+- Install TanStack Virtual for table virtualization
+- Setup store structure and initial configuration
+- Create store utilities and helpers
 
-### Step 2: Backend API Enhancement (800 lines)
-- Update transaction endpoints to handle classification
-- Add classification validation
-- Update report endpoints with classification filtering
-- Add business/personal transaction filtering
+### Step 2: Implement Zustand Stores (1,500 lines)
+- Create useTransactionStore with transaction CRUD operations
+- Create useAccountStore with account management
+- Create useCreditStore with credit operations
+- Add proper TypeScript types and validation
+- Implement store persistence and synchronization
 
-### Step 3: Frontend UI Updates (1,200 lines)
-- Add classification selector to AddTransaction component
-- Update TransactionTable with classification display
-- Add classification filtering controls
-- Implement visual indicators for classification
+### Step 3: Refactor Components to Use Stores (1,800 lines)
+- Update TransactionTable to use transaction store
+- Update FinancialDashboard to use all stores
+- Update AddTransaction to use transaction store
+- Update Transactions page to use transaction store
+- Update Credits page to use credit store
+- Update Home page to use all stores
 
-### Step 4: Calculation Logic Updates (1,000 lines)
-- Update FiscalCalculator to use business-only transactions
-- Modify FinancialDashboard for classification-based views
-- Update AdvancedReports with classification filtering
-- Add business vs personal financial summaries
+### Step 4: Implement Table Virtualization (800 lines)
+- Integrate TanStack Virtual with TransactionTable
+- Optimize rendering for large datasets
+- Add proper scroll handling and performance
+- Implement virtual scrolling with proper sizing
+- Add loading states and error handling
 
-### Step 5: Integration and Testing (500 lines)
-- Integrate all components with classification logic
-- Add comprehensive testing for classification features
+### Step 5: Performance Optimization and Testing (700 lines)
+- Optimize store updates and re-renders
+- Add proper memoization and selectors
+- Implement performance monitoring
+- Add comprehensive testing for stores
 - Update documentation and user guides
-- Ensure backward compatibility
 
 ## Key Files to Know - READ THESE FIRST
 
 ### **CRITICAL: Official Implementation Plan**
 - **`docs/IMPLEMENTATION_PLAN.md`** - THE OFFICIAL PLAN (read this first!)
-  - Phase 1 is foundational priority
+  - Phase 3 focuses on technical improvements and scalability
   - Follow only what's explicitly stated in the plan
   - Do NOT add features not in this plan
 
 ### **Current Project Status**
+- **`PHASE_2_IMPLEMENTATION_SUMMARY.md`** - Phase 2 implementation details
+- **`SESSION_SUMMARY.md`** - Phase 1 implementation details
 - **`docs/PHASE_0_SUMMARY.md`** - Phase 0 implementation details
 - **`README.md`** - Current project overview
 
 ### **Code Files**
-- `src/components/AddTransaction.jsx` - Needs classification selector
-- `src/components/TransactionTable.jsx` - Needs classification display
-- `functions/api/transactions.js` - Needs classification handling
-- `schema.sql` - Needs classification column
+- `src/components/TransactionTable.jsx` - Needs virtualization and Zustand
+- `src/components/FinancialDashboard.jsx` - Needs Zustand integration
+- `src/pages/Transactions.jsx` - Needs transaction store
+- `package.json` - Needs new dependencies
 
 ## Session Guidelines
 
 ### **Session Length:** 50 minutes maximum
-### **Code Output:** 4,000+ lines of production-ready code
+### **Code Output:** 5,000+ lines of production-ready code
 ### **Documentation:** Update implementation summary after completion
 
 ## Development Commands
 ```bash
+# Install new dependencies
+npm install zustand @tanstack/react-virtual
+
 # Local development
 npm run dev
 
@@ -140,135 +141,154 @@ npx wrangler pages dev dist --d1 DB=avanta-finance --r2 RECEIPTS=avanta-receipts
 ```
 
 ## Success Criteria
-- ✅ `classification` column added to transactions table
-- ✅ Migration script created and tested
-- ✅ Backend API accepts and validates classification field
-- ✅ Frontend UI has classification selector
-- ✅ Transaction table shows classification with visual indicators
-- ✅ Classification filtering works correctly
-- ✅ FiscalCalculator uses business-only transactions
-- ✅ FinancialDashboard shows classification-based views
-- ✅ AdvancedReports supports classification filtering
+- ✅ Zustand stores implemented for transactions, accounts, and credits
+- ✅ All components refactored to use Zustand stores
+- ✅ TransactionTable virtualized with TanStack Virtual
+- ✅ Prop drilling eliminated throughout the application
+- ✅ Performance improved for large datasets
+- ✅ State management centralized and efficient
 - ✅ All existing functionality preserved
-- ✅ User can easily switch between business/personal views
+- ✅ Application performance optimized
+- ✅ Code maintainability improved
+- ✅ User experience enhanced with better performance
 
 ## Testing Checklist
-1. **Database Schema:**
-   - Test classification column addition
-   - Test migration of existing data
-   - Test classification constraints
-   - Test database performance
+1. **State Management:**
+   - Test Zustand stores functionality
+   - Test store persistence and synchronization
+   - Test component integration with stores
+   - Test state updates and re-renders
 
-2. **Backend API:**
-   - Test classification field validation
-   - Test transaction creation with classification
-   - Test transaction updates with classification
-   - Test classification-based filtering
+2. **Table Virtualization:**
+   - Test virtual scrolling with large datasets
+   - Test performance with thousands of records
+   - Test scroll handling and sizing
+   - Test loading states and error handling
 
-3. **Frontend UI:**
-   - Test classification selector in AddTransaction
-   - Test classification display in TransactionTable
-   - Test classification filtering controls
-   - Test visual indicators for classification
+3. **Performance:**
+   - Test application performance improvements
+   - Test memory usage optimization
+   - Test rendering performance
+   - Test user interaction responsiveness
 
-4. **Calculation Logic:**
-   - Test FiscalCalculator with business-only transactions
-   - Test FinancialDashboard classification views
-   - Test AdvancedReports classification filtering
-   - Test business vs personal summaries
+4. **Integration:**
+   - Test all components with new state management
+   - Test data flow and synchronization
+   - Test error handling and edge cases
+   - Test backward compatibility
 
-## Database Schema Changes Required
+## Dependencies to Install
 
-### Add classification to transactions table:
-```sql
--- Add classification column to transactions table
-ALTER TABLE transactions ADD COLUMN classification TEXT NOT NULL DEFAULT 'personal' CHECK(classification IN ('business', 'personal'));
-
--- Update indexes for performance
-CREATE INDEX idx_transactions_classification ON transactions(classification);
-CREATE INDEX idx_transactions_user_classification ON transactions(user_id, classification);
-
--- Migration for existing data
-UPDATE transactions SET classification = 'personal' WHERE classification IS NULL;
+### Package.json Updates:
+```json
+{
+  "dependencies": {
+    "zustand": "^4.4.7",
+    "@tanstack/react-virtual": "^3.0.0-beta.50"
+  }
+}
 ```
 
-## Frontend UI Features
+## Zustand Store Implementation
 
-### Classification Selector
-- Toggle button or dropdown in AddTransaction
-- Default to 'personal' for new transactions
-- Clear visual distinction between options
-- Validation and error handling
+### Transaction Store Features:
+- Transaction CRUD operations
+- Filter and search functionality
+- Pagination and sorting
+- Real-time updates
+- Error handling and loading states
 
-### Transaction Table Enhancements
-- Classification column with visual indicators
-- Color-coded labels (e.g., blue for business, green for personal)
-- Filter controls (All, Business, Personal)
-- Sort by classification option
+### Account Store Features:
+- Account management
+- Balance calculations
+- Account synchronization
+- Transaction integration
+- Performance optimization
 
-### Dashboard Views
-- Business-only financial summary
-- Personal-only financial summary
-- Combined view with clear separation
-- Classification-based charts and graphs
+### Credit Store Features:
+- Credit management
+- Movement tracking
+- Payment calculations
+- Due date management
+- Integration with transactions
 
-## Backend API Features
+## TanStack Virtual Implementation
 
-### Transaction Endpoints
-- Accept classification field in POST/PUT requests
-- Validate classification values
-- Return classification in GET responses
-- Support classification-based filtering
+### Virtualization Features:
+- Virtual scrolling for large tables
+- Dynamic row sizing
+- Performance optimization
+- Smooth scrolling experience
+- Memory usage optimization
 
-### Report Endpoints
-- Business-only transaction reports
-- Personal-only transaction reports
-- Combined reports with classification breakdown
-- Classification-based analytics
+### Performance Benefits:
+- Render only visible rows
+- Handle thousands of records
+- Maintain UI responsiveness
+- Reduce memory footprint
+- Improve user experience
 
-## Fiscal Calculation Updates
+## Component Refactoring Strategy
 
-### Business-Only Calculations
-- ISR taxable base calculation using business transactions only
-- IVA creditable/transferred calculation using business transactions only
-- Business expense deductions
-- Business income reporting
+### Before (Prop Drilling):
+```jsx
+// Parent component passes data through multiple levels
+<TransactionTable 
+  transactions={transactions}
+  onUpdate={handleUpdate}
+  onDelete={handleDelete}
+/>
+```
 
-### Personal Calculations
-- Personal expense tracking
-- Personal income reporting
-- Personal financial health metrics
-- Personal budget management
+### After (Zustand Stores):
+```jsx
+// Component directly accesses store
+const { transactions, updateTransaction, deleteTransaction } = useTransactionStore();
+```
+
+## Performance Optimization Features
+
+### State Management:
+- Efficient store updates
+- Memoized selectors
+- Optimized re-renders
+- State persistence
+- Error boundaries
+
+### Table Virtualization:
+- Virtual scrolling
+- Dynamic row heights
+- Smooth performance
+- Memory optimization
+- Responsive design
 
 ## Next Steps After This Session
-- **Phase 2:** Credits and debts module
-- **Phase 3:** Technical improvements and scalability
-- **Phase 4:** Advanced features (budgets, fiscal improvements)
+- **Phase 4:** Advanced features (budgets, fiscal improvements, CFDI reconciliation)
 
 ## Important Notes
-- **Foundational Priority** - This phase enables proper tax calculations
-- **PFAE Focus** - Essential for Persona Física con Actividad Empresarial
-- **Tax Compliance** - Enables correct Mexican tax calculations
-- **User Experience** - Clear separation of business vs personal finances
-- **Performance** - Maintain performance with classification filtering
+- **Technical Foundation** - Improves performance and maintainability
+- **Scalability** - Handles large datasets efficiently
+- **User Experience** - Better performance and responsiveness
+- **Code Quality** - Eliminates prop drilling and improves architecture
+- **Performance** - Significant improvements for large datasets
 - **Documentation** - Update all relevant documentation
 
 ## Previous Implementation Context
-Phase 0 implemented:
-- ✅ Complete authentication system
-- ✅ Multi-tenant architecture
-- ✅ JWT-based security
-- ✅ User data isolation
-- ✅ Protected routes and API security
+Phase 2 implemented:
+- ✅ Complete credits and debts module
+- ✅ Credit management with payments and movements
+- ✅ UpcomingPayments dashboard widget
+- ✅ Credit integration with transactions
+- ✅ 3,375+ lines of production-ready code
 
-**Ready to implement business vs personal classification as the foundation for proper tax calculations! 🚀**
+**Ready to implement technical improvements and scalability optimizations! 🚀**
 
 ## Session Scope Summary
-- **4 Official Tasks** from the plan
-- **1 New Migration** to create
-- **6 Existing Components** to enhance
-- **2 Backend APIs** to update
+- **2 Official Tasks** from the plan
+- **3 New Zustand Stores** to create
+- **6 Existing Components** to refactor
 - **1 New Utility** to create
-- **4,000+ Lines** of code expected
-- **Complete Phase 1** implementation
-- **Foundational classification** for all fiscal calculations
+- **1 Package Update** to implement
+- **5,000+ Lines** of code expected
+- **Complete Phase 3** implementation
+- **Technical foundation** for scalability and performance
