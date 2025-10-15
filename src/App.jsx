@@ -8,6 +8,7 @@ import Fiscal from './pages/Fiscal';
 import Invoices from './pages/Invoices';
 import Accounts from './pages/Accounts';
 import Categories from './pages/Categories';
+import Credits from './pages/Credits';
 import AccountsReceivable from './components/AccountsReceivable';
 import AccountsPayable from './components/AccountsPayable';
 import InvoiceAutomation from './components/InvoiceAutomation';
@@ -66,6 +67,12 @@ function NavigationBar() {
                 className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
               >
                 Categorías
+              </Link>
+              <Link
+                to="/credits"
+                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
+              >
+                Créditos
               </Link>
               <Link
                 to="/fiscal"
@@ -147,6 +154,7 @@ function AuthenticatedApp() {
               <Route path="/transactions" element={<Transactions />} />
               <Route path="/accounts" element={<Accounts />} />
               <Route path="/categories" element={<Categories />} />
+              <Route path="/credits" element={<Credits />} />
               <Route path="/fiscal" element={<Fiscal />} />
               <Route path="/invoices" element={<Invoices />} />
               <Route path="/automation" element={<FinancialDashboard />} />

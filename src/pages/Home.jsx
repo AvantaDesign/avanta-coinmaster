@@ -7,13 +7,18 @@ import TransactionTable from '../components/TransactionTable';
 import AccountBreakdown from '../components/AccountBreakdown';
 import PeriodSelector from '../components/PeriodSelector';
 import InteractiveCharts from '../components/InteractiveCharts';
-import { Link } from 'react-router-dom';
+import UpcomingPayments from '../components/UpcomingPayments';
+import { Link, useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../utils/calculations';
 import { calculateFinancialHealthScore } from '../utils/advancedAnalytics';
 
+const API_URL = import.meta.env.VITE_API_URL || 'https://avanta-finance.pages.dev';
+
 export default function Home() {
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [fiscalData, setFiscalData] = useState(null);
+  const [credits, setCredits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [period, setPeriod] = useState('month');
@@ -24,6 +29,7 @@ export default function Home() {
   useEffect(() => {
     loadDashboard();
     loadFiscalSummary();
+    loadCredits();
   }, [period]);
 
   useEffect(() => {
@@ -74,6 +80,29 @@ export default function Home() {
     } catch (err) {
       console.error('Error loading fiscal summary:', err);
     }
+  };
+
+  const loadCredits = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`${API_URL}/api/credits?include_balance=true&active_only=true`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const creditsData = await response.json();
+        setCredits(creditsData);
+      }
+    } catch (err) {
+      console.error('Error loading credits:', err);
+    }
+  };
+
+  const handlePaymentClick = (credit) => {
+    navigate('/credits', { state: { openPaymentFor: credit.id } });
   };
 
   if (loading) {
@@ -285,6 +314,11 @@ export default function Home() {
             </div>
           )}
         </div>
+      )}
+
+      {/* Upcoming Payments Widget */}
+      {credits.length > 0 && (
+        <UpcomingPayments credits={credits} onPaymentClick={handlePaymentClick} />
       )}
 
       {/* Advanced Analytics Banner */}
