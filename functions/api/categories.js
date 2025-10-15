@@ -1,16 +1,31 @@
 // Categories API - Manage custom transaction categories
 
+import { getUserIdFromToken } from './auth.js';
+
 const corsHeaders = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
 export async function onRequestGet(context) {
-  const { env } = context;
+  const { env, request } = context;
   
   try {
+    // Get user ID from token
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({ 
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     if (!env.DB) {
       return new Response(JSON.stringify({ 
         error: 'Database connection not available',
@@ -21,10 +36,10 @@ export async function onRequestGet(context) {
       });
     }
 
-    // Get only active categories by default
+    // Get only active categories for this user
     const result = await env.DB.prepare(
-      'SELECT * FROM categories WHERE is_active = 1 ORDER BY name'
-    ).all();
+      'SELECT * FROM categories WHERE user_id = ? AND is_active = 1 ORDER BY name'
+    ).bind(userId).all();
     
     return new Response(JSON.stringify(result.results || []), {
       headers: corsHeaders
@@ -46,6 +61,19 @@ export async function onRequestPost(context) {
   const { env, request } = context;
   
   try {
+    // Get user ID from token
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({ 
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     if (!env.DB) {
       return new Response(JSON.stringify({ 
         error: 'Database connection not available',
@@ -70,10 +98,10 @@ export async function onRequestPost(context) {
       });
     }
     
-    // Check if category name already exists
+    // Check if category name already exists for this user
     const existing = await env.DB.prepare(
-      'SELECT id FROM categories WHERE name = ?'
-    ).bind(name).first();
+      'SELECT id FROM categories WHERE name = ? AND user_id = ?'
+    ).bind(name, userId).first();
     
     if (existing) {
       return new Response(JSON.stringify({ 
@@ -87,8 +115,8 @@ export async function onRequestPost(context) {
     
     const categoryColor = color || '#3B82F6';
     const result = await env.DB.prepare(
-      'INSERT INTO categories (name, description, color, is_active) VALUES (?, ?, ?, 1)'
-    ).bind(name, description || '', categoryColor).run();
+      'INSERT INTO categories (user_id, name, description, color, is_active) VALUES (?, ?, ?, ?, 1)'
+    ).bind(userId, name, description || '', categoryColor).run();
     
     return new Response(JSON.stringify({ 
       success: true,
@@ -118,12 +146,40 @@ export async function onRequestPut(context) {
   const id = pathParts[pathParts.length - 1];
   
   try {
+    // Get user ID from token
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({ 
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     if (!env.DB) {
       return new Response(JSON.stringify({ 
         error: 'Database connection not available',
         code: 'DB_NOT_CONFIGURED'
       }), {
         status: 503,
+        headers: corsHeaders
+      });
+    }
+
+    // Check if category exists and belongs to user
+    const existingCategory = await env.DB.prepare(
+      'SELECT id FROM categories WHERE id = ? AND user_id = ?'
+    ).bind(id, userId).first();
+    
+    if (!existingCategory) {
+      return new Response(JSON.stringify({ 
+        error: 'Category not found',
+        code: 'NOT_FOUND'
+      }), {
+        status: 404,
         headers: corsHeaders
       });
     }
@@ -136,10 +192,10 @@ export async function onRequestPut(context) {
     const params = [];
     
     if (name !== undefined) {
-      // Check if new name conflicts with existing category
+      // Check if new name conflicts with existing category for this user
       const existing = await env.DB.prepare(
-        'SELECT id FROM categories WHERE name = ? AND id != ?'
-      ).bind(name, id).first();
+        'SELECT id FROM categories WHERE name = ? AND id != ? AND user_id = ?'
+      ).bind(name, id, userId).first();
       
       if (existing) {
         return new Response(JSON.stringify({ 
@@ -175,23 +231,9 @@ export async function onRequestPut(context) {
     
     updates.push('updated_at = CURRENT_TIMESTAMP');
     params.push(id);
-    
-    // Check if category exists
-    const existingCategory = await env.DB.prepare(
-      'SELECT id FROM categories WHERE id = ?'
-    ).bind(id).first();
-    
-    if (!existingCategory) {
-      return new Response(JSON.stringify({ 
-        error: 'Category not found',
-        code: 'NOT_FOUND'
-      }), {
-        status: 404,
-        headers: corsHeaders
-      });
-    }
+    params.push(userId);
 
-    const query = `UPDATE categories SET ${updates.join(', ')} WHERE id = ?`;
+    const query = `UPDATE categories SET ${updates.join(', ')} WHERE id = ? AND user_id = ?`;
     await env.DB.prepare(query).bind(...params).run();
     
     return new Response(JSON.stringify({ 
@@ -220,6 +262,19 @@ export async function onRequestDelete(context) {
   const id = pathParts[pathParts.length - 1];
   
   try {
+    // Get user ID from token
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({ 
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     if (!env.DB) {
       return new Response(JSON.stringify({ 
         error: 'Database connection not available',
@@ -230,10 +285,10 @@ export async function onRequestDelete(context) {
       });
     }
     
-    // Check if category exists
+    // Check if category exists and belongs to user
     const existingCategory = await env.DB.prepare(
-      'SELECT id FROM categories WHERE id = ?'
-    ).bind(id).first();
+      'SELECT id FROM categories WHERE id = ? AND user_id = ?'
+    ).bind(id, userId).first();
     
     if (!existingCategory) {
       return new Response(JSON.stringify({ 
@@ -247,8 +302,8 @@ export async function onRequestDelete(context) {
     
     // Soft delete: set is_active to 0
     await env.DB.prepare(
-      'UPDATE categories SET is_active = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
-    ).bind(id).run();
+      'UPDATE categories SET is_active = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?'
+    ).bind(id, userId).run();
     
     return new Response(JSON.stringify({ 
       success: true,
