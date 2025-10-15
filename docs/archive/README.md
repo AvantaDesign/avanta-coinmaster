@@ -1,106 +1,146 @@
-# 📁 Archived Documentation
+# 📁 Archived Documentation - Avanta CoinMaster 2.0
 
-This folder contains detailed documentation from the development process, organized by category and session.
+This folder contains detailed documentation from the development process of Avanta CoinMaster 2.0. All files here are archived for reference and historical purposes.
 
-## 📋 **Archive Index**
+---
 
-### **Session Documentation**
-- `SESSION_4_SUMMARY.md` - Session 4: n8n workflows and analytics
-- `SESSION_5_SUMMARY.md` - Session 5: Production deployment and final verification
-- `D1_SESSION_SUMMARY.md` - Database integration session details
-- `R2_SESSION_SUMMARY.md` - File storage integration session details
+## 📋 **Archive Organization**
+
+### **Phase Documentation**
+- **PHASE_0_*** - Usability improvements and flow enhancements
+- **PHASE_1_*** - Advanced transaction classification
+- **PHASE_2_*** - Fiscal module and reconciliation
+- **PHASE_3_*** - Automation and accounts receivable/payable
+- **PHASE_4_*** - Advanced analytics and UX improvements
 
 ### **API Documentation**
-- `API_DOCUMENTATION.md` - Complete API reference with all endpoints
-- `API_ARCHITECTURE.md` - API architecture and design patterns
-- `BACKEND_INTEGRATION_GUIDE.md` - Backend integration details
+- **API_ARCHITECTURE.md** - Complete API architecture overview
+- **API_DOCUMENTATION.md** - Detailed API reference
+- **PHASE_*_API_REFERENCE.md** - Phase-specific API documentation
 
-### **Database Documentation**
-- `D1_QUICK_REFERENCE.md` - D1 database quick reference
-- `D1_TESTING_GUIDE.md` - Database setup and testing procedures
-- `LOCAL_DEV_WITH_D1.md` - Local development with D1 database
-- `LOCAL_TESTING.md` - Local testing procedures
+### **Testing Documentation**
+- **PHASE_*_TESTING.md** - Phase-specific testing procedures
+- **TESTING_SESSION_*.md** - Testing session documentation
+- **LOCAL_TESTING.md** - Local development testing
+- **CSV_CFDI_TESTING_GUIDE.md** - CSV and CFDI testing procedures
 
-### **Storage Documentation**
-- `R2_SETUP_GUIDE.md` - R2 storage setup and configuration
-- `CSV_CFDI_TESTING_GUIDE.md` - CSV import and CFDI parser testing
+### **Setup & Configuration**
+- **D1_*** - Database setup and configuration guides
+- **R2_*** - Storage setup and configuration guides
+- **BACKEND_INTEGRATION_GUIDE.md** - Backend integration procedures
+- **LOCAL_DEV_WITH_D1.md** - Local development with D1
 
-### **Integration Documentation**
-- `N8N_WORKFLOWS.md` - n8n workflow integration details
-- `ANALYTICS_MONITORING.md` - Analytics and monitoring setup
+### **Production & Monitoring**
+- **PRODUCTION_*** - Production deployment and monitoring guides
+- **ANALYTICS_MONITORING.md** - Analytics and monitoring setup
+- **PRODUCTION_READINESS_CHECKLIST.md** - Production readiness verification
 
-### **Production Documentation**
-- `PRODUCTION_DEPLOYMENT_GUIDE.md` - Detailed production deployment
-- `PRODUCTION_MONITORING_DASHBOARD.md` - Production monitoring setup
-- `PRODUCTION_READINESS_CHECKLIST.md` - Production readiness checklist
-- `USER_MANUAL.md` - Complete user manual
+### **Session Documentation**
+- **SESSION_*_SUMMARY.md** - Development session summaries
+- **NEXT_SESSION_GUIDE.md** - Session planning and guidance
+- **QUICK_REFERENCE_*.md** - Quick reference materials
 
-### **Reference Documentation**
-- `QUICK_REFERENCE_SESSION4.md` - Quick reference for Session 4
-- `DOCUMENTATION_INDEX.md` - Original documentation index
-- `TESTING_SESSION_4.md` - Testing procedures for Session 4
+### **Feature Documentation**
+- **DATA_VISUALIZATION_COMPONENTS.md** - Data visualization components
+- **N8N_WORKFLOWS.md** - n8n workflow integration
+- **USER_MANUAL.md** - User manual and guides
 
----
-
-## 🔍 **Finding Specific Information**
-
-### **Database Setup**
-- Start with `D1_QUICK_REFERENCE.md`
-- Follow `D1_TESTING_GUIDE.md` for testing
-- Check `LOCAL_DEV_WITH_D1.md` for local development
-
-### **File Storage**
-- Read `R2_SETUP_GUIDE.md` for setup
-- Check `CSV_CFDI_TESTING_GUIDE.md` for file operations
-
-### **API Development**
-- Review `API_DOCUMENTATION.md` for complete reference
-- Check `API_ARCHITECTURE.md` for design patterns
-- Follow `BACKEND_INTEGRATION_GUIDE.md` for integration
-
-### **Production Deployment**
-- Start with `PRODUCTION_DEPLOYMENT_GUIDE.md`
-- Follow `PRODUCTION_READINESS_CHECKLIST.md`
-- Set up monitoring with `PRODUCTION_MONITORING_DASHBOARD.md`
-
-### **Workflow Integration**
-- Read `N8N_WORKFLOWS.md` for automation setup
-- Check `ANALYTICS_MONITORING.md` for monitoring
+### **Implementation Documentation**
+- **IMPLEMENTATION_SUMMARY.md** - Complete implementation summary
+- **DOCUMENTATION_INDEX.md** - Documentation organization index
 
 ---
 
-## 📊 **Development Timeline**
-
-The archived documentation follows the development timeline:
-
-1. **Session 1:** Backend API Foundation
-2. **Session 2:** Database Integration (D1)
-3. **Session 3:** File Storage Integration (R2)
-4. **Session 4:** Backend Integration & Advanced Features
-5. **Session 5:** n8n Workflows & Analytics
-6. **Session 6:** Production Deployment & Final Verification
-
-Each session has corresponding documentation with implementation details, testing procedures, and validation results.
-
----
-
-## 🎯 **Quick Access**
+## 🔍 **Quick Reference**
 
 ### **For Developers**
-- API: `API_DOCUMENTATION.md`
-- Database: `D1_TESTING_GUIDE.md`
-- Storage: `R2_SETUP_GUIDE.md`
-- Integration: `BACKEND_INTEGRATION_GUIDE.md`
+- **API Reference:** `API_*` files
+- **Testing:** `*_TESTING.md` files
+- **Setup:** `D1_*` and `R2_*` files
+- **Sessions:** `SESSION_*` files
 
 ### **For DevOps**
-- Deployment: `PRODUCTION_DEPLOYMENT_GUIDE.md`
-- Monitoring: `PRODUCTION_MONITORING_DASHBOARD.md`
-- Checklist: `PRODUCTION_READINESS_CHECKLIST.md`
+- **Production:** `PRODUCTION_*` files
+- **Monitoring:** `ANALYTICS_*` files
+- **Deployment:** `BACKEND_INTEGRATION_*` files
 
-### **For Users**
-- Manual: `USER_MANUAL.md`
-- Testing: `CSV_CFDI_TESTING_GUIDE.md`
+### **For Project Management**
+- **Implementation:** `IMPLEMENTATION_*` files
+- **Phases:** `PHASE_*` files
+- **Sessions:** `SESSION_*` files
 
 ---
 
-**Note:** This archive contains detailed implementation documentation. For current usage, refer to the main documentation in the parent `docs/` folder.
+## 📊 **Development History**
+
+### **Phase 0: Usability & Flow Improvements**
+- Table interactions, filtering, search, sorting
+- Data visualization and account breakdown
+- Account & category management (CRUD)
+- CSV import/export with column mapping
+- Toast notifications and smart suggestions
+
+### **Phase 1: Advanced Transaction Classification**
+- Database schema updates with new transaction fields
+- Business/personal/transfer classification
+- Invoice linking system
+- Soft delete functionality
+- Enhanced API endpoints
+
+### **Phase 2: Fiscal Module and Reconciliation**
+- Mexican tax calculations (ISR, IVA)
+- Account reconciliation system
+- Fiscal reports generation
+- Enhanced dashboard with fiscal data
+- Tax compliance features
+
+### **Phase 3: Automation and Accounts Receivable/Payable**
+- Accounts receivable management system
+- Accounts payable management system
+- Invoice automation functionality
+- Financial automation dashboard
+- Payment scheduling and reminders
+
+### **Phase 4: Advanced Analytics and UX Improvements**
+- Advanced financial analytics with health scoring
+- Enhanced data visualization with interactive charts
+- Comprehensive reporting capabilities
+- Significant UX improvements
+- Integration and export capabilities
+
+---
+
+## 🎯 **Archive Purpose**
+
+This archive serves as:
+- **Historical record** of the development process
+- **Reference material** for future development
+- **Documentation** of implementation decisions
+- **Testing procedures** and validation results
+- **Technical specifications** and architecture details
+
+---
+
+## 📞 **Using This Archive**
+
+### **For New Developers**
+1. Start with `IMPLEMENTATION_SUMMARY.md` for overview
+2. Review `API_ARCHITECTURE.md` for technical details
+3. Check `PHASE_*` files for specific feature documentation
+
+### **For Maintenance**
+1. Reference `PRODUCTION_*` files for deployment
+2. Use `*_TESTING.md` files for testing procedures
+3. Check `SESSION_*` files for implementation details
+
+### **For Feature Development**
+1. Review `PHASE_*` files for existing patterns
+2. Check `API_*` files for backend integration
+3. Use `*_TESTING.md` files for testing strategies
+
+---
+
+**Archive Status:** Complete  
+**Last Updated:** October 15, 2025  
+**Total Files:** 40+ documentation files  
+**Purpose:** Historical reference and technical documentation

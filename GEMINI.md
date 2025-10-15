@@ -1,22 +1,45 @@
 # Project Overview
 
-This project is a personal and business accounting system for a freelancer in Mexico. It is a web application built with React, TailwindCSS, and Vite for the frontend, and Cloudflare Workers, D1, and R2 for the backend. The application allows the user to manage their personal and business transactions, calculate their monthly taxes (ISR and IVA), manage their CFDI invoices, and view financial dashboards.
+This project is a personal and business accounting system called Avanta Finance. It is designed for individuals with business activities in Mexico. The application helps manage financial transactions, calculate monthly taxes (ISR/IVA), handle CFDI invoices, and provides financial dashboards and reports.
+
+## Main Technologies
+
+*   **Frontend:** React 18, TailwindCSS, Vite
+*   **Backend:** Cloudflare Workers Functions
+*   **Database:** Cloudflare D1 (SQLite)
+*   **Storage:** Cloudflare R2
+*   **CI/CD:** GitHub Actions to Cloudflare Pages
+*   **Automation:** n8n
+
+## Architecture
+
+The application follows a client-server architecture. The frontend is a single-page application built with React and Vite. The backend is a set of serverless functions running on Cloudflare Workers, which interact with a Cloudflare D1 database for data storage and Cloudflare R2 for file storage.
 
 # Building and Running
 
 ## Key Commands
 
-*   **`npm install`**: Installs the project dependencies.
-*   **`npm run dev`**: Starts the Vite development server for the frontend.
-*   **`npx wrangler pages dev dist`**: Starts a local development server that includes the Cloudflare Workers backend.
-*   **`npm run build`**: Builds the frontend for production.
-*   **`npm run deploy`**: Builds and deploys the application to Cloudflare Pages.
+*   **Install dependencies:**
+    ```bash
+    npm install
+    ```
+*   **Run development server:**
+    ```bash
+    npm run dev
+    ```
+*   **Build for production:**
+    ```bash
+    npm run build
+    ```
+*   **Deploy to Cloudflare Pages:**
+    ```bash
+    npm run deploy
+    ```
 
 ## Development Conventions
 
-*   The project uses `react-router-dom` for routing.
-*   The project uses a utility file (`src/utils/api.js`) to make API calls to the backend.
-*   The backend is built with Cloudflare Workers Functions and uses Cloudflare D1 for the database and Cloudflare R2 for file storage.
+*   The project uses `vite` for the frontend development server and build process.
+*   The backend consists of Cloudflare Workers functions located in the `functions` directory.
 *   The database schema is defined in `schema.sql`.
-*   The project includes a comprehensive test suite.
+*   Cloudflare configuration is managed in `wrangler.toml`.
 *   The project uses GitHub Actions for continuous integration and deployment.
