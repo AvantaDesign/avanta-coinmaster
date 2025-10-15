@@ -364,3 +364,80 @@ export async function deleteAutomationRule(id) {
   if (!response.ok) throw new Error('Failed to delete automation rule');
   return response.json();
 }
+
+// Credits API
+export async function fetchCredits(params = {}) {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/credits${queryString ? '?' + queryString : ''}`;
+  const response = await authFetch(url, {
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to fetch credits');
+  return response.json();
+}
+
+export async function fetchCreditById(id) {
+  const response = await authFetch(`${API_BASE}/credits/${id}`, {
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to fetch credit');
+  return response.json();
+}
+
+export async function createCredit(data) {
+  const response = await authFetch(`${API_BASE}/credits`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error('Failed to create credit');
+  return response.json();
+}
+
+export async function updateCredit(id, data) {
+  const response = await authFetch(`${API_BASE}/credits/${id}`, {
+    method: 'PUT',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error('Failed to update credit');
+  return response.json();
+}
+
+export async function deleteCredit(id) {
+  const response = await authFetch(`${API_BASE}/credits/${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to delete credit');
+  return response.json();
+}
+
+export async function fetchCreditMovements(creditId, params = {}) {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/credits/${creditId}/movements${queryString ? '?' + queryString : ''}`;
+  const response = await authFetch(url, {
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to fetch credit movements');
+  return response.json();
+}
+
+export async function createCreditMovement(creditId, data) {
+  const response = await authFetch(`${API_BASE}/credits/${creditId}/movements`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error('Failed to create credit movement');
+  return response.json();
+}
