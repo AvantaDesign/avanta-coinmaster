@@ -6,8 +6,10 @@ import MonthlyChart from '../components/MonthlyChart';
 import TransactionTable from '../components/TransactionTable';
 import AccountBreakdown from '../components/AccountBreakdown';
 import PeriodSelector from '../components/PeriodSelector';
+import InteractiveCharts from '../components/InteractiveCharts';
 import { Link } from 'react-router-dom';
 import { formatCurrency } from '../utils/calculations';
+import { calculateFinancialHealthScore } from '../utils/advancedAnalytics';
 
 export default function Home() {
   const [data, setData] = useState(null);
@@ -15,11 +17,40 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [period, setPeriod] = useState('month');
+  const [showAdvancedAnalytics, setShowAdvancedAnalytics] = useState(false);
+  const [healthScore, setHealthScore] = useState(null);
 
   useEffect(() => {
     loadDashboard();
     loadFiscalSummary();
   }, [period]);
+
+  useEffect(() => {
+    if (data && fiscalData) {
+      calculateHealthScore();
+    }
+  }, [data, fiscalData]);
+
+  const calculateHealthScore = () => {
+    try {
+      const financialData = {
+        currentAssets: data?.totalBalance || 0,
+        currentLiabilities: 0,
+        totalAssets: data?.totalBalance || 0,
+        totalLiabilities: 0,
+        revenue: data?.thisMonth?.income || 0,
+        expenses: data?.thisMonth?.expenses || 0,
+        netIncome: (data?.thisMonth?.income || 0) - (data?.thisMonth?.expenses || 0),
+        cashReserves: data?.totalBalance || 0,
+        accountsReceivable: 0,
+        accountsPayable: 0
+      };
+      const score = calculateFinancialHealthScore(financialData);
+      setHealthScore(score);
+    } catch (error) {
+      console.error('Error calculating health score:', error);
+    }
+  };
 
   const loadDashboard = async () => {
     try {
@@ -86,7 +117,7 @@ export default function Home() {
         <PeriodSelector value={period} onChange={setPeriod} />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <BalanceCard
           title="Balance Total"
           amount={data?.totalBalance || 0}
@@ -102,6 +133,45 @@ export default function Home() {
           amount={data?.thisMonth?.expenses || 0}
           type="negative"
         />
+        
+        {/* Health Score Card */}
+        {healthScore && (
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-medium text-gray-700">Salud Financiera</h3>
+              <button
+                onClick={() => setShowAdvancedAnalytics(!showAdvancedAnalytics)}
+                className="text-blue-600 hover:text-blue-800 text-xs"
+              >
+                Ver detalle →
+              </button>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className={`text-4xl font-bold ${
+                healthScore.score >= 80 ? 'text-green-600' :
+                healthScore.score >= 60 ? 'text-blue-600' :
+                healthScore.score >= 40 ? 'text-yellow-600' :
+                'text-red-600'
+              }`}>
+                {healthScore.score}
+              </div>
+              <div className="flex-1">
+                <div className="text-xs text-gray-600 mb-1">{healthScore.rating}</div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className={`h-2 rounded-full ${
+                      healthScore.score >= 80 ? 'bg-green-500' :
+                      healthScore.score >= 60 ? 'bg-blue-500' :
+                      healthScore.score >= 40 ? 'bg-yellow-500' :
+                      'bg-red-500'
+                    }`}
+                    style={{ width: `${healthScore.score}%` }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Fiscal Summary Cards */}
@@ -154,8 +224,56 @@ export default function Home() {
         </div>
       )}
 
+      {/* Advanced Analytics Banner */}
+      {showAdvancedAnalytics && (
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 rounded-lg shadow-lg text-white">
+          <div className="flex justify-between items-start">
+            <div className="flex-1">
+              <h3 className="text-xl font-bold mb-2">📊 Analítica Avanzada Disponible</h3>
+              <p className="text-blue-100 mb-4">
+                Accede a análisis profundos de tu salud financiera, pronósticos, KPIs y más
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <Link
+                  to="/analytics"
+                  className="bg-white text-blue-600 px-4 py-2 rounded-md hover:bg-blue-50 font-medium"
+                >
+                  Ver Analytics Completo
+                </Link>
+                <Link
+                  to="/reports"
+                  className="bg-white/20 text-white px-4 py-2 rounded-md hover:bg-white/30 font-medium"
+                >
+                  Generar Reportes
+                </Link>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowAdvancedAnalytics(false)}
+              className="text-white hover:text-blue-100 text-2xl"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <MonthlyChart data={data?.trends || []} />
+        {/* Enhanced Charts with Interactive Features */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h3 className="text-xl font-bold mb-4">📈 Tendencia de 6 Meses</h3>
+          {data?.trends && data.trends.length > 0 ? (
+            <InteractiveCharts
+              data={data.trends.map(t => ({
+                label: new Date(t.month + '-01').toLocaleDateString('es-MX', { month: 'short' }),
+                value: (t.income || 0) - (t.expenses || 0)
+              }))}
+              type="line"
+            />
+          ) : (
+            <MonthlyChart data={data?.trends || []} />
+          )}
+        </div>
         <AccountBreakdown accounts={data?.accounts || []} />
       </div>
 
