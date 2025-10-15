@@ -4,6 +4,8 @@ import { formatCurrency, formatDate } from '../utils/calculations';
 import FiscalCalculator from '../components/FiscalCalculator';
 import FiscalReports from '../components/FiscalReports';
 import ReconciliationManager from '../components/ReconciliationManager';
+import FiscalConfiguration from '../components/FiscalConfiguration';
+import FiscalSimulation from '../components/FiscalSimulation';
 
 export default function Fiscal() {
   const [activeTab, setActiveTab] = useState('calculator');
@@ -47,6 +49,26 @@ export default function Fiscal() {
               Conciliación
             </button>
             <button
+              onClick={() => setActiveTab('simulation')}
+              className={`px-6 py-3 font-medium whitespace-nowrap ${
+                activeTab === 'simulation'
+                  ? 'border-b-2 border-blue-600 text-blue-600'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              Simulador
+            </button>
+            <button
+              onClick={() => setActiveTab('configuration')}
+              className={`px-6 py-3 font-medium whitespace-nowrap ${
+                activeTab === 'configuration'
+                  ? 'border-b-2 border-blue-600 text-blue-600'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              Configuración
+            </button>
+            <button
               onClick={() => setActiveTab('simple')}
               className={`px-6 py-3 font-medium whitespace-nowrap ${
                 activeTab === 'simple'
@@ -64,6 +86,8 @@ export default function Fiscal() {
       {activeTab === 'calculator' && <FiscalCalculator />}
       {activeTab === 'reports' && <FiscalReports />}
       {activeTab === 'reconciliation' && <ReconciliationManager />}
+      {activeTab === 'simulation' && <FiscalSimulation />}
+      {activeTab === 'configuration' && <FiscalConfiguration />}
       {activeTab === 'simple' && <SimpleFiscalView />}
     </div>
   );
