@@ -105,6 +105,15 @@ export default {
             });
 
           default:
+            // Handle credits API with path parameters (/api/credits/:id, /api/credits/:id/movements)
+            if (apiPath.startsWith('credits')) {
+              const creditsModule = await import('./api/credits.js');
+              const creditsResponse = await creditsModule.default(request, env, ctx);
+              return new Response(creditsResponse.body, {
+                status: creditsResponse.status || 200,
+                headers: { ...corsHeaders, ...creditsResponse.headers },
+              });
+            }
             return new Response(JSON.stringify({ error: 'API endpoint not found' }), {
               status: 404,
               headers: { ...corsHeaders, 'Content-Type': 'application/json' },
