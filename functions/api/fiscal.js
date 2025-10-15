@@ -1,10 +1,12 @@
 // Fiscal API - Calculate ISR and IVA
 
+import { getUserIdFromToken } from './auth.js';
+
 const corsHeaders = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
 export async function onRequestGet(context) {
@@ -16,6 +18,19 @@ export async function onRequestGet(context) {
   const quarter = parseInt(url.searchParams.get('quarter')) || Math.ceil(month / 3);
   
   try {
+    // Get user ID from token
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({ 
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     // Validate database connection
     if (!env.DB) {
       return new Response(JSON.stringify({ 
@@ -95,8 +110,8 @@ export async function onRequestGet(context) {
         SUM(CASE WHEN type = 'gasto' THEN amount ELSE 0 END) as total_expenses,
         SUM(CASE WHEN type = 'gasto' AND (category = 'personal' OR transaction_type = 'personal') THEN amount ELSE 0 END) as personal_expenses
       FROM transactions
-      WHERE date >= ? AND date <= ? AND is_deleted = 0
-    `).bind(firstDay, lastDay).first();
+      WHERE user_id = ? AND date >= ? AND date <= ? AND is_deleted = 0
+    `).bind(userId, firstDay, lastDay).first();
     
     const businessIncome = summary?.business_income || 0;
     const businessExpenses = summary?.business_expenses || 0;
