@@ -32,6 +32,7 @@ export default function Transactions() {
       searchTerm: '',
       typeFilter: 'all',
       accountFilter: 'all',
+      transactionTypeFilter: 'all',
       dateFrom: '',
       dateTo: ''
     };
@@ -42,6 +43,7 @@ export default function Transactions() {
   const [searchTerm, setSearchTerm] = useState(savedFilters.searchTerm);
   const [typeFilter, setTypeFilter] = useState(savedFilters.typeFilter);
   const [accountFilter, setAccountFilter] = useState(savedFilters.accountFilter);
+  const [transactionTypeFilter, setTransactionTypeFilter] = useState(savedFilters.transactionTypeFilter || 'all');
   const [dateFrom, setDateFrom] = useState(savedFilters.dateFrom);
   const [dateTo, setDateTo] = useState(savedFilters.dateTo);
 
@@ -52,11 +54,12 @@ export default function Transactions() {
       searchTerm,
       typeFilter,
       accountFilter,
+      transactionTypeFilter,
       dateFrom,
       dateTo
     };
     localStorage.setItem('transactionFilters', JSON.stringify(filtersToSave));
-  }, [filter, searchTerm, typeFilter, accountFilter, dateFrom, dateTo]);
+  }, [filter, searchTerm, typeFilter, accountFilter, transactionTypeFilter, dateFrom, dateTo]);
 
   useEffect(() => {
     loadAccounts();
@@ -64,7 +67,7 @@ export default function Transactions() {
 
   useEffect(() => {
     loadTransactions();
-  }, [filter, searchTerm, typeFilter, accountFilter, dateFrom, dateTo]);
+  }, [filter, searchTerm, typeFilter, accountFilter, transactionTypeFilter, dateFrom, dateTo]);
 
   const loadAccounts = async () => {
     try {
@@ -86,6 +89,7 @@ export default function Transactions() {
       if (searchTerm) params.search = searchTerm;
       if (typeFilter !== 'all') params.type = typeFilter;
       if (accountFilter !== 'all') params.account = accountFilter;
+      if (transactionTypeFilter !== 'all') params.transaction_type = transactionTypeFilter;
       if (dateFrom) params.date_from = dateFrom;
       if (dateTo) params.date_to = dateTo;
       
@@ -122,6 +126,7 @@ export default function Transactions() {
     if (searchTerm) filters.busqueda = searchTerm;
     if (typeFilter !== 'all') filters.tipo = typeFilter;
     if (accountFilter !== 'all') filters.cuenta = accountFilter;
+    if (transactionTypeFilter !== 'all') filters.clasificacion = transactionTypeFilter;
     if (dateFrom) filters.desde = dateFrom;
     if (dateTo) filters.hasta = dateTo;
     return filters;
@@ -131,22 +136,23 @@ export default function Transactions() {
     setSearchTerm('');
     setTypeFilter('all');
     setAccountFilter('all');
+    setTransactionTypeFilter('all');
     setDateFrom('');
     setDateTo('');
     setFilter('all');
   };
 
-  const hasActiveFilters = searchTerm || typeFilter !== 'all' || accountFilter !== 'all' || dateFrom || dateTo || filter !== 'all';
+  const hasActiveFilters = searchTerm || typeFilter !== 'all' || accountFilter !== 'all' || transactionTypeFilter !== 'all' || dateFrom || dateTo || filter !== 'all';
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Transacciones</h1>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <button
-            onClick={() => setFilter('all')}
+            onClick={() => setTransactionTypeFilter('all')}
             className={`px-4 py-2 rounded-md ${
-              filter === 'all'
+              transactionTypeFilter === 'all'
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             }`}
@@ -154,24 +160,24 @@ export default function Transactions() {
             Todas
           </button>
           <button
-            onClick={() => setFilter('personal')}
+            onClick={() => setTransactionTypeFilter('business')}
             className={`px-4 py-2 rounded-md ${
-              filter === 'personal'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              transactionTypeFilter === 'business'
+                ? 'bg-purple-600 text-white'
+                : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
             }`}
           >
-            Personal
+            💼 Negocio
           </button>
           <button
-            onClick={() => setFilter('avanta')}
+            onClick={() => setTransactionTypeFilter('personal')}
             className={`px-4 py-2 rounded-md ${
-              filter === 'avanta'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              transactionTypeFilter === 'personal'
+                ? 'bg-green-600 text-white'
+                : 'bg-green-100 text-green-700 hover:bg-green-200'
             }`}
           >
-            Avanta
+            👤 Personal
           </button>
         </div>
       </div>
@@ -190,7 +196,7 @@ export default function Transactions() {
           )}
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
           {/* Search */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -218,6 +224,23 @@ export default function Transactions() {
               <option value="all">Todos</option>
               <option value="ingreso">Ingreso</option>
               <option value="gasto">Gasto</option>
+            </select>
+          </div>
+
+          {/* Transaction Type Filter - NEW */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Clasificación
+            </label>
+            <select
+              value={transactionTypeFilter}
+              onChange={(e) => setTransactionTypeFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">Todas</option>
+              <option value="business">💼 Negocio</option>
+              <option value="personal">👤 Personal</option>
+              <option value="transfer">🔄 Transferencia</option>
             </select>
           </div>
 
