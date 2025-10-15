@@ -1,5 +1,48 @@
 // Cloudflare Pages Worker - Avanta Finance
 // This file handles all API routes for the Avanta Finance application
+// Security: Enforces authentication on all protected endpoints
+
+import { getUserIdFromToken } from './api/auth.js';
+
+/**
+ * Authentication middleware
+ * Verifies JWT token and returns user ID or error response
+ */
+async function authenticateRequest(request, env) {
+  const userId = await getUserIdFromToken(request, env);
+  if (!userId) {
+    return {
+      isAuthenticated: false,
+      response: new Response(JSON.stringify({
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        }
+      })
+    };
+  }
+  return { isAuthenticated: true, userId };
+}
+
+/**
+ * Check if endpoint requires authentication
+ */
+function isPublicEndpoint(path) {
+  const publicPaths = [
+    '/api/auth/login',
+    '/api/auth/register',
+    '/api/auth/google',
+  ];
+  
+  return publicPaths.some(publicPath => path.endsWith(publicPath));
+}
 
 export default {
   async fetch(request, env, ctx) {
@@ -28,7 +71,23 @@ export default {
     try {
       // Route API requests to appropriate handlers
       if (path.startsWith('/api/')) {
+        // Enforce authentication for protected endpoints
+        if (!isPublicEndpoint(path)) {
+          const authResult = await authenticateRequest(request, env);
+          if (!authResult.isAuthenticated) {
+            return authResult.response;
+          }
+          // User is authenticated, proceed with request
+        }
+        
         const apiPath = path.replace('/api/', '');
+        
+        // Handle auth endpoints (with sub-paths)
+        if (apiPath.startsWith('auth/')) {
+          const authModule = await import('./api/auth.js');
+          const authResponse = await authModule.onRequest({ request, env, ctx });
+          return authResponse;
+        }
         
         // Import and execute the appropriate API handler
         switch (apiPath) {
@@ -54,6 +113,22 @@ export default {
             return new Response(accountsResponse.body, {
               status: accountsResponse.status || 200,
               headers: { ...corsHeaders, ...accountsResponse.headers },
+            });
+
+          case 'categories':
+            const categoriesModule = await import('./api/categories.js');
+            const categoriesResponse = await categoriesModule.default(request, env, ctx);
+            return new Response(categoriesResponse.body, {
+              status: categoriesResponse.status || 200,
+              headers: { ...corsHeaders, ...categoriesResponse.headers },
+            });
+
+          case 'budgets':
+            const budgetsModule = await import('./api/budgets.js');
+            const budgetsResponse = await budgetsModule.default(request, env, ctx);
+            return new Response(budgetsResponse.body, {
+              status: budgetsResponse.status || 200,
+              headers: { ...corsHeaders, ...budgetsResponse.headers },
             });
 
           case 'fiscal':
@@ -86,6 +161,62 @@ export default {
             return new Response(analyticsResponse.body, {
               status: analyticsResponse.status || 200,
               headers: { ...corsHeaders, ...analyticsResponse.headers },
+            });
+
+          case 'reports':
+            const reportsModule = await import('./api/reports.js');
+            const reportsResponse = await reportsModule.default(request, env, ctx);
+            return new Response(reportsResponse.body, {
+              status: reportsResponse.status || 200,
+              headers: { ...corsHeaders, ...reportsResponse.headers },
+            });
+
+          case 'fiscal-config':
+            const fiscalConfigModule = await import('./api/fiscal-config.js');
+            const fiscalConfigResponse = await fiscalConfigModule.default(request, env, ctx);
+            return new Response(fiscalConfigResponse.body, {
+              status: fiscalConfigResponse.status || 200,
+              headers: { ...corsHeaders, ...fiscalConfigResponse.headers },
+            });
+
+          case 'automation':
+            const automationModule = await import('./api/automation.js');
+            const automationResponse = await automationModule.default(request, env, ctx);
+            return new Response(automationResponse.body, {
+              status: automationResponse.status || 200,
+              headers: { ...corsHeaders, ...automationResponse.headers },
+            });
+
+          case 'receivables':
+            const receivablesModule = await import('./api/receivables.js');
+            const receivablesResponse = await receivablesModule.default(request, env, ctx);
+            return new Response(receivablesResponse.body, {
+              status: receivablesResponse.status || 200,
+              headers: { ...corsHeaders, ...receivablesResponse.headers },
+            });
+
+          case 'payables':
+            const payablesModule = await import('./api/payables.js');
+            const payablesResponse = await payablesModule.default(request, env, ctx);
+            return new Response(payablesResponse.body, {
+              status: payablesResponse.status || 200,
+              headers: { ...corsHeaders, ...payablesResponse.headers },
+            });
+
+          case 'reconciliation':
+            const reconciliationModule = await import('./api/reconciliation.js');
+            const reconciliationResponse = await reconciliationModule.default(request, env, ctx);
+            return new Response(reconciliationResponse.body, {
+              status: reconciliationResponse.status || 200,
+              headers: { ...corsHeaders, ...reconciliationResponse.headers },
+            });
+
+          case 'invoice-reconciliation':
+            const invoiceReconciliationModule = await import('./api/invoice-reconciliation.js');
+            const invoiceReconciliationResponse = await invoiceReconciliationModule.default(request, env, ctx);
+            return new Response(invoiceReconciliationResponse.body, {
+              status: invoiceReconciliationResponse.status || 200,
+              headers: { ...corsHeaders, ...invoiceReconciliationResponse.headers },
             });
 
           case 'errors':
