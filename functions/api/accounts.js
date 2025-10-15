@@ -1,16 +1,31 @@
 // Accounts API - Manage bank accounts and credit cards
 
+import { getUserIdFromToken } from './auth.js';
+
 const corsHeaders = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
 export async function onRequestGet(context) {
-  const { env } = context;
+  const { env, request } = context;
   
   try {
+    // Get user ID from token
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({ 
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     // Validate database connection
     if (!env.DB) {
       return new Response(JSON.stringify({ 
@@ -22,10 +37,10 @@ export async function onRequestGet(context) {
       });
     }
 
-    // Get only active accounts by default
+    // Get only active accounts for this user
     const result = await env.DB.prepare(
-      'SELECT * FROM accounts WHERE is_active = 1 ORDER BY type, name'
-    ).all();
+      'SELECT * FROM accounts WHERE user_id = ? AND is_active = 1 ORDER BY type, name'
+    ).bind(userId).all();
     
     return new Response(JSON.stringify(result.results || []), {
       headers: corsHeaders
@@ -50,6 +65,19 @@ export async function onRequestPut(context) {
   const id = pathParts[pathParts.length - 1];
   
   try {
+    // Get user ID from token
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({ 
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     // Validate database connection
     if (!env.DB) {
       return new Response(JSON.stringify({ 
@@ -57,6 +85,21 @@ export async function onRequestPut(context) {
         code: 'DB_NOT_CONFIGURED'
       }), {
         status: 503,
+        headers: corsHeaders
+      });
+    }
+
+    // Check account exists and belongs to user
+    const existing = await env.DB.prepare(
+      'SELECT * FROM accounts WHERE id = ? AND user_id = ?'
+    ).bind(id, userId).first();
+    
+    if (!existing) {
+      return new Response(JSON.stringify({ 
+        error: 'Account not found',
+        code: 'NOT_FOUND'
+      }), {
+        status: 404,
         headers: corsHeaders
       });
     }
@@ -112,23 +155,9 @@ export async function onRequestPut(context) {
     
     updates.push('updated_at = CURRENT_TIMESTAMP');
     params.push(id);
-    
-    // Check if account exists
-    const existingAccount = await env.DB.prepare(
-      'SELECT id FROM accounts WHERE id = ?'
-    ).bind(id).first();
-    
-    if (!existingAccount) {
-      return new Response(JSON.stringify({ 
-        error: 'Account not found',
-        code: 'NOT_FOUND'
-      }), {
-        status: 404,
-        headers: corsHeaders
-      });
-    }
+    params.push(userId);
 
-    const query = `UPDATE accounts SET ${updates.join(', ')} WHERE id = ?`;
+    const query = `UPDATE accounts SET ${updates.join(', ')} WHERE id = ? AND user_id = ?`;
     await env.DB.prepare(query).bind(...params).run();
     
     return new Response(JSON.stringify({ 
@@ -154,6 +183,19 @@ export async function onRequestPost(context) {
   const { env, request } = context;
   
   try {
+    // Get user ID from token
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({ 
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     if (!env.DB) {
       return new Response(JSON.stringify({ 
         error: 'Database connection not available',
@@ -201,8 +243,8 @@ export async function onRequestPost(context) {
     }
     
     const result = await env.DB.prepare(
-      'INSERT INTO accounts (name, type, balance, is_active) VALUES (?, ?, ?, 1)'
-    ).bind(name, type, numBalance).run();
+      'INSERT INTO accounts (user_id, name, type, balance, is_active) VALUES (?, ?, ?, ?, 1)'
+    ).bind(userId, name, type, numBalance).run();
     
     return new Response(JSON.stringify({ 
       success: true,
@@ -232,6 +274,19 @@ export async function onRequestDelete(context) {
   const id = pathParts[pathParts.length - 1];
   
   try {
+    // Get user ID from token
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({ 
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     if (!env.DB) {
       return new Response(JSON.stringify({ 
         error: 'Database connection not available',
@@ -242,10 +297,10 @@ export async function onRequestDelete(context) {
       });
     }
     
-    // Check if account exists
+    // Check if account exists and belongs to user
     const existingAccount = await env.DB.prepare(
-      'SELECT id FROM accounts WHERE id = ?'
-    ).bind(id).first();
+      'SELECT id FROM accounts WHERE id = ? AND user_id = ?'
+    ).bind(id, userId).first();
     
     if (!existingAccount) {
       return new Response(JSON.stringify({ 
@@ -259,8 +314,8 @@ export async function onRequestDelete(context) {
     
     // Soft delete: set is_active to 0
     await env.DB.prepare(
-      'UPDATE accounts SET is_active = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
-    ).bind(id).run();
+      'UPDATE accounts SET is_active = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?'
+    ).bind(id, userId).run();
     
     return new Response(JSON.stringify({ 
       success: true,

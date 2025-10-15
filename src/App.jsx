@@ -1,5 +1,7 @@
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
+import { AuthProvider, useAuth, ProtectedRoute } from './components/AuthProvider';
+import LoginForm from './components/LoginForm';
 import Home from './pages/Home';
 import Transactions from './pages/Transactions';
 import Fiscal from './pages/Fiscal';
@@ -28,89 +30,116 @@ function AnalyticsTracker() {
   return null;
 }
 
-function App() {
-  // Initialize analytics and error monitoring on app load
-  useEffect(() => {
-    initializeAnalytics();
-    initializeErrorMonitoring();
-  }, []);
-
+// Navigation bar component with user info
+function NavigationBar() {
+  const { user, logout } = useAuth();
+  
   return (
-    <Router>
+    <nav className="bg-white shadow-lg">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex">
+            <div className="flex-shrink-0 flex items-center">
+              <h1 className="text-xl font-bold text-blue-600">Avanta Finance</h1>
+            </div>
+            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+              <Link
+                to="/"
+                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
+              >
+                Dashboard
+              </Link>
+              <Link
+                to="/transactions"
+                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
+              >
+                Transacciones
+              </Link>
+              <Link
+                to="/accounts"
+                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
+              >
+                Cuentas
+              </Link>
+              <Link
+                to="/categories"
+                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
+              >
+                Categorías
+              </Link>
+              <Link
+                to="/fiscal"
+                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
+              >
+                Fiscal
+              </Link>
+              <Link
+                to="/invoices"
+                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
+              >
+                Facturas
+              </Link>
+              <Link
+                to="/automation"
+                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
+              >
+                Automatización
+              </Link>
+              <Link
+                to="/analytics"
+                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
+              >
+                Analytics
+              </Link>
+              <Link
+                to="/reports"
+                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
+              >
+                Reportes
+              </Link>
+            </div>
+          </div>
+          <div className="flex items-center space-x-4">
+            {user && (
+              <>
+                <div className="flex items-center space-x-2">
+                  {user.avatar && (
+                    <img 
+                      src={user.avatar} 
+                      alt={user.name} 
+                      className="h-8 w-8 rounded-full"
+                    />
+                  )}
+                  {!user.avatar && (
+                    <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold">
+                      {user.initials || 'U'}
+                    </div>
+                  )}
+                  <span className="text-sm text-gray-700 font-medium">{user.name || user.email}</span>
+                </div>
+                <button
+                  onClick={logout}
+                  className="text-sm text-gray-600 hover:text-gray-900 px-3 py-1 rounded border border-gray-300 hover:border-gray-400"
+                >
+                  Cerrar Sesión
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+// Main authenticated app layout
+function AuthenticatedApp() {
+  return (
+    <>
       <AnalyticsTracker />
       <ToastContainer />
       <div className="min-h-screen bg-gray-100">
-        <nav className="bg-white shadow-lg">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <div className="flex">
-                <div className="flex-shrink-0 flex items-center">
-                  <h1 className="text-xl font-bold text-blue-600">Avanta Finance</h1>
-                </div>
-                <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                  <Link
-                    to="/"
-                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    to="/transactions"
-                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-                  >
-                    Transacciones
-                  </Link>
-                  <Link
-                    to="/accounts"
-                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-                  >
-                    Cuentas
-                  </Link>
-                  <Link
-                    to="/categories"
-                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-                  >
-                    Categorías
-                  </Link>
-                  <Link
-                    to="/fiscal"
-                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-                  >
-                    Fiscal
-                  </Link>
-                  <Link
-                    to="/invoices"
-                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-                  >
-                    Facturas
-                  </Link>
-                  <Link
-                    to="/automation"
-                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-                  >
-                    Automatización
-                  </Link>
-                  <Link
-                    to="/analytics"
-                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-                  >
-                    Analytics
-                  </Link>
-                  <Link
-                    to="/reports"
-                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-                  >
-                    Reportes
-                  </Link>
-                </div>
-              </div>
-              <div className="flex items-center">
-                <span className="text-sm text-gray-600">RFC: REGM000905T24</span>
-              </div>
-            </div>
-          </div>
-        </nav>
-
+        <NavigationBar />
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
             <Routes>
@@ -139,6 +168,32 @@ function App() {
           </div>
         </footer>
       </div>
+    </>
+  );
+}
+
+function App() {
+  // Initialize analytics and error monitoring on app load
+  useEffect(() => {
+    initializeAnalytics();
+    initializeErrorMonitoring();
+  }, []);
+
+  return (
+    <Router>
+      <AuthProvider>
+        <Routes>
+          <Route path="/login" element={<LoginForm />} />
+          <Route 
+            path="/*" 
+            element={
+              <ProtectedRoute>
+                <AuthenticatedApp />
+              </ProtectedRoute>
+            } 
+          />
+        </Routes>
+      </AuthProvider>
     </Router>
   );
 }
