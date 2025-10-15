@@ -1,12 +1,17 @@
 // API helper functions
 // All functions now use real backend endpoints (Cloudflare Workers + D1)
+// With authentication support
+
+import { authFetch, getAuthHeaders } from './auth';
 
 const API_BASE = '/api';
 
 export async function fetchDashboard(params = {}) {
   const queryString = new URLSearchParams(params).toString();
   const url = `${API_BASE}/dashboard${queryString ? '?' + queryString : ''}`;
-  const response = await fetch(url);
+  const response = await authFetch(url, {
+    headers: getAuthHeaders()
+  });
   if (!response.ok) throw new Error('Failed to fetch dashboard');
   return response.json();
 }
@@ -14,15 +19,20 @@ export async function fetchDashboard(params = {}) {
 export async function fetchTransactions(params = {}) {
   const queryString = new URLSearchParams(params).toString();
   const url = `${API_BASE}/transactions${queryString ? '?' + queryString : ''}`;
-  const response = await fetch(url);
+  const response = await authFetch(url, {
+    headers: getAuthHeaders()
+  });
   if (!response.ok) throw new Error('Failed to fetch transactions');
   return response.json();
 }
 
 export async function createTransaction(data) {
-  const response = await fetch(`${API_BASE}/transactions`, {
+  const response = await authFetch(`${API_BASE}/transactions`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
     body: JSON.stringify(data)
   });
   if (!response.ok) throw new Error('Failed to create transaction');
@@ -30,9 +40,12 @@ export async function createTransaction(data) {
 }
 
 export async function updateTransaction(id, data) {
-  const response = await fetch(`${API_BASE}/transactions/${id}`, {
+  const response = await authFetch(`${API_BASE}/transactions/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
     body: JSON.stringify(data)
   });
   if (!response.ok) throw new Error('Failed to update transaction');
@@ -40,32 +53,41 @@ export async function updateTransaction(id, data) {
 }
 
 export async function deleteTransaction(id) {
-  const response = await fetch(`${API_BASE}/transactions/${id}?confirm=true`, {
-    method: 'DELETE'
+  const response = await authFetch(`${API_BASE}/transactions/${id}?confirm=true`, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
   });
   if (!response.ok) throw new Error('Failed to delete transaction');
   return response.json();
 }
 
 export async function restoreTransaction(id) {
-  const response = await fetch(`${API_BASE}/transactions/${id}/restore`, {
+  const response = await authFetch(`${API_BASE}/transactions/${id}/restore`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' }
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    }
   });
   if (!response.ok) throw new Error('Failed to restore transaction');
   return response.json();
 }
 
 export async function fetchAccounts() {
-  const response = await fetch(`${API_BASE}/accounts`);
+  const response = await authFetch(`${API_BASE}/accounts`, {
+    headers: getAuthHeaders()
+  });
   if (!response.ok) throw new Error('Failed to fetch accounts');
   return response.json();
 }
 
 export async function createAccount(data) {
-  const response = await fetch(`${API_BASE}/accounts`, {
+  const response = await authFetch(`${API_BASE}/accounts`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
     body: JSON.stringify(data)
   });
   if (!response.ok) throw new Error('Failed to create account');
@@ -73,9 +95,12 @@ export async function createAccount(data) {
 }
 
 export async function updateAccount(id, data) {
-  const response = await fetch(`${API_BASE}/accounts/${id}`, {
+  const response = await authFetch(`${API_BASE}/accounts/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
     body: JSON.stringify(data)
   });
   if (!response.ok) throw new Error('Failed to update account');
@@ -83,23 +108,29 @@ export async function updateAccount(id, data) {
 }
 
 export async function deleteAccount(id) {
-  const response = await fetch(`${API_BASE}/accounts/${id}`, {
-    method: 'DELETE'
+  const response = await authFetch(`${API_BASE}/accounts/${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
   });
   if (!response.ok) throw new Error('Failed to delete account');
   return response.json();
 }
 
 export async function fetchCategories() {
-  const response = await fetch(`${API_BASE}/categories`);
+  const response = await authFetch(`${API_BASE}/categories`, {
+    headers: getAuthHeaders()
+  });
   if (!response.ok) throw new Error('Failed to fetch categories');
   return response.json();
 }
 
 export async function createCategory(data) {
-  const response = await fetch(`${API_BASE}/categories`, {
+  const response = await authFetch(`${API_BASE}/categories`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
     body: JSON.stringify(data)
   });
   if (!response.ok) throw new Error('Failed to create category');
@@ -107,9 +138,12 @@ export async function createCategory(data) {
 }
 
 export async function updateCategory(id, data) {
-  const response = await fetch(`${API_BASE}/categories/${id}`, {
+  const response = await authFetch(`${API_BASE}/categories/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
     body: JSON.stringify(data)
   });
   if (!response.ok) throw new Error('Failed to update category');
@@ -117,8 +151,9 @@ export async function updateCategory(id, data) {
 }
 
 export async function deleteCategory(id) {
-  const response = await fetch(`${API_BASE}/categories/${id}`, {
-    method: 'DELETE'
+  const response = await authFetch(`${API_BASE}/categories/${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
   });
   if (!response.ok) throw new Error('Failed to delete category');
   return response.json();
@@ -126,7 +161,9 @@ export async function deleteCategory(id) {
 
 export async function fetchFiscal(month, year) {
   const params = new URLSearchParams({ month, year }).toString();
-  const response = await fetch(`${API_BASE}/fiscal?${params}`);
+  const response = await authFetch(`${API_BASE}/fiscal?${params}`, {
+    headers: getAuthHeaders()
+  });
   if (!response.ok) throw new Error('Failed to fetch fiscal data');
   return response.json();
 }
@@ -134,15 +171,20 @@ export async function fetchFiscal(month, year) {
 export async function fetchInvoices(params = {}) {
   const queryString = new URLSearchParams(params).toString();
   const url = `${API_BASE}/invoices${queryString ? '?' + queryString : ''}`;
-  const response = await fetch(url);
+  const response = await authFetch(url, {
+    headers: getAuthHeaders()
+  });
   if (!response.ok) throw new Error('Failed to fetch invoices');
   return response.json();
 }
 
 export async function createInvoice(data) {
-  const response = await fetch(`${API_BASE}/invoices`, {
+  const response = await authFetch(`${API_BASE}/invoices`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
     body: JSON.stringify(data)
   });
   if (!response.ok) throw new Error('Failed to create invoice');
@@ -153,8 +195,9 @@ export async function uploadFile(file) {
   const formData = new FormData();
   formData.append('file', file);
   
-  const response = await fetch(`${API_BASE}/upload`, {
+  const response = await authFetch(`${API_BASE}/upload`, {
     method: 'POST',
+    headers: getAuthHeaders(),
     body: formData
   });
   if (!response.ok) throw new Error('Failed to upload file');
@@ -164,15 +207,20 @@ export async function uploadFile(file) {
 export async function fetchReconciliation(params = {}) {
   const queryString = new URLSearchParams(params).toString();
   const url = `${API_BASE}/reconciliation${queryString ? '?' + queryString : ''}`;
-  const response = await fetch(url);
+  const response = await authFetch(url, {
+    headers: getAuthHeaders()
+  });
   if (!response.ok) throw new Error('Failed to fetch reconciliation data');
   return response.json();
 }
 
 export async function applyReconciliation(action, transactionIds) {
-  const response = await fetch(`${API_BASE}/reconciliation`, {
+  const response = await authFetch(`${API_BASE}/reconciliation`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
     body: JSON.stringify({ action, transactionIds })
   });
   if (!response.ok) throw new Error('Failed to apply reconciliation');
@@ -183,15 +231,20 @@ export async function applyReconciliation(action, transactionIds) {
 export async function fetchReceivables(params = {}) {
   const queryString = new URLSearchParams(params).toString();
   const url = `${API_BASE}/receivables${queryString ? '?' + queryString : ''}`;
-  const response = await fetch(url);
+  const response = await authFetch(url, {
+    headers: getAuthHeaders()
+  });
   if (!response.ok) throw new Error('Failed to fetch receivables');
   return response.json();
 }
 
 export async function createReceivable(data) {
-  const response = await fetch(`${API_BASE}/receivables`, {
+  const response = await authFetch(`${API_BASE}/receivables`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
     body: JSON.stringify(data)
   });
   if (!response.ok) throw new Error('Failed to create receivable');
@@ -199,9 +252,12 @@ export async function createReceivable(data) {
 }
 
 export async function updateReceivable(id, data) {
-  const response = await fetch(`${API_BASE}/receivables`, {
+  const response = await authFetch(`${API_BASE}/receivables`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
     body: JSON.stringify({ id, ...data })
   });
   if (!response.ok) throw new Error('Failed to update receivable');
@@ -209,8 +265,9 @@ export async function updateReceivable(id, data) {
 }
 
 export async function deleteReceivable(id) {
-  const response = await fetch(`${API_BASE}/receivables?id=${id}`, {
-    method: 'DELETE'
+  const response = await authFetch(`${API_BASE}/receivables?id=${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
   });
   if (!response.ok) throw new Error('Failed to delete receivable');
   return response.json();
@@ -220,15 +277,20 @@ export async function deleteReceivable(id) {
 export async function fetchPayables(params = {}) {
   const queryString = new URLSearchParams(params).toString();
   const url = `${API_BASE}/payables${queryString ? '?' + queryString : ''}`;
-  const response = await fetch(url);
+  const response = await authFetch(url, {
+    headers: getAuthHeaders()
+  });
   if (!response.ok) throw new Error('Failed to fetch payables');
   return response.json();
 }
 
 export async function createPayable(data) {
-  const response = await fetch(`${API_BASE}/payables`, {
+  const response = await authFetch(`${API_BASE}/payables`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
     body: JSON.stringify(data)
   });
   if (!response.ok) throw new Error('Failed to create payable');
@@ -236,9 +298,12 @@ export async function createPayable(data) {
 }
 
 export async function updatePayable(id, data) {
-  const response = await fetch(`${API_BASE}/payables`, {
+  const response = await authFetch(`${API_BASE}/payables`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
     body: JSON.stringify({ id, ...data })
   });
   if (!response.ok) throw new Error('Failed to update payable');
@@ -246,8 +311,9 @@ export async function updatePayable(id, data) {
 }
 
 export async function deletePayable(id) {
-  const response = await fetch(`${API_BASE}/payables?id=${id}`, {
-    method: 'DELETE'
+  const response = await authFetch(`${API_BASE}/payables?id=${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
   });
   if (!response.ok) throw new Error('Failed to delete payable');
   return response.json();
@@ -257,15 +323,20 @@ export async function deletePayable(id) {
 export async function fetchAutomationRules(params = {}) {
   const queryString = new URLSearchParams(params).toString();
   const url = `${API_BASE}/automation${queryString ? '?' + queryString : ''}`;
-  const response = await fetch(url);
+  const response = await authFetch(url, {
+    headers: getAuthHeaders()
+  });
   if (!response.ok) throw new Error('Failed to fetch automation rules');
   return response.json();
 }
 
 export async function createAutomationRule(data) {
-  const response = await fetch(`${API_BASE}/automation`, {
+  const response = await authFetch(`${API_BASE}/automation`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
     body: JSON.stringify(data)
   });
   if (!response.ok) throw new Error('Failed to create automation rule');
@@ -273,9 +344,12 @@ export async function createAutomationRule(data) {
 }
 
 export async function updateAutomationRule(id, data) {
-  const response = await fetch(`${API_BASE}/automation`, {
+  const response = await authFetch(`${API_BASE}/automation`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
     body: JSON.stringify({ id, ...data })
   });
   if (!response.ok) throw new Error('Failed to update automation rule');
@@ -283,8 +357,9 @@ export async function updateAutomationRule(id, data) {
 }
 
 export async function deleteAutomationRule(id) {
-  const response = await fetch(`${API_BASE}/automation?id=${id}`, {
-    method: 'DELETE'
+  const response = await authFetch(`${API_BASE}/automation?id=${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
   });
   if (!response.ok) throw new Error('Failed to delete automation rule');
   return response.json();
