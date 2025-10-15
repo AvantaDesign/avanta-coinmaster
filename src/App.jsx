@@ -10,6 +10,9 @@ import AccountsReceivable from './components/AccountsReceivable';
 import AccountsPayable from './components/AccountsPayable';
 import InvoiceAutomation from './components/InvoiceAutomation';
 import FinancialDashboard from './components/FinancialDashboard';
+import AdvancedAnalytics from './components/AdvancedAnalytics';
+import AdvancedReports from './components/AdvancedReports';
+import CustomizableDashboard from './components/CustomizableDashboard';
 import ToastContainer from './components/ToastNotification';
 import { initializeAnalytics, trackPageView } from './utils/analytics';
 import { initializeErrorMonitoring } from './utils/errorMonitoring';
@@ -87,6 +90,18 @@ function App() {
                   >
                     Automatización
                   </Link>
+                  <Link
+                    to="/analytics"
+                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
+                  >
+                    Analytics
+                  </Link>
+                  <Link
+                    to="/reports"
+                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
+                  >
+                    Reportes
+                  </Link>
                 </div>
               </div>
               <div className="flex items-center">
@@ -109,6 +124,9 @@ function App() {
               <Route path="/receivables" element={<AccountsReceivable />} />
               <Route path="/payables" element={<AccountsPayable />} />
               <Route path="/invoice-automation" element={<InvoiceAutomation />} />
+              <Route path="/analytics" element={<AdvancedAnalytics transactions={[]} financialData={{}} />} />
+              <Route path="/reports" element={<AdvancedReports data={{}} />} />
+              <Route path="/dashboard" element={<CustomizableDashboard dashboardData={{}} />} />
             </Routes>
           </div>
         </main>
