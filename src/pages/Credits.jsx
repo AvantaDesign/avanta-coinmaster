@@ -6,96 +6,44 @@ import CreditDetails from '../components/CreditDetails';
 import { formatCurrency } from '../utils/calculations';
 import {
   formatCreditType,
-  validateCredit,
-  generateCreditId
+  validateCredit
 } from '../utils/credits';
-
-const API_URL = import.meta.env.VITE_API_URL || 'https://avanta-finance.pages.dev';
+import useCreditStore from '../stores/useCreditStore';
 
 export default function Credits() {
   const { user } = useAuth();
-  const [credits, setCredits] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  
+  // Zustand store
+  const {
+    credits,
+    loading,
+    error,
+    filterType,
+    sortBy,
+    loadCredits,
+    createCredit,
+    updateCredit,
+    deleteCredit,
+    loadMovements,
+    addMovement,
+    setFilterType,
+    setSortBy,
+    getFilteredCredits
+  } = useCreditStore();
+  
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showMovementForm, setShowMovementForm] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [selectedCredit, setSelectedCredit] = useState(null);
   const [movements, setMovements] = useState([]);
-  const [filterType, setFilterType] = useState('all');
-  const [sortBy, setSortBy] = useState('name');
 
   useEffect(() => {
-    loadCredits();
+    loadCredits(true);
   }, []);
-
-  const loadCredits = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(`${API_URL}/api/credits?include_balance=true`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to load credits');
-      }
-
-      const data = await response.json();
-      setCredits(data);
-    } catch (err) {
-      console.error('Error loading credits:', err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadMovements = async (creditId) => {
-    try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(`${API_URL}/api/credits/${creditId}/movements`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to load movements');
-      }
-
-      const data = await response.json();
-      return data.movements || [];
-    } catch (err) {
-      console.error('Error loading movements:', err);
-      return [];
-    }
-  };
 
   const handleCreateCredit = async (formData) => {
     try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(`${API_URL}/api/credits`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to create credit');
-      }
-
-      await loadCredits();
+      await createCredit(formData);
       setShowCreateForm(false);
     } catch (err) {
       throw err;
@@ -104,45 +52,18 @@ export default function Credits() {
 
   const handleUpdateCredit = async (creditId, formData) => {
     try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(`${API_URL}/api/credits/${creditId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to update credit');
-      }
-
-      await loadCredits();
-      setShowCreateForm(false);
-      setSelectedCredit(null);
+      await updateCredit(creditId, formData);
+      setShowDetails(false);
     } catch (err) {
       throw err;
     }
   };
 
   const handleDeleteCredit = async (creditId) => {
+    if (!confirm('¿Estás seguro de eliminar este crédito?')) return;
+
     try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(`${API_URL}/api/credits/${creditId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete credit');
-      }
-
-      await loadCredits();
+      await deleteCredit(creditId);
     } catch (err) {
       console.error('Error deleting credit:', err);
       alert('Error al eliminar el crédito: ' + err.message);
@@ -151,51 +72,14 @@ export default function Credits() {
 
   const handleAddMovement = async (formData) => {
     try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(`${API_URL}/api/credits/${selectedCredit.id}/movements`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          description: formData.description,
-          amount: parseFloat(formData.amount),
-          type: formData.type,
-          date: formData.date
-        })
+      await addMovement(selectedCredit.id, {
+        description: formData.description,
+        amount: parseFloat(formData.amount),
+        type: formData.type,
+        date: formData.date,
+        createTransaction: formData.createTransaction
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to add movement');
-      }
-
-      // If it's a payment and user wants to create transaction
-      if (formData.type === 'payment' && formData.createTransaction) {
-        try {
-          await fetch(`${API_URL}/api/transactions`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              date: formData.date,
-              description: `Pago ${selectedCredit.name} - ${formData.description}`,
-              amount: parseFloat(formData.amount),
-              type: 'gasto',
-              category: 'personal',
-              transaction_type: 'personal'
-            })
-          });
-        } catch (txErr) {
-          console.error('Error creating transaction:', txErr);
-          // Don't fail the whole operation if transaction creation fails
-        }
-      }
-
-      await loadCredits();
       setShowMovementForm(false);
       
       // Reload details if showing
@@ -215,23 +99,14 @@ export default function Credits() {
     setShowDetails(true);
   };
 
-  // Filter and sort credits
-  const filteredCredits = credits
-    .filter(credit => {
-      if (filterType === 'all') return true;
-      return credit.type === filterType;
-    })
-    .sort((a, b) => {
-      if (sortBy === 'name') return a.name.localeCompare(b.name);
-      if (sortBy === 'balance') return (b.current_balance || 0) - (a.current_balance || 0);
-      if (sortBy === 'type') return a.type.localeCompare(b.type);
-      return 0;
-    });
+  // Get filtered credits from store
+  const filteredCredits = getFilteredCredits();
 
-  // Calculate totals
-  const totalBalance = credits.reduce((sum, credit) => sum + (credit.current_balance || 0), 0);
+  // Calculate totals from store
+  const stats = useCreditStore.getState().getStatistics();
+  const totalBalance = stats.totalBalance;
   const totalLimit = credits.filter(c => c.credit_limit).reduce((sum, c) => sum + c.credit_limit, 0);
-  const totalAvailable = credits.filter(c => c.available_credit).reduce((sum, c) => sum + c.available_credit, 0);
+  const totalAvailable = stats.totalAvailableCredit;
 
   if (loading) {
     return (

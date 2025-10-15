@@ -1,14 +1,23 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { formatCurrency, formatDate } from '../utils/calculations';
 import { deleteTransaction, updateTransaction, restoreTransaction } from '../utils/api';
 import { showSuccess, showError, showWarning } from '../utils/notifications';
+import useTransactionStore from '../stores/useTransactionStore';
 
-export default function TransactionTable({ transactions, onUpdate }) {
+export default function TransactionTable({ transactions: propTransactions, onUpdate }) {
+  // Use store if available, otherwise fall back to props
+  const storeTransactions = useTransactionStore((state) => state.transactions);
+  const transactions = propTransactions || storeTransactions;
+  
   const [selectedIds, setSelectedIds] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('desc');
+  
+  // Refs for virtualization
+  const parentRef = useRef(null);
 
   const handleDelete = async (id) => {
     if (confirm('¿Estás seguro de eliminar esta transacción? (Se puede restaurar después)')) {
@@ -160,6 +169,14 @@ export default function TransactionTable({ transactions, onUpdate }) {
 
   const sortedTransactions = getSortedTransactions();
 
+  // Setup virtualizer for large lists
+  const rowVirtualizer = useVirtualizer({
+    count: sortedTransactions.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 60, // Estimated row height
+    overscan: 10 // Number of items to render outside of viewport
+  });
+
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       {/* Bulk Actions Bar */}
@@ -199,48 +216,55 @@ export default function TransactionTable({ transactions, onUpdate }) {
 
       {/* Desktop Table View - hidden on mobile */}
       <div className="hidden md:block overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-center">
-                <input
-                  type="checkbox"
-                  checked={selectedIds.length === transactions.length}
-                  onChange={handleSelectAll}
-                  className="rounded border-gray-300"
-                />
-              </th>
-              <th 
-                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('date')}
-              >
-                Fecha <SortIcon column="date" />
-              </th>
-              <th 
-                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('description')}
-              >
-                Descripción <SortIcon column="description" />
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Clasificación</th>
-              <th 
-                className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('amount')}
-              >
-                Monto <SortIcon column="amount" />
-              </th>
-              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Deducible</th>
-              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Acciones</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {sortedTransactions.map((transaction) => (
-              <tr 
-                key={transaction.id} 
-                className={`hover:bg-gray-50 ${selectedIds.includes(transaction.id) ? 'bg-blue-50' : ''}`}
-              >
+        <div 
+          ref={parentRef}
+          className="overflow-y-auto"
+          style={{ maxHeight: '600px' }}
+        >
+          <table className="w-full">
+            <thead className="bg-gray-50 sticky top-0 z-10">
+              <tr>
+                <th className="px-4 py-3 text-center">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.length === transactions.length}
+                    onChange={handleSelectAll}
+                    className="rounded border-gray-300"
+                  />
+                </th>
+                <th 
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('date')}
+                >
+                  Fecha <SortIcon column="date" />
+                </th>
+                <th 
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('description')}
+                >
+                  Descripción <SortIcon column="description" />
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Clasificación</th>
+                <th 
+                  className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('amount')}
+                >
+                  Monto <SortIcon column="amount" />
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Deducible</th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Acciones</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                const transaction = sortedTransactions[virtualRow.index];
+                return (
+                  <tr 
+                    key={transaction.id} 
+                    className={`hover:bg-gray-50 ${selectedIds.includes(transaction.id) ? 'bg-blue-50' : ''}`}
+                  >
                 <td className="px-4 py-3 text-center">
                   <input
                     type="checkbox"
@@ -403,9 +427,11 @@ export default function TransactionTable({ transactions, onUpdate }) {
                   </>
                 )}
               </tr>
-            ))}
-          </tbody>
-        </table>
+              );
+            })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Mobile Card View - visible only on mobile */}

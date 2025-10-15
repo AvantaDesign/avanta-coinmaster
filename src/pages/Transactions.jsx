@@ -1,107 +1,39 @@
 import { useState, useEffect } from 'react';
-import { fetchTransactions, fetchAccounts } from '../utils/api';
 import AddTransaction from '../components/AddTransaction';
 import TransactionTable from '../components/TransactionTable';
 import CSVImport from '../components/CSVImport';
 import ExportDialog from '../components/ExportDialog';
-import { exportToCSV, downloadCSV } from '../utils/csvParser';
 import { formatCurrency } from '../utils/calculations';
 import { showSuccess, showError } from '../utils/notifications';
+import useTransactionStore from '../stores/useTransactionStore';
+import useAccountStore from '../stores/useAccountStore';
 
 export default function Transactions() {
-  const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // Zustand stores
+  const {
+    transactions,
+    statistics,
+    loading,
+    error,
+    filters,
+    setFilter,
+    clearFilters: clearStoreFilters,
+    loadTransactions
+  } = useTransactionStore();
+  
+  const { accounts, loadAccounts } = useAccountStore();
+  
   const [showCSVImport, setShowCSVImport] = useState(false);
   const [showExportDialog, setShowExportDialog] = useState(false);
-  const [accounts, setAccounts] = useState([]);
-  const [statistics, setStatistics] = useState(null);
-  
-  // Filter states - Load from localStorage on mount
-  const loadFiltersFromStorage = () => {
-    try {
-      const saved = localStorage.getItem('transactionFilters');
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch (err) {
-      console.error('Error loading filters from localStorage:', err);
-    }
-    return {
-      filter: 'all',
-      searchTerm: '',
-      typeFilter: 'all',
-      accountFilter: 'all',
-      transactionTypeFilter: 'all',
-      dateFrom: '',
-      dateTo: ''
-    };
-  };
 
-  const savedFilters = loadFiltersFromStorage();
-  const [filter, setFilter] = useState(savedFilters.filter);
-  const [searchTerm, setSearchTerm] = useState(savedFilters.searchTerm);
-  const [typeFilter, setTypeFilter] = useState(savedFilters.typeFilter);
-  const [accountFilter, setAccountFilter] = useState(savedFilters.accountFilter);
-  const [transactionTypeFilter, setTransactionTypeFilter] = useState(savedFilters.transactionTypeFilter || 'all');
-  const [dateFrom, setDateFrom] = useState(savedFilters.dateFrom);
-  const [dateTo, setDateTo] = useState(savedFilters.dateTo);
-
-  // Save filters to localStorage whenever they change
-  useEffect(() => {
-    const filtersToSave = {
-      filter,
-      searchTerm,
-      typeFilter,
-      accountFilter,
-      transactionTypeFilter,
-      dateFrom,
-      dateTo
-    };
-    localStorage.setItem('transactionFilters', JSON.stringify(filtersToSave));
-  }, [filter, searchTerm, typeFilter, accountFilter, transactionTypeFilter, dateFrom, dateTo]);
-
+  // Load data on mount
   useEffect(() => {
     loadAccounts();
+    loadTransactions();
   }, []);
 
-  useEffect(() => {
-    loadTransactions();
-  }, [filter, searchTerm, typeFilter, accountFilter, transactionTypeFilter, dateFrom, dateTo]);
-
-  const loadAccounts = async () => {
-    try {
-      const result = await fetchAccounts();
-      setAccounts(result.data || result || []);
-    } catch (err) {
-      console.error('Error loading accounts:', err);
-    }
-  };
-
-  const loadTransactions = async () => {
-    try {
-      setLoading(true);
-      const params = {
-        include_stats: true
-      };
-      
-      if (filter !== 'all') params.category = filter;
-      if (searchTerm) params.search = searchTerm;
-      if (typeFilter !== 'all') params.type = typeFilter;
-      if (accountFilter !== 'all') params.account = accountFilter;
-      if (transactionTypeFilter !== 'all') params.transaction_type = transactionTypeFilter;
-      if (dateFrom) params.date_from = dateFrom;
-      if (dateTo) params.date_to = dateTo;
-      
-      const result = await fetchTransactions(params);
-      // Handle new API response format with data, pagination, filters
-      setTransactions(result.data || result);
-      setStatistics(result.statistics || null);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+  const handleFilterChange = (key, value) => {
+    setFilter(key, value);
   };
 
   const handleExportCSV = () => {
@@ -121,28 +53,22 @@ export default function Transactions() {
   
   // Prepare current filters for export metadata
   const getCurrentFilters = () => {
-    const filters = {};
-    if (filter !== 'all') filters.categoria = filter;
-    if (searchTerm) filters.busqueda = searchTerm;
-    if (typeFilter !== 'all') filters.tipo = typeFilter;
-    if (accountFilter !== 'all') filters.cuenta = accountFilter;
-    if (transactionTypeFilter !== 'all') filters.clasificacion = transactionTypeFilter;
-    if (dateFrom) filters.desde = dateFrom;
-    if (dateTo) filters.hasta = dateTo;
-    return filters;
+    const exportFilters = {};
+    if (filters.category !== 'all') exportFilters.categoria = filters.category;
+    if (filters.searchTerm) exportFilters.busqueda = filters.searchTerm;
+    if (filters.type !== 'all') exportFilters.tipo = filters.type;
+    if (filters.account !== 'all') exportFilters.cuenta = filters.account;
+    if (filters.transactionType !== 'all') exportFilters.clasificacion = filters.transactionType;
+    if (filters.dateFrom) exportFilters.desde = filters.dateFrom;
+    if (filters.dateTo) exportFilters.hasta = filters.dateTo;
+    return exportFilters;
   };
 
   const clearFilters = () => {
-    setSearchTerm('');
-    setTypeFilter('all');
-    setAccountFilter('all');
-    setTransactionTypeFilter('all');
-    setDateFrom('');
-    setDateTo('');
-    setFilter('all');
+    clearStoreFilters();
   };
 
-  const hasActiveFilters = searchTerm || typeFilter !== 'all' || accountFilter !== 'all' || transactionTypeFilter !== 'all' || dateFrom || dateTo || filter !== 'all';
+  const hasActiveFilters = filters.searchTerm || filters.type !== 'all' || filters.account !== 'all' || filters.transactionType !== 'all' || filters.dateFrom || filters.dateTo || filters.category !== 'all';
 
   return (
     <div className="space-y-6">
@@ -150,9 +76,9 @@ export default function Transactions() {
         <h1 className="text-3xl font-bold">Transacciones</h1>
         <div className="flex gap-2 flex-wrap">
           <button
-            onClick={() => setTransactionTypeFilter('all')}
+            onClick={() => handleFilterChange('transactionType', 'all')}
             className={`px-4 py-2 rounded-md ${
-              transactionTypeFilter === 'all'
+              filters.transactionType === 'all'
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             }`}
@@ -160,9 +86,9 @@ export default function Transactions() {
             Todas
           </button>
           <button
-            onClick={() => setTransactionTypeFilter('business')}
+            onClick={() => handleFilterChange('transactionType', 'business')}
             className={`px-4 py-2 rounded-md ${
-              transactionTypeFilter === 'business'
+              filters.transactionType === 'business'
                 ? 'bg-purple-600 text-white'
                 : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
             }`}
@@ -170,9 +96,9 @@ export default function Transactions() {
             💼 Negocio
           </button>
           <button
-            onClick={() => setTransactionTypeFilter('personal')}
+            onClick={() => handleFilterChange('transactionType', 'personal')}
             className={`px-4 py-2 rounded-md ${
-              transactionTypeFilter === 'personal'
+              filters.transactionType === 'personal'
                 ? 'bg-green-600 text-white'
                 : 'bg-green-100 text-green-700 hover:bg-green-200'
             }`}
@@ -205,8 +131,8 @@ export default function Transactions() {
             <input
               type="text"
               placeholder="Descripción..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={filters.searchTerm}
+              onChange={(e) => handleFilterChange('searchTerm', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -217,8 +143,8 @@ export default function Transactions() {
               Tipo
             </label>
             <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
+              value={filters.type}
+              onChange={(e) => handleFilterChange('type', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">Todos</option>
@@ -233,8 +159,8 @@ export default function Transactions() {
               Clasificación
             </label>
             <select
-              value={transactionTypeFilter}
-              onChange={(e) => setTransactionTypeFilter(e.target.value)}
+              value={filters.transactionType}
+              onChange={(e) => handleFilterChange('transactionType', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">Todas</option>
@@ -250,8 +176,8 @@ export default function Transactions() {
               Cuenta
             </label>
             <select
-              value={accountFilter}
-              onChange={(e) => setAccountFilter(e.target.value)}
+              value={filters.account}
+              onChange={(e) => handleFilterChange('account', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">Todas</option>
@@ -270,8 +196,8 @@ export default function Transactions() {
             </label>
             <input
               type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
+              value={filters.dateFrom}
+              onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -283,8 +209,8 @@ export default function Transactions() {
             </label>
             <input
               type="date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
+              value={filters.dateTo}
+              onChange={(e) => handleFilterChange('dateTo', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
