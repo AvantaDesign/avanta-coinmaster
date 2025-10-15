@@ -16,6 +16,9 @@ import CustomizableDashboard from './components/CustomizableDashboard';
 import ToastContainer from './components/ToastNotification';
 import { initializeAnalytics, trackPageView } from './utils/analytics';
 import { initializeErrorMonitoring } from './utils/errorMonitoring';
+import AuthProvider, { useAuth } from './components/AuthProvider';
+import LoginForm from './components/LoginForm';
+import ProtectedRoute from './components/ProtectedRoute';
 
 // Analytics page tracking component
 function AnalyticsTracker() {
@@ -28,6 +31,95 @@ function AnalyticsTracker() {
   return null;
 }
 
+// Navigation component with logout
+function Navigation() {
+  const { user, logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    window.location.href = '/login';
+  };
+
+  return (
+    <nav className="bg-white shadow-lg">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex">
+            <div className="flex-shrink-0 flex items-center">
+              <h1 className="text-xl font-bold text-blue-600">Avanta Finance</h1>
+            </div>
+            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+              <Link
+                to="/"
+                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
+              >
+                Dashboard
+              </Link>
+              <Link
+                to="/transactions"
+                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
+              >
+                Transacciones
+              </Link>
+              <Link
+                to="/accounts"
+                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
+              >
+                Cuentas
+              </Link>
+              <Link
+                to="/categories"
+                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
+              >
+                Categorías
+              </Link>
+              <Link
+                to="/fiscal"
+                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
+              >
+                Fiscal
+              </Link>
+              <Link
+                to="/invoices"
+                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
+              >
+                Facturas
+              </Link>
+              <Link
+                to="/automation"
+                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
+              >
+                Automatización
+              </Link>
+              <Link
+                to="/analytics"
+                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
+              >
+                Analytics
+              </Link>
+              <Link
+                to="/reports"
+                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
+              >
+                Reportes
+              </Link>
+            </div>
+          </div>
+          <div className="flex items-center space-x-4">
+            <span className="text-sm text-gray-600">{user?.email || user?.name || 'Usuario'}</span>
+            <button
+              onClick={handleLogout}
+              className="text-sm text-red-600 hover:text-red-800 font-medium"
+            >
+              Cerrar Sesión
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
 function App() {
   // Initialize analytics and error monitoring on app load
   useEffect(() => {
@@ -37,108 +129,51 @@ function App() {
 
   return (
     <Router>
-      <AnalyticsTracker />
-      <ToastContainer />
-      <div className="min-h-screen bg-gray-100">
-        <nav className="bg-white shadow-lg">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <div className="flex">
-                <div className="flex-shrink-0 flex items-center">
-                  <h1 className="text-xl font-bold text-blue-600">Avanta Finance</h1>
-                </div>
-                <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                  <Link
-                    to="/"
-                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    to="/transactions"
-                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-                  >
-                    Transacciones
-                  </Link>
-                  <Link
-                    to="/accounts"
-                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-                  >
-                    Cuentas
-                  </Link>
-                  <Link
-                    to="/categories"
-                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-                  >
-                    Categorías
-                  </Link>
-                  <Link
-                    to="/fiscal"
-                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-                  >
-                    Fiscal
-                  </Link>
-                  <Link
-                    to="/invoices"
-                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-                  >
-                    Facturas
-                  </Link>
-                  <Link
-                    to="/automation"
-                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-                  >
-                    Automatización
-                  </Link>
-                  <Link
-                    to="/analytics"
-                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-                  >
-                    Analytics
-                  </Link>
-                  <Link
-                    to="/reports"
-                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-                  >
-                    Reportes
-                  </Link>
-                </div>
-              </div>
-              <div className="flex items-center">
-                <span className="text-sm text-gray-600">RFC: REGM000905T24</span>
-              </div>
-            </div>
-          </div>
-        </nav>
+      <AuthProvider>
+        <AnalyticsTracker />
+        <ToastContainer />
+        <Routes>
+          {/* Public route - Login */}
+          <Route path="/login" element={<LoginForm />} />
+          
+          {/* Protected routes */}
+          <Route path="/*" element={
+            <ProtectedRoute>
+              <div className="min-h-screen bg-gray-100">
+                <Navigation />
 
-        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          <div className="px-4 py-6 sm:px-0">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/transactions" element={<Transactions />} />
-              <Route path="/accounts" element={<Accounts />} />
-              <Route path="/categories" element={<Categories />} />
-              <Route path="/fiscal" element={<Fiscal />} />
-              <Route path="/invoices" element={<Invoices />} />
-              <Route path="/automation" element={<FinancialDashboard />} />
-              <Route path="/receivables" element={<AccountsReceivable />} />
-              <Route path="/payables" element={<AccountsPayable />} />
-              <Route path="/invoice-automation" element={<InvoiceAutomation />} />
-              <Route path="/analytics" element={<AdvancedAnalytics transactions={[]} financialData={{}} />} />
-              <Route path="/reports" element={<AdvancedReports data={{}} />} />
-              <Route path="/dashboard" element={<CustomizableDashboard dashboardData={{}} />} />
-            </Routes>
-          </div>
-        </main>
+                <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                  <div className="px-4 py-6 sm:px-0">
+                    <Routes>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/transactions" element={<Transactions />} />
+                      <Route path="/accounts" element={<Accounts />} />
+                      <Route path="/categories" element={<Categories />} />
+                      <Route path="/fiscal" element={<Fiscal />} />
+                      <Route path="/invoices" element={<Invoices />} />
+                      <Route path="/automation" element={<FinancialDashboard />} />
+                      <Route path="/receivables" element={<AccountsReceivable />} />
+                      <Route path="/payables" element={<AccountsPayable />} />
+                      <Route path="/invoice-automation" element={<InvoiceAutomation />} />
+                      <Route path="/analytics" element={<AdvancedAnalytics transactions={[]} financialData={{}} />} />
+                      <Route path="/reports" element={<AdvancedReports data={{}} />} />
+                      <Route path="/dashboard" element={<CustomizableDashboard dashboardData={{}} />} />
+                    </Routes>
+                  </div>
+                </main>
 
-        <footer className="bg-white border-t mt-12">
-          <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-            <p className="text-center text-gray-500 text-sm">
-              © 2025 Avanta Design - Mateo Reyes González - San Andrés Cholula, Puebla
-            </p>
-          </div>
-        </footer>
-      </div>
+                <footer className="bg-white border-t mt-12">
+                  <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                    <p className="text-center text-gray-500 text-sm">
+                      © 2025 Avanta Design - Mateo Reyes González - San Andrés Cholula, Puebla
+                    </p>
+                  </div>
+                </footer>
+              </div>
+            </ProtectedRoute>
+          } />
+        </Routes>
+      </AuthProvider>
     </Router>
   );
 }
