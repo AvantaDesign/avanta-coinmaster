@@ -11,14 +11,20 @@ import UpcomingPayments from '../components/UpcomingPayments';
 import { Link, useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../utils/calculations';
 import { calculateFinancialHealthScore } from '../utils/advancedAnalytics';
-
-const API_URL = import.meta.env.VITE_API_URL || 'https://avanta-finance.pages.dev';
+import useTransactionStore from '../stores/useTransactionStore';
+import useAccountStore from '../stores/useAccountStore';
+import useCreditStore from '../stores/useCreditStore';
 
 export default function Home() {
   const navigate = useNavigate();
+  
+  // Zustand stores
+  const { loadTransactions } = useTransactionStore();
+  const { accounts, loadAccounts } = useAccountStore();
+  const { credits, loadCredits, getUpcomingPayments } = useCreditStore();
+  
   const [data, setData] = useState(null);
   const [fiscalData, setFiscalData] = useState(null);
-  const [credits, setCredits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [period, setPeriod] = useState('month');
@@ -29,7 +35,9 @@ export default function Home() {
   useEffect(() => {
     loadDashboard();
     loadFiscalSummary();
-    loadCredits();
+    loadCreditsData();
+    loadAccounts();
+    loadTransactions();
   }, [period]);
 
   useEffect(() => {
@@ -82,20 +90,9 @@ export default function Home() {
     }
   };
 
-  const loadCredits = async () => {
+  const loadCreditsData = async () => {
     try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(`${API_URL}/api/credits?include_balance=true&active_only=true`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const creditsData = await response.json();
-        setCredits(creditsData);
-      }
+      await loadCredits(true, true); // include balance and active only
     } catch (err) {
       console.error('Error loading credits:', err);
     }
