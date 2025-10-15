@@ -1,7 +1,7 @@
 // User context utilities for multi-tenancy
 // Provides helpers for filtering and managing user-specific data
 
-import { getUserId, getUserInfo } from './auth';
+import { getUserId, getUserInfo, setUserInfo } from './auth';
 
 /**
  * Get current user's ID
@@ -183,9 +183,7 @@ export function saveUserPreferences(preferences) {
   };
   
   // Update in localStorage
-  import('./auth').then(({ setUserInfo }) => {
-    setUserInfo(updatedUser);
-  });
+  setUserInfo(updatedUser);
 }
 
 /**
