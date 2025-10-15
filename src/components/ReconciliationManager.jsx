@@ -7,20 +7,27 @@ import {
   formatCurrency,
   formatDate
 } from '../utils/reconciliation';
+import InvoiceLinker from './InvoiceLinker';
+
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 export default function ReconciliationManager() {
   const [loading, setLoading] = useState(false);
   const [transactions, setTransactions] = useState([]);
   const [matches, setMatches] = useState([]);
   const [duplicates, setDuplicates] = useState([]);
+  const [invoiceLinks, setInvoiceLinks] = useState([]);
   const [stats, setStats] = useState(null);
   const [activeTab, setActiveTab] = useState('matches');
   const [toleranceDays, setToleranceDays] = useState(3);
   const [toleranceAmount, setToleranceAmount] = useState(1);
   const [minConfidence, setMinConfidence] = useState(70);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [showInvoiceLinker, setShowInvoiceLinker] = useState(false);
 
   useEffect(() => {
     loadTransactions();
+    loadInvoiceLinks();
   }, []);
 
   const loadTransactions = async () => {
@@ -33,6 +40,18 @@ export default function ReconciliationManager() {
       console.error('Error loading transactions:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadInvoiceLinks = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/invoice-reconciliation`, {
+        credentials: 'include'
+      });
+      const data = await response.json();
+      setInvoiceLinks(data.links || []);
+    } catch (error) {
+      console.error('Error loading invoice links:', error);
     }
   };
 
@@ -69,6 +88,15 @@ export default function ReconciliationManager() {
     if (confidence >= 90) return 'text-green-700 bg-green-50';
     if (confidence >= 70) return 'text-yellow-700 bg-yellow-50';
     return 'text-red-700 bg-red-50';
+  };
+
+  const handleLinkInvoice = (transaction) => {
+    setSelectedTransaction(transaction);
+    setShowInvoiceLinker(true);
+  };
+
+  const handleInvoiceLinked = () => {
+    loadInvoiceLinks();
   };
 
   return (
@@ -196,6 +224,16 @@ export default function ReconciliationManager() {
                 }`}
               >
                 Duplicados Potenciales ({duplicates.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('invoices')}
+                className={`px-6 py-3 font-medium ${
+                  activeTab === 'invoices'
+                    ? 'border-b-2 border-blue-600 text-blue-600'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                Facturas Vinculadas ({invoiceLinks.length})
               </button>
             </div>
           </div>
@@ -328,6 +366,84 @@ export default function ReconciliationManager() {
                 )}
               </div>
             )}
+
+            {/* Invoice Links Tab */}
+            {activeTab === 'invoices' && (
+              <div className="space-y-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold">Transacciones con Facturas Vinculadas</h3>
+                  <button
+                    onClick={() => loadInvoiceLinks()}
+                    className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                  >
+                    🔄 Actualizar
+                  </button>
+                </div>
+
+                {invoiceLinks.length === 0 ? (
+                  <div className="text-center py-12 bg-gray-50 rounded-lg">
+                    <p className="text-gray-600 mb-4">
+                      No hay transacciones vinculadas a facturas (CFDIs)
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Usa la tabla de transacciones para vincular facturas a tus pagos
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {invoiceLinks.map((link) => (
+                      <div key={link.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div className="flex justify-between items-start mb-3">
+                          <div className="flex-1">
+                            <p className="font-semibold text-gray-900">
+                              {link.transaction_description}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              Fecha: {formatDate(link.transaction_date)}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-lg font-bold text-gray-900">
+                              {formatCurrency(link.transaction_amount)}
+                            </p>
+                            <span className={`text-xs px-2 py-1 rounded-full ${
+                              link.transaction_type === 'ingreso' 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-red-100 text-red-800'
+                            }`}>
+                              {link.transaction_type}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-blue-50 p-3 rounded-lg">
+                          <p className="text-sm font-semibold text-blue-900 mb-1">
+                            Factura: {link.invoice_uuid}
+                          </p>
+                          <div className="flex justify-between text-sm text-blue-800">
+                            <span>Total: {formatCurrency(link.invoice_total)}</span>
+                            <span>Fecha: {formatDate(link.invoice_date)}</span>
+                            <span className={`px-2 py-0.5 rounded ${
+                              link.invoice_status === 'active'
+                                ? 'bg-green-200 text-green-900'
+                                : 'bg-gray-200 text-gray-700'
+                            }`}>
+                              {link.invoice_status === 'active' ? 'Activa' : 'Cancelada'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {link.notes && (
+                          <p className="text-sm text-gray-600 mt-2">
+                            <strong>Notas:</strong> {link.notes}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -337,6 +453,18 @@ export default function ReconciliationManager() {
         <div className="bg-white p-6 rounded-lg shadow-md text-center">
           <p className="text-gray-500">No hay transacciones para conciliar</p>
         </div>
+      )}
+
+      {/* Invoice Linker Modal */}
+      {showInvoiceLinker && selectedTransaction && (
+        <InvoiceLinker
+          transaction={selectedTransaction}
+          onClose={() => {
+            setShowInvoiceLinker(false);
+            setSelectedTransaction(null);
+          }}
+          onLinked={handleInvoiceLinked}
+        />
       )}
     </div>
   );
