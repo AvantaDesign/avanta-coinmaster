@@ -460,3 +460,6 @@ export async function onRequestOptions(context) {
     headers: corsHeaders
   });
 }
+
+// Export for use in other API modules
+export { getUserIdFromToken, validateAuthToken };

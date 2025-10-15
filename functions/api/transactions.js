@@ -20,6 +20,9 @@
 // - CORS support
 // - Comprehensive error handling
 // - Input validation and sanitization
+// - Multi-tenancy with user isolation
+
+import { getUserIdFromToken } from './auth.js';
 
 /**
  * GET /api/transactions
@@ -50,10 +53,23 @@ export async function onRequestGet(context) {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   };
 
   try {
+    // Get user ID from token
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({ 
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     // Validate database connection
     if (!env.DB) {
       return new Response(JSON.stringify({ 
@@ -73,8 +89,8 @@ export async function onRequestGet(context) {
     if (/^\d+$/.test(possibleId)) {
       try {
         const transaction = await env.DB.prepare(
-          'SELECT * FROM transactions WHERE id = ?'
-        ).bind(possibleId).first();
+          'SELECT * FROM transactions WHERE id = ? AND user_id = ?'
+        ).bind(possibleId, userId).first();
         
         if (!transaction) {
           return new Response(JSON.stringify({ 
@@ -174,8 +190,8 @@ export async function onRequestGet(context) {
     }
 
     // Build dynamic query
-    let query = 'SELECT * FROM transactions WHERE 1=1';
-    const params = [];
+    let query = 'SELECT * FROM transactions WHERE user_id = ?';
+    const params = [userId];
     
     // Filter out soft-deleted transactions by default
     if (!includeDeleted) {
@@ -285,8 +301,8 @@ export async function onRequestGet(context) {
     if (includeStats) {
       try {
         // Build stats query with same filters (excluding pagination)
-        let statsQuery = 'SELECT COUNT(*) as total, SUM(CASE WHEN type = "ingreso" THEN amount ELSE 0 END) as total_income, SUM(CASE WHEN type = "gasto" THEN amount ELSE 0 END) as total_expenses FROM transactions WHERE 1=1';
-        const statsParams = [];
+        let statsQuery = 'SELECT COUNT(*) as total, SUM(CASE WHEN type = "ingreso" THEN amount ELSE 0 END) as total_income, SUM(CASE WHEN type = "gasto" THEN amount ELSE 0 END) as total_expenses FROM transactions WHERE user_id = ?';
+        const statsParams = [userId];
         
         // Filter out soft-deleted transactions by default
         if (!includeDeleted) {
@@ -410,10 +426,23 @@ export async function onRequestPost(context) {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   };
   
   try {
+    // Get user ID from token
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({ 
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     // Validate database connection
     if (!env.DB) {
       return new Response(JSON.stringify({ 
@@ -562,9 +591,10 @@ export async function onRequestPost(context) {
     // Insert transaction
     try {
       const result = await env.DB.prepare(
-        `INSERT INTO transactions (date, description, amount, type, category, account, is_deductible, economic_activity, receipt_url, transaction_type, category_id, linked_invoice_id, notes)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        `INSERT INTO transactions (user_id, date, description, amount, type, category, account, is_deductible, economic_activity, receipt_url, transaction_type, category_id, linked_invoice_id, notes)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       ).bind(
+        userId,
         date,
         sanitizedDescription,
         numAmount,
@@ -643,10 +673,23 @@ export async function onRequestPut(context) {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   };
   
   try {
+    // Get user ID from token
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({ 
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     // Validate database connection
     if (!env.DB) {
       return new Response(JSON.stringify({ 
@@ -669,10 +712,10 @@ export async function onRequestPut(context) {
       });
     }
 
-    // Check if transaction exists
+    // Check if transaction exists and belongs to user
     const existingTransaction = await env.DB.prepare(
-      'SELECT * FROM transactions WHERE id = ?'
-    ).bind(id).first();
+      'SELECT * FROM transactions WHERE id = ? AND user_id = ?'
+    ).bind(id, userId).first();
 
     if (!existingTransaction) {
       return new Response(JSON.stringify({ 
@@ -919,10 +962,23 @@ export async function onRequestDelete(context) {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   };
   
   try {
+    // Get user ID from token
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({ 
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     // Validate database connection
     if (!env.DB) {
       return new Response(JSON.stringify({ 
@@ -957,10 +1013,10 @@ export async function onRequestDelete(context) {
       });
     }
 
-    // Check if transaction exists
+    // Check if transaction exists and belongs to user
     const existingTransaction = await env.DB.prepare(
-      'SELECT * FROM transactions WHERE id = ?'
-    ).bind(id).first();
+      'SELECT * FROM transactions WHERE id = ? AND user_id = ?'
+    ).bind(id, userId).first();
 
     if (!existingTransaction) {
       return new Response(JSON.stringify({ 
