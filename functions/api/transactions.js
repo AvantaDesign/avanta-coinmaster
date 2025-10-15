@@ -20,6 +20,9 @@
 // - CORS support
 // - Comprehensive error handling
 // - Input validation and sanitization
+// - Multi-tenant user data isolation
+
+import { getUserIdFromRequest, requireAuth, unauthorizedResponse, getCorsHeaders } from './authMiddleware.js';
 
 /**
  * GET /api/transactions
@@ -46,14 +49,17 @@ export async function onRequestGet(context) {
   const url = new URL(request.url);
   
   // CORS headers
-  const corsHeaders = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  };
+  const corsHeaders = getCorsHeaders();
 
   try {
+    // Authenticate user
+    let userId;
+    try {
+      userId = requireAuth(request);
+    } catch (error) {
+      return unauthorizedResponse('Authentication required');
+    }
+
     // Validate database connection
     if (!env.DB) {
       return new Response(JSON.stringify({ 
@@ -73,8 +79,8 @@ export async function onRequestGet(context) {
     if (/^\d+$/.test(possibleId)) {
       try {
         const transaction = await env.DB.prepare(
-          'SELECT * FROM transactions WHERE id = ?'
-        ).bind(possibleId).first();
+          'SELECT * FROM transactions WHERE id = ? AND user_id = ?'
+        ).bind(possibleId, userId).first();
         
         if (!transaction) {
           return new Response(JSON.stringify({ 
@@ -174,8 +180,8 @@ export async function onRequestGet(context) {
     }
 
     // Build dynamic query
-    let query = 'SELECT * FROM transactions WHERE 1=1';
-    const params = [];
+    let query = 'SELECT * FROM transactions WHERE user_id = ?';
+    const params = [userId];
     
     // Filter out soft-deleted transactions by default
     if (!includeDeleted) {
@@ -285,8 +291,8 @@ export async function onRequestGet(context) {
     if (includeStats) {
       try {
         // Build stats query with same filters (excluding pagination)
-        let statsQuery = 'SELECT COUNT(*) as total, SUM(CASE WHEN type = "ingreso" THEN amount ELSE 0 END) as total_income, SUM(CASE WHEN type = "gasto" THEN amount ELSE 0 END) as total_expenses FROM transactions WHERE 1=1';
-        const statsParams = [];
+        let statsQuery = 'SELECT COUNT(*) as total, SUM(CASE WHEN type = "ingreso" THEN amount ELSE 0 END) as total_income, SUM(CASE WHEN type = "gasto" THEN amount ELSE 0 END) as total_expenses FROM transactions WHERE user_id = ?';
+        const statsParams = [userId];
         
         // Filter out soft-deleted transactions by default
         if (!includeDeleted) {
@@ -406,14 +412,17 @@ export async function onRequestGet(context) {
 export async function onRequestPost(context) {
   const { env, request } = context;
   
-  const corsHeaders = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  };
+  const corsHeaders = getCorsHeaders();
   
   try {
+    // Authenticate user
+    let userId;
+    try {
+      userId = requireAuth(request);
+    } catch (error) {
+      return unauthorizedResponse('Authentication required');
+    }
+
     // Validate database connection
     if (!env.DB) {
       return new Response(JSON.stringify({ 
@@ -562,9 +571,10 @@ export async function onRequestPost(context) {
     // Insert transaction
     try {
       const result = await env.DB.prepare(
-        `INSERT INTO transactions (date, description, amount, type, category, account, is_deductible, economic_activity, receipt_url, transaction_type, category_id, linked_invoice_id, notes)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        `INSERT INTO transactions (user_id, date, description, amount, type, category, account, is_deductible, economic_activity, receipt_url, transaction_type, category_id, linked_invoice_id, notes)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       ).bind(
+        userId,
         date,
         sanitizedDescription,
         numAmount,
@@ -582,8 +592,8 @@ export async function onRequestPost(context) {
 
       // Fetch the created transaction to return it
       const createdTransaction = await env.DB.prepare(
-        'SELECT * FROM transactions WHERE id = ?'
-      ).bind(result.meta.last_row_id).first();
+        'SELECT * FROM transactions WHERE id = ? AND user_id = ?'
+      ).bind(result.meta.last_row_id, userId).first();
 
       return new Response(JSON.stringify({
         success: true,
@@ -639,14 +649,17 @@ export async function onRequestPut(context) {
   const pathParts = url.pathname.split('/').filter(p => p);
   const id = pathParts[pathParts.length - 1];
   
-  const corsHeaders = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  };
+  const corsHeaders = getCorsHeaders();
   
   try {
+    // Authenticate user
+    let userId;
+    try {
+      userId = requireAuth(request);
+    } catch (error) {
+      return unauthorizedResponse('Authentication required');
+    }
+
     // Validate database connection
     if (!env.DB) {
       return new Response(JSON.stringify({ 
@@ -669,10 +682,10 @@ export async function onRequestPut(context) {
       });
     }
 
-    // Check if transaction exists
+    // Check if transaction exists and belongs to user
     const existingTransaction = await env.DB.prepare(
-      'SELECT * FROM transactions WHERE id = ?'
-    ).bind(id).first();
+      'SELECT * FROM transactions WHERE id = ? AND user_id = ?'
+    ).bind(id, userId).first();
 
     if (!existingTransaction) {
       return new Response(JSON.stringify({ 
@@ -851,17 +864,17 @@ export async function onRequestPut(context) {
       });
     }
 
-    // Add ID to params
-    params.push(id);
+    // Add ID and user_id to params
+    params.push(id, userId);
 
     // Execute update
-    const updateQuery = `UPDATE transactions SET ${updates.join(', ')} WHERE id = ?`;
+    const updateQuery = `UPDATE transactions SET ${updates.join(', ')} WHERE id = ? AND user_id = ?`;
     await env.DB.prepare(updateQuery).bind(...params).run();
 
     // Fetch updated transaction
     const updatedTransaction = await env.DB.prepare(
-      'SELECT * FROM transactions WHERE id = ?'
-    ).bind(id).first();
+      'SELECT * FROM transactions WHERE id = ? AND user_id = ?'
+    ).bind(id, userId).first();
 
     return new Response(JSON.stringify({
       success: true,
@@ -915,14 +928,17 @@ export async function onRequestDelete(context) {
   const confirm = url.searchParams.get('confirm');
   const permanent = url.searchParams.get('permanent') === 'true';
   
-  const corsHeaders = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  };
+  const corsHeaders = getCorsHeaders();
   
   try {
+    // Authenticate user
+    let userId;
+    try {
+      userId = requireAuth(request);
+    } catch (error) {
+      return unauthorizedResponse('Authentication required');
+    }
+
     // Validate database connection
     if (!env.DB) {
       return new Response(JSON.stringify({ 
@@ -957,10 +973,10 @@ export async function onRequestDelete(context) {
       });
     }
 
-    // Check if transaction exists
+    // Check if transaction exists and belongs to user
     const existingTransaction = await env.DB.prepare(
-      'SELECT * FROM transactions WHERE id = ?'
-    ).bind(id).first();
+      'SELECT * FROM transactions WHERE id = ? AND user_id = ?'
+    ).bind(id, userId).first();
 
     if (!existingTransaction) {
       return new Response(JSON.stringify({ 
@@ -975,7 +991,7 @@ export async function onRequestDelete(context) {
     // Perform soft delete or hard delete based on permanent parameter
     if (permanent) {
       // Hard delete - permanently remove from database
-      await env.DB.prepare('DELETE FROM transactions WHERE id = ?').bind(id).run();
+      await env.DB.prepare('DELETE FROM transactions WHERE id = ? AND user_id = ?').bind(id, userId).run();
       
       return new Response(JSON.stringify({
         success: true,
@@ -987,12 +1003,12 @@ export async function onRequestDelete(context) {
       });
     } else {
       // Soft delete - set is_deleted = 1
-      await env.DB.prepare('UPDATE transactions SET is_deleted = 1 WHERE id = ?').bind(id).run();
+      await env.DB.prepare('UPDATE transactions SET is_deleted = 1 WHERE id = ? AND user_id = ?').bind(id, userId).run();
       
       // Fetch the updated transaction
       const deletedTransaction = await env.DB.prepare(
-        'SELECT * FROM transactions WHERE id = ?'
-      ).bind(id).first();
+        'SELECT * FROM transactions WHERE id = ? AND user_id = ?'
+      ).bind(id, userId).first();
       
       return new Response(JSON.stringify({
         success: true,
@@ -1029,7 +1045,7 @@ export async function onRequestOptions(context) {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       'Access-Control-Max-Age': '86400',
     }
   });

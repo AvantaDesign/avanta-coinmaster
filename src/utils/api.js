@@ -1,12 +1,31 @@
 // API helper functions
 // All functions now use real backend endpoints (Cloudflare Workers + D1)
+// Authentication headers are automatically included in all requests
+
+import { getAuthHeaders } from './auth';
 
 const API_BASE = '/api';
+
+/**
+ * Helper to add authentication headers to fetch options
+ * @param {Object} options - Fetch options
+ * @returns {Object} Options with auth headers
+ */
+function addAuthHeaders(options = {}) {
+  const authHeaders = getAuthHeaders();
+  return {
+    ...options,
+    headers: {
+      ...options.headers,
+      ...authHeaders,
+    },
+  };
+}
 
 export async function fetchDashboard(params = {}) {
   const queryString = new URLSearchParams(params).toString();
   const url = `${API_BASE}/dashboard${queryString ? '?' + queryString : ''}`;
-  const response = await fetch(url);
+  const response = await fetch(url, addAuthHeaders());
   if (!response.ok) throw new Error('Failed to fetch dashboard');
   return response.json();
 }
@@ -14,119 +33,119 @@ export async function fetchDashboard(params = {}) {
 export async function fetchTransactions(params = {}) {
   const queryString = new URLSearchParams(params).toString();
   const url = `${API_BASE}/transactions${queryString ? '?' + queryString : ''}`;
-  const response = await fetch(url);
+  const response = await fetch(url, addAuthHeaders());
   if (!response.ok) throw new Error('Failed to fetch transactions');
   return response.json();
 }
 
 export async function createTransaction(data) {
-  const response = await fetch(`${API_BASE}/transactions`, {
+  const response = await fetch(`${API_BASE}/transactions`, addAuthHeaders({
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
-  });
+  }));
   if (!response.ok) throw new Error('Failed to create transaction');
   return response.json();
 }
 
 export async function updateTransaction(id, data) {
-  const response = await fetch(`${API_BASE}/transactions/${id}`, {
+  const response = await fetch(`${API_BASE}/transactions/${id}`, addAuthHeaders({
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
-  });
+  }));
   if (!response.ok) throw new Error('Failed to update transaction');
   return response.json();
 }
 
 export async function deleteTransaction(id) {
-  const response = await fetch(`${API_BASE}/transactions/${id}?confirm=true`, {
+  const response = await fetch(`${API_BASE}/transactions/${id}?confirm=true`, addAuthHeaders({
     method: 'DELETE'
-  });
+  }));
   if (!response.ok) throw new Error('Failed to delete transaction');
   return response.json();
 }
 
 export async function restoreTransaction(id) {
-  const response = await fetch(`${API_BASE}/transactions/${id}/restore`, {
+  const response = await fetch(`${API_BASE}/transactions/${id}/restore`, addAuthHeaders({
     method: 'POST',
     headers: { 'Content-Type': 'application/json' }
-  });
+  }));
   if (!response.ok) throw new Error('Failed to restore transaction');
   return response.json();
 }
 
 export async function fetchAccounts() {
-  const response = await fetch(`${API_BASE}/accounts`);
+  const response = await fetch(`${API_BASE}/accounts`, addAuthHeaders());
   if (!response.ok) throw new Error('Failed to fetch accounts');
   return response.json();
 }
 
 export async function createAccount(data) {
-  const response = await fetch(`${API_BASE}/accounts`, {
+  const response = await fetch(`${API_BASE}/accounts`, addAuthHeaders({
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
-  });
+  }));
   if (!response.ok) throw new Error('Failed to create account');
   return response.json();
 }
 
 export async function updateAccount(id, data) {
-  const response = await fetch(`${API_BASE}/accounts/${id}`, {
+  const response = await fetch(`${API_BASE}/accounts/${id}`, addAuthHeaders({
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
-  });
+  }));
   if (!response.ok) throw new Error('Failed to update account');
   return response.json();
 }
 
 export async function deleteAccount(id) {
-  const response = await fetch(`${API_BASE}/accounts/${id}`, {
+  const response = await fetch(`${API_BASE}/accounts/${id}`, addAuthHeaders({
     method: 'DELETE'
-  });
+  }));
   if (!response.ok) throw new Error('Failed to delete account');
   return response.json();
 }
 
 export async function fetchCategories() {
-  const response = await fetch(`${API_BASE}/categories`);
+  const response = await fetch(`${API_BASE}/categories`, addAuthHeaders());
   if (!response.ok) throw new Error('Failed to fetch categories');
   return response.json();
 }
 
 export async function createCategory(data) {
-  const response = await fetch(`${API_BASE}/categories`, {
+  const response = await fetch(`${API_BASE}/categories`, addAuthHeaders({
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
-  });
+  }));
   if (!response.ok) throw new Error('Failed to create category');
   return response.json();
 }
 
 export async function updateCategory(id, data) {
-  const response = await fetch(`${API_BASE}/categories/${id}`, {
+  const response = await fetch(`${API_BASE}/categories/${id}`, addAuthHeaders({
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
-  });
+  }));
   if (!response.ok) throw new Error('Failed to update category');
   return response.json();
 }
 
 export async function deleteCategory(id) {
-  const response = await fetch(`${API_BASE}/categories/${id}`, {
+  const response = await fetch(`${API_BASE}/categories/${id}`, addAuthHeaders({
     method: 'DELETE'
-  });
+  }));
   if (!response.ok) throw new Error('Failed to delete category');
   return response.json();
 }
 
 export async function fetchFiscal(month, year) {
   const params = new URLSearchParams({ month, year }).toString();
-  const response = await fetch(`${API_BASE}/fiscal?${params}`);
+  const response = await fetch(`${API_BASE}/fiscal?${params}`, addAuthHeaders());
   if (!response.ok) throw new Error('Failed to fetch fiscal data');
   return response.json();
 }
@@ -134,17 +153,17 @@ export async function fetchFiscal(month, year) {
 export async function fetchInvoices(params = {}) {
   const queryString = new URLSearchParams(params).toString();
   const url = `${API_BASE}/invoices${queryString ? '?' + queryString : ''}`;
-  const response = await fetch(url);
+  const response = await fetch(url, addAuthHeaders());
   if (!response.ok) throw new Error('Failed to fetch invoices');
   return response.json();
 }
 
 export async function createInvoice(data) {
-  const response = await fetch(`${API_BASE}/invoices`, {
+  const response = await fetch(`${API_BASE}/invoices`, addAuthHeaders({
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
-  });
+  }));
   if (!response.ok) throw new Error('Failed to create invoice');
   return response.json();
 }
@@ -153,8 +172,11 @@ export async function uploadFile(file) {
   const formData = new FormData();
   formData.append('file', file);
   
+  // Note: Don't set Content-Type for FormData, browser will set it with boundary
+  const authHeaders = getAuthHeaders();
   const response = await fetch(`${API_BASE}/upload`, {
     method: 'POST',
+    headers: authHeaders,
     body: formData
   });
   if (!response.ok) throw new Error('Failed to upload file');
@@ -164,17 +186,17 @@ export async function uploadFile(file) {
 export async function fetchReconciliation(params = {}) {
   const queryString = new URLSearchParams(params).toString();
   const url = `${API_BASE}/reconciliation${queryString ? '?' + queryString : ''}`;
-  const response = await fetch(url);
+  const response = await fetch(url, addAuthHeaders());
   if (!response.ok) throw new Error('Failed to fetch reconciliation data');
   return response.json();
 }
 
 export async function applyReconciliation(action, transactionIds) {
-  const response = await fetch(`${API_BASE}/reconciliation`, {
+  const response = await fetch(`${API_BASE}/reconciliation`, addAuthHeaders({
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action, transactionIds })
-  });
+  }));
   if (!response.ok) throw new Error('Failed to apply reconciliation');
   return response.json();
 }
