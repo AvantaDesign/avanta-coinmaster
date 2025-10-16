@@ -1,25 +1,39 @@
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { AuthProvider, useAuth, ProtectedRoute } from './components/AuthProvider';
 import LoginForm from './components/LoginForm';
-import Home from './pages/Home';
-import Transactions from './pages/Transactions';
-import Fiscal from './pages/Fiscal';
-import Invoices from './pages/Invoices';
-import Accounts from './pages/Accounts';
-import Categories from './pages/Categories';
-import Credits from './pages/Credits';
-import Budgets from './pages/Budgets';
-import AccountsReceivable from './components/AccountsReceivable';
-import AccountsPayable from './components/AccountsPayable';
-import InvoiceAutomation from './components/InvoiceAutomation';
-import FinancialDashboard from './components/FinancialDashboard';
-import AdvancedAnalytics from './components/AdvancedAnalytics';
-import AdvancedReports from './components/AdvancedReports';
-import CustomizableDashboard from './components/CustomizableDashboard';
 import ToastContainer from './components/ToastNotification';
 import { initializeAnalytics, trackPageView } from './utils/analytics';
 import { initializeErrorMonitoring } from './utils/errorMonitoring';
+
+// Lazy load pages and heavy components for better performance
+const Home = lazy(() => import('./pages/Home'));
+const Transactions = lazy(() => import('./pages/Transactions'));
+const Fiscal = lazy(() => import('./pages/Fiscal'));
+const Invoices = lazy(() => import('./pages/Invoices'));
+const Accounts = lazy(() => import('./pages/Accounts'));
+const Categories = lazy(() => import('./pages/Categories'));
+const Credits = lazy(() => import('./pages/Credits'));
+const Budgets = lazy(() => import('./pages/Budgets'));
+const AccountsReceivable = lazy(() => import('./components/AccountsReceivable'));
+const AccountsPayable = lazy(() => import('./components/AccountsPayable'));
+const InvoiceAutomation = lazy(() => import('./components/InvoiceAutomation'));
+const FinancialDashboard = lazy(() => import('./components/FinancialDashboard'));
+const AdvancedAnalytics = lazy(() => import('./components/AdvancedAnalytics'));
+const AdvancedReports = lazy(() => import('./components/AdvancedReports'));
+const CustomizableDashboard = lazy(() => import('./components/CustomizableDashboard'));
+
+// Loading fallback component
+function LoadingFallback() {
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Cargando...</p>
+      </div>
+    </div>
+  );
+}
 
 // Analytics page tracking component
 function AnalyticsTracker() {
@@ -156,23 +170,25 @@ function AuthenticatedApp() {
         <NavigationBar />
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/transactions" element={<Transactions />} />
-              <Route path="/accounts" element={<Accounts />} />
-              <Route path="/categories" element={<Categories />} />
-              <Route path="/credits" element={<Credits />} />
-              <Route path="/budgets" element={<Budgets />} />
-              <Route path="/fiscal" element={<Fiscal />} />
-              <Route path="/invoices" element={<Invoices />} />
-              <Route path="/automation" element={<FinancialDashboard />} />
-              <Route path="/receivables" element={<AccountsReceivable />} />
-              <Route path="/payables" element={<AccountsPayable />} />
-              <Route path="/invoice-automation" element={<InvoiceAutomation />} />
-              <Route path="/analytics" element={<AdvancedAnalytics transactions={[]} financialData={{}} />} />
-              <Route path="/reports" element={<AdvancedReports data={{}} />} />
-              <Route path="/dashboard" element={<CustomizableDashboard dashboardData={{}} />} />
-            </Routes>
+            <Suspense fallback={<LoadingFallback />}>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/transactions" element={<Transactions />} />
+                <Route path="/accounts" element={<Accounts />} />
+                <Route path="/categories" element={<Categories />} />
+                <Route path="/credits" element={<Credits />} />
+                <Route path="/budgets" element={<Budgets />} />
+                <Route path="/fiscal" element={<Fiscal />} />
+                <Route path="/invoices" element={<Invoices />} />
+                <Route path="/automation" element={<FinancialDashboard />} />
+                <Route path="/receivables" element={<AccountsReceivable />} />
+                <Route path="/payables" element={<AccountsPayable />} />
+                <Route path="/invoice-automation" element={<InvoiceAutomation />} />
+                <Route path="/analytics" element={<AdvancedAnalytics transactions={[]} financialData={{}} />} />
+                <Route path="/reports" element={<AdvancedReports data={{}} />} />
+                <Route path="/dashboard" element={<CustomizableDashboard dashboardData={{}} />} />
+              </Routes>
+            </Suspense>
           </div>
         </main>
 
