@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { formatCurrency } from '../utils/calculations';
 import { 
   getBudgetStatusColor, 
@@ -6,7 +7,7 @@ import {
   formatBudgetPeriod
 } from '../utils/budgets';
 
-export default function BudgetCard({ budget, onEdit, onDelete }) {
+function BudgetCard({ budget, onEdit, onDelete }) {
   const percentUsed = budget.percent_used || 0;
   const status = budget.status || 'unknown';
   const statusColor = getBudgetStatusColor(status);
@@ -171,3 +172,5 @@ export default function BudgetCard({ budget, onEdit, onDelete }) {
     </div>
   );
 }
+
+export default memo(BudgetCard);

@@ -1,4 +1,6 @@
-export default function PeriodSelector({ value, onChange }) {
+import { memo } from 'react';
+
+function PeriodSelector({ value, onChange }) {
   const periods = [
     { value: 'month', label: 'Este Mes' },
     { value: 'quarter', label: 'Este Trimestre' },
@@ -24,3 +26,5 @@ export default function PeriodSelector({ value, onChange }) {
     </div>
   );
 }
+
+export default memo(PeriodSelector);

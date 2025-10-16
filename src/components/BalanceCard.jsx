@@ -1,6 +1,7 @@
+import { memo } from 'react';
 import { formatCurrency } from '../utils/calculations';
 
-export default function BalanceCard({ title, amount, type = 'neutral', subtitle, badge }) {
+function BalanceCard({ title, amount, type = 'neutral', subtitle, badge }) {
   const bgColor = type === 'positive' ? 'bg-green-50' : 
                   type === 'negative' ? 'bg-red-50' : 'bg-blue-50';
   const textColor = type === 'positive' ? 'text-green-700' : 
@@ -25,3 +26,5 @@ export default function BalanceCard({ title, amount, type = 'neutral', subtitle,
     </div>
   );
 }
+
+export default memo(BalanceCard);
