@@ -1,5 +1,9 @@
-# 🤖 GitHub Copilot Agent Session Prompt - Avanta Finance
+# 🤖 GitHub Copilot Agent Session Prompt - Avanta Finance (V2 - SUPERSEDED)
 ## Post-Phase 4: Future Enhancements & Optimization
+
+> **⚠️ THIS VERSION IS OUTDATED**  
+> **Latest Version:** See `NEXT_AGENT_SESSION_PROMPT_V4.md` for current implementation plan  
+> **Status:** This document has been replaced with a more comprehensive Phase 5 plan.
 
 ## Project Context
 You are working on **Avanta Finance**, a comprehensive financial management application for Personas Físicas con Actividad Empresarial (PFAE) in Mexico. **ALL CORE PHASES ARE COMPLETE** - the application is now a full-featured financial management system.
