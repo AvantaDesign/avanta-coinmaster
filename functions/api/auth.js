@@ -149,8 +149,8 @@ export async function getUserIdFromToken(request, env) {
 /**
  * Validate authentication token
  */
-export function validateAuthToken(request, env) {
-  const userId = getUserIdFromToken(request, env);
+export async function validateAuthToken(request, env) {
+  const userId = await getUserIdFromToken(request, env);
   if (!userId) {
     return new Response(JSON.stringify({
       error: 'Unauthorized',
