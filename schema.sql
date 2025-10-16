@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS categories (
     description TEXT,
     color TEXT DEFAULT '#3B82F6',
     is_active INTEGER DEFAULT 1 CHECK(is_active IN (0, 1)),
+    is_deductible INTEGER DEFAULT 0 CHECK(is_deductible IN (0, 1)),
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(user_id) REFERENCES users(id),
@@ -130,6 +131,56 @@ CREATE TABLE IF NOT EXISTS credit_movements (
     FOREIGN KEY(transaction_id) REFERENCES transactions(id)
 );
 
+-- Budgets table: Manage budgets by category and classification
+CREATE TABLE IF NOT EXISTS budgets (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    category_id INTEGER,
+    classification TEXT NOT NULL CHECK(classification IN ('business', 'personal')),
+    amount REAL NOT NULL CHECK(amount >= 0),
+    period TEXT NOT NULL CHECK(period IN ('monthly', 'quarterly', 'yearly')),
+    start_date TEXT NOT NULL,
+    end_date TEXT,
+    is_active INTEGER DEFAULT 1 CHECK(is_active IN (0, 1)),
+    notes TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES users(id),
+    FOREIGN KEY(category_id) REFERENCES categories(id)
+);
+
+-- Fiscal configuration table: Store annual tax rates and fiscal settings
+CREATE TABLE IF NOT EXISTS fiscal_config (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    year INTEGER NOT NULL,
+    isr_brackets TEXT NOT NULL,
+    iva_rate REAL DEFAULT 0.16,
+    iva_retention_rate REAL DEFAULT 0.1067,
+    diot_threshold REAL DEFAULT 50000,
+    settings TEXT,
+    is_active INTEGER DEFAULT 1 CHECK(is_active IN (0, 1)),
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES users(id),
+    UNIQUE(user_id, year)
+);
+
+-- Transaction-Invoice mapping table: Link transactions to invoices
+CREATE TABLE IF NOT EXISTS transaction_invoice_map (
+    id TEXT PRIMARY KEY,
+    transaction_id INTEGER NOT NULL,
+    invoice_id INTEGER NOT NULL,
+    amount REAL,
+    notes TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    created_by TEXT,
+    FOREIGN KEY(transaction_id) REFERENCES transactions(id) ON DELETE CASCADE,
+    FOREIGN KEY(invoice_id) REFERENCES invoices(id) ON DELETE CASCADE,
+    FOREIGN KEY(created_by) REFERENCES users(id),
+    UNIQUE(transaction_id, invoice_id)
+);
+
 -- Indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id);
@@ -146,6 +197,7 @@ CREATE INDEX IF NOT EXISTS idx_accounts_user_id ON accounts(user_id);
 CREATE INDEX IF NOT EXISTS idx_categories_user_id ON categories(user_id);
 CREATE INDEX IF NOT EXISTS idx_categories_name ON categories(name);
 CREATE INDEX IF NOT EXISTS idx_categories_is_active ON categories(is_active);
+CREATE INDEX IF NOT EXISTS idx_categories_is_deductible ON categories(is_deductible);
 CREATE INDEX IF NOT EXISTS idx_invoices_user_id ON invoices(user_id);
 CREATE INDEX IF NOT EXISTS idx_invoices_date ON invoices(date);
 CREATE INDEX IF NOT EXISTS idx_fiscal_payments_user_id ON fiscal_payments(user_id);
@@ -156,6 +208,18 @@ CREATE INDEX IF NOT EXISTS idx_credits_is_active ON credits(is_active);
 CREATE INDEX IF NOT EXISTS idx_credit_movements_credit_id ON credit_movements(credit_id);
 CREATE INDEX IF NOT EXISTS idx_credit_movements_date ON credit_movements(date);
 CREATE INDEX IF NOT EXISTS idx_credit_movements_type ON credit_movements(type);
+CREATE INDEX IF NOT EXISTS idx_budgets_user_id ON budgets(user_id);
+CREATE INDEX IF NOT EXISTS idx_budgets_category_id ON budgets(category_id);
+CREATE INDEX IF NOT EXISTS idx_budgets_classification ON budgets(classification);
+CREATE INDEX IF NOT EXISTS idx_budgets_period ON budgets(period);
+CREATE INDEX IF NOT EXISTS idx_budgets_is_active ON budgets(is_active);
+CREATE INDEX IF NOT EXISTS idx_budgets_start_date ON budgets(start_date);
+CREATE INDEX IF NOT EXISTS idx_fiscal_config_user_id ON fiscal_config(user_id);
+CREATE INDEX IF NOT EXISTS idx_fiscal_config_year ON fiscal_config(year);
+CREATE INDEX IF NOT EXISTS idx_fiscal_config_is_active ON fiscal_config(is_active);
+CREATE INDEX IF NOT EXISTS idx_transaction_invoice_map_transaction_id ON transaction_invoice_map(transaction_id);
+CREATE INDEX IF NOT EXISTS idx_transaction_invoice_map_invoice_id ON transaction_invoice_map(invoice_id);
+CREATE INDEX IF NOT EXISTS idx_transaction_invoice_map_created_by ON transaction_invoice_map(created_by);
 
 -- Insert default accounts
 -- Note: These will be migrated to the demo user during migration
