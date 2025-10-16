@@ -610,10 +610,10 @@ export async function onRequestPost(context) {
         sanitizedNotes
       ).run();
 
-      // Fetch the created transaction to return it
+      // Fetch the created transaction to return it (verify ownership)
       const createdTransaction = await env.DB.prepare(
-        'SELECT * FROM transactions WHERE id = ?'
-      ).bind(result.meta.last_row_id).first();
+        'SELECT * FROM transactions WHERE id = ? AND user_id = ?'
+      ).bind(result.meta.last_row_id, userId).first();
 
       return new Response(JSON.stringify({
         success: true,
@@ -897,14 +897,14 @@ export async function onRequestPut(context) {
     // Add ID to params
     params.push(id);
 
-    // Execute update
-    const updateQuery = `UPDATE transactions SET ${updates.join(', ')} WHERE id = ?`;
-    await env.DB.prepare(updateQuery).bind(...params).run();
+    // Execute update (already verified ownership above)
+    const updateQuery = `UPDATE transactions SET ${updates.join(', ')} WHERE id = ? AND user_id = ?`;
+    await env.DB.prepare(updateQuery).bind(...params, userId).run();
 
-    // Fetch updated transaction
+    // Fetch updated transaction (verify ownership)
     const updatedTransaction = await env.DB.prepare(
-      'SELECT * FROM transactions WHERE id = ?'
-    ).bind(id).first();
+      'SELECT * FROM transactions WHERE id = ? AND user_id = ?'
+    ).bind(id, userId).first();
 
     return new Response(JSON.stringify({
       success: true,
@@ -1030,8 +1030,8 @@ export async function onRequestDelete(context) {
 
     // Perform soft delete or hard delete based on permanent parameter
     if (permanent) {
-      // Hard delete - permanently remove from database
-      await env.DB.prepare('DELETE FROM transactions WHERE id = ?').bind(id).run();
+      // Hard delete - permanently remove from database (already verified ownership above)
+      await env.DB.prepare('DELETE FROM transactions WHERE id = ? AND user_id = ?').bind(id, userId).run();
       
       return new Response(JSON.stringify({
         success: true,
@@ -1042,13 +1042,13 @@ export async function onRequestDelete(context) {
         headers: corsHeaders
       });
     } else {
-      // Soft delete - set is_deleted = 1
-      await env.DB.prepare('UPDATE transactions SET is_deleted = 1 WHERE id = ?').bind(id).run();
+      // Soft delete - set is_deleted = 1 (already verified ownership above)
+      await env.DB.prepare('UPDATE transactions SET is_deleted = 1 WHERE id = ? AND user_id = ?').bind(id, userId).run();
       
-      // Fetch the updated transaction
+      // Fetch the updated transaction (verify ownership)
       const deletedTransaction = await env.DB.prepare(
-        'SELECT * FROM transactions WHERE id = ?'
-      ).bind(id).first();
+        'SELECT * FROM transactions WHERE id = ? AND user_id = ?'
+      ).bind(id, userId).first();
       
       return new Response(JSON.stringify({
         success: true,

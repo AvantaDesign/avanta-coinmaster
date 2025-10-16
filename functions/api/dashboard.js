@@ -8,6 +8,8 @@
 // - Spending trends
 // - Account summaries
 
+import { getUserIdFromToken } from './auth.js';
+
 /**
  * GET /api/dashboard
  * Query Parameters:
@@ -33,11 +35,24 @@ export async function onRequestGet(context) {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Cache-Control': 'no-cache, no-store, must-revalidate',
   };
   
   try {
+    // Get user ID from token
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({ 
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     // Validate database connection
     if (!env.DB) {
       return new Response(JSON.stringify({ 
@@ -62,11 +77,11 @@ export async function onRequestGet(context) {
       recentTransactions: []
     };
 
-    // Get total balance from all accounts
+    // Get total balance from all accounts for this user
     try {
       const accountsResult = await env.DB.prepare(
-        'SELECT SUM(CASE WHEN type = "banco" THEN balance ELSE -balance END) as totalBalance FROM accounts'
-      ).first();
+        'SELECT SUM(CASE WHEN type = "banco" THEN balance ELSE -balance END) as totalBalance FROM accounts WHERE user_id = ?'
+      ).bind(userId).first();
       
       dashboardData.totalBalance = accountsResult?.totalBalance || 0;
     } catch (error) {
@@ -99,8 +114,8 @@ export async function onRequestGet(context) {
           SUM(CASE WHEN type = 'gasto' THEN amount ELSE 0 END) as expenses,
           COUNT(*) as transaction_count
         FROM transactions
-        WHERE date >= ? AND date <= ?
-      `).bind(startDate, endDate).first();
+        WHERE user_id = ? AND date >= ? AND date <= ?
+      `).bind(userId, startDate, endDate).first();
       
       dashboardData.thisMonth.income = monthSummary?.income || 0;
       dashboardData.thisMonth.expenses = monthSummary?.expenses || 0;
@@ -122,10 +137,10 @@ export async function onRequestGet(context) {
             SUM(amount) as total,
             COUNT(*) as count
           FROM transactions
-          WHERE date >= ? AND date <= ?
+          WHERE user_id = ? AND date >= ? AND date <= ?
           GROUP BY category, type
           ORDER BY total DESC
-        `).bind(startDate, endDate).all();
+        `).bind(userId, startDate, endDate).all();
         
         dashboardData.categoryBreakdown = categoryBreakdown.results || [];
       } catch (error) {
@@ -139,8 +154,8 @@ export async function onRequestGet(context) {
     if (includeAccounts) {
       try {
         const accounts = await env.DB.prepare(
-          'SELECT id, name, type, balance, updated_at FROM accounts ORDER BY type, name'
-        ).all();
+          'SELECT id, name, type, balance, updated_at FROM accounts WHERE user_id = ? ORDER BY type, name'
+        ).bind(userId).all();
         
         dashboardData.accounts = accounts.results || [];
       } catch (error) {
@@ -164,8 +179,8 @@ export async function onRequestGet(context) {
               SUM(CASE WHEN type = 'ingreso' THEN amount ELSE 0 END) as income,
               SUM(CASE WHEN type = 'gasto' THEN amount ELSE 0 END) as expenses
             FROM transactions
-            WHERE date >= ? AND date <= ?
-          `).bind(trendStart, trendEnd).first();
+            WHERE user_id = ? AND date >= ? AND date <= ?
+          `).bind(userId, trendStart, trendEnd).first();
           
           trendsData.push({
             month: trendMonth.toISOString().slice(0, 7), // YYYY-MM format
@@ -186,8 +201,8 @@ export async function onRequestGet(context) {
     // Get recent transactions
     try {
       const recentTransactions = await env.DB.prepare(
-        'SELECT * FROM transactions ORDER BY date DESC, created_at DESC LIMIT ?'
-      ).bind(recentLimit).all();
+        'SELECT * FROM transactions WHERE user_id = ? ORDER BY date DESC, created_at DESC LIMIT ?'
+      ).bind(userId, recentLimit).all();
       
       dashboardData.recentTransactions = recentTransactions.results || [];
     } catch (error) {
@@ -203,8 +218,8 @@ export async function onRequestGet(context) {
           SUM(CASE WHEN is_deductible = 1 THEN amount ELSE 0 END) as deductible,
           COUNT(CASE WHEN is_deductible = 1 THEN 1 END) as deductible_count
         FROM transactions
-        WHERE date >= ? AND date <= ? AND type = 'gasto'
-      `).bind(startDate, endDate).first();
+        WHERE user_id = ? AND date >= ? AND date <= ? AND type = 'gasto'
+      `).bind(userId, startDate, endDate).first();
       
       dashboardData.deductible = {
         amount: deductibleSummary?.deductible || 0,

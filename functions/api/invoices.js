@@ -1,10 +1,12 @@
 // Invoices API - Manage CFDI invoices
 
+import { getUserIdFromToken } from './auth.js';
+
 const corsHeaders = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
 export async function onRequestGet(context) {
@@ -14,6 +16,19 @@ export async function onRequestGet(context) {
   const status = url.searchParams.get('status') || 'active';
   
   try {
+    // Get user ID from token
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({ 
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     // Validate database connection
     if (!env.DB) {
       return new Response(JSON.stringify({ 
@@ -25,8 +40,8 @@ export async function onRequestGet(context) {
       });
     }
 
-    let query = 'SELECT * FROM invoices WHERE 1=1';
-    const params = [];
+    let query = 'SELECT * FROM invoices WHERE user_id = ?';
+    const params = [userId];
     
     // Add status filter
     if (status) {
@@ -37,7 +52,7 @@ export async function onRequestGet(context) {
     query += ' ORDER BY date DESC LIMIT 100';
     
     const stmt = env.DB.prepare(query);
-    const result = await (params.length > 0 ? stmt.bind(...params) : stmt).all();
+    const result = await stmt.bind(...params).all();
     
     return new Response(JSON.stringify(result.results || []), {
       headers: corsHeaders
@@ -59,6 +74,19 @@ export async function onRequestPost(context) {
   const { env, request } = context;
   
   try {
+    // Get user ID from token
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({ 
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     // Validate database connection
     if (!env.DB) {
       return new Response(JSON.stringify({ 
@@ -134,9 +162,9 @@ export async function onRequestPost(context) {
 
     try {
       const result = await env.DB.prepare(
-        `INSERT INTO invoices (uuid, rfc_emisor, rfc_receptor, date, subtotal, iva, total, xml_url)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-      ).bind(uuid, rfc_emisor, rfc_receptor, date, subtotal, iva, total, xml_url || null).run();
+        `INSERT INTO invoices (user_id, uuid, rfc_emisor, rfc_receptor, date, subtotal, iva, total, xml_url)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(userId, uuid, rfc_emisor, rfc_receptor, date, subtotal, iva, total, xml_url || null).run();
       
       return new Response(JSON.stringify({ 
         id: result.meta.last_row_id, 

@@ -1,5 +1,8 @@
 // Authentication API - Handle user login, token validation, and session management
 // Supports multiple authentication methods: email/password, Google OAuth
+// SECURITY: Uses Web Crypto API for password hashing and jose library for JWT
+
+import { SignJWT, jwtVerify } from 'jose';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -9,36 +12,120 @@ const corsHeaders = {
 };
 
 /**
- * Simple JWT encoding (for demo purposes)
- * In production, use a proper JWT library with signature verification
+ * Hash password using Web Crypto API with SHA-256
+ * Generates a unique salt for each password
+ * @param {string} password - Plain text password
+ * @returns {Promise<string>} - Hashed password in format: salt:hash
  */
-function encodeJWT(payload, secret) {
-  const header = { alg: 'HS256', typ: 'JWT' };
-  const encodedHeader = btoa(JSON.stringify(header));
-  const encodedPayload = btoa(JSON.stringify(payload));
-  const signature = btoa(`${encodedHeader}.${encodedPayload}.${secret}`);
-  return `${encodedHeader}.${encodedPayload}.${signature}`;
+async function hashPassword(password) {
+  // Generate a random salt (16 bytes = 128 bits)
+  const salt = new Uint8Array(16);
+  crypto.getRandomValues(salt);
+  
+  // Convert password to bytes
+  const encoder = new TextEncoder();
+  const passwordData = encoder.encode(password);
+  
+  // Combine salt and password
+  const saltedPassword = new Uint8Array(salt.length + passwordData.length);
+  saltedPassword.set(salt);
+  saltedPassword.set(passwordData, salt.length);
+  
+  // Hash using SHA-256
+  const hashBuffer = await crypto.subtle.digest('SHA-256', saltedPassword);
+  const hashArray = new Uint8Array(hashBuffer);
+  
+  // Convert to hex strings
+  const saltHex = Array.from(salt).map(b => b.toString(16).padStart(2, '0')).join('');
+  const hashHex = Array.from(hashArray).map(b => b.toString(16).padStart(2, '0')).join('');
+  
+  return `${saltHex}:${hashHex}`;
 }
 
 /**
- * Decode and validate JWT token
+ * Verify password using constant-time comparison
+ * @param {string} password - Plain text password to verify
+ * @param {string} storedHash - Stored hash in format: salt:hash
+ * @returns {Promise<boolean>} - True if password matches
  */
-function decodeJWT(token, secret) {
+async function verifyPassword(password, storedHash) {
   try {
-    const parts = token.split('.');
-    if (parts.length !== 3) return null;
+    const [saltHex, hashHex] = storedHash.split(':');
     
-    const [encodedHeader, encodedPayload, signature] = parts;
-    const payload = JSON.parse(atob(encodedPayload));
+    // Convert hex salt back to bytes
+    const salt = new Uint8Array(saltHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
     
-    // Check if token is expired
-    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
-      return null;
+    // Convert password to bytes
+    const encoder = new TextEncoder();
+    const passwordData = encoder.encode(password);
+    
+    // Combine salt and password
+    const saltedPassword = new Uint8Array(salt.length + passwordData.length);
+    saltedPassword.set(salt);
+    saltedPassword.set(passwordData, salt.length);
+    
+    // Hash using SHA-256
+    const hashBuffer = await crypto.subtle.digest('SHA-256', saltedPassword);
+    const hashArray = new Uint8Array(hashBuffer);
+    const computedHashHex = Array.from(hashArray).map(b => b.toString(16).padStart(2, '0')).join('');
+    
+    // Constant-time comparison
+    if (computedHashHex.length !== hashHex.length) {
+      return false;
     }
+    
+    let result = 0;
+    for (let i = 0; i < computedHashHex.length; i++) {
+      result |= computedHashHex.charCodeAt(i) ^ hashHex.charCodeAt(i);
+    }
+    
+    return result === 0;
+  } catch (error) {
+    console.error('Error verifying password:', error);
+    return false;
+  }
+}
+
+/**
+ * Generate JWT token using jose library
+ * @param {object} payload - Token payload
+ * @param {string} secret - JWT secret
+ * @returns {Promise<string>} - Signed JWT token
+ */
+async function generateJWT(payload, secret) {
+  const encoder = new TextEncoder();
+  const secretKey = encoder.encode(secret);
+  
+  const jwt = await new SignJWT(payload)
+    .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
+    .setIssuedAt()
+    .setIssuer('avanta-finance')
+    .setAudience('avanta-finance-api')
+    .setExpirationTime('24h')
+    .sign(secretKey);
+  
+  return jwt;
+}
+
+/**
+ * Verify JWT token using jose library
+ * @param {string} token - JWT token
+ * @param {string} secret - JWT secret
+ * @returns {Promise<object|null>} - Decoded payload or null if invalid
+ */
+async function verifyJWT(token, secret) {
+  try {
+    const encoder = new TextEncoder();
+    const secretKey = encoder.encode(secret);
+    
+    const { payload } = await jwtVerify(token, secretKey, {
+      issuer: 'avanta-finance',
+      audience: 'avanta-finance-api',
+    });
     
     return payload;
   } catch (error) {
-    console.error('Error decoding JWT:', error);
+    console.error('Error verifying JWT:', error);
     return null;
   }
 }
@@ -54,7 +141,7 @@ export async function getUserIdFromToken(request, env) {
   
   const token = authHeader.substring(7);
   const secret = env.JWT_SECRET || 'avanta-finance-secret-key-change-in-production';
-  const payload = decodeJWT(token, secret);
+  const payload = await verifyJWT(token, secret);
   
   return payload?.sub || payload?.user_id || null;
 }
@@ -75,6 +162,107 @@ export function validateAuthToken(request, env) {
     });
   }
   return null; // Validation passed
+}
+
+/**
+ * POST /api/auth/register
+ * Register new user with email and password
+ */
+async function handleRegister(request, env) {
+  try {
+    const { email, password, name } = await request.json();
+    
+    if (!email || !password) {
+      return new Response(JSON.stringify({
+        error: 'Email and password required',
+        code: 'VALIDATION_ERROR'
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
+    
+    // Validate password strength
+    if (password.length < 8) {
+      return new Response(JSON.stringify({
+        error: 'Password must be at least 8 characters',
+        code: 'WEAK_PASSWORD'
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
+    
+    // Validate database connection
+    if (!env.DB) {
+      return new Response(JSON.stringify({
+        error: 'Database not available',
+        code: 'DB_NOT_CONFIGURED'
+      }), {
+        status: 503,
+        headers: corsHeaders
+      });
+    }
+    
+    // Check if user already exists
+    const existingUser = await env.DB.prepare(
+      'SELECT id FROM users WHERE email = ?'
+    ).bind(email).first();
+    
+    if (existingUser) {
+      return new Response(JSON.stringify({
+        error: 'User already exists',
+        code: 'USER_EXISTS'
+      }), {
+        status: 409,
+        headers: corsHeaders
+      });
+    }
+    
+    // Hash password
+    const hashedPassword = await hashPassword(password);
+    
+    // Create user
+    const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    await env.DB.prepare(`
+      INSERT INTO users (id, email, name, password, is_active)
+      VALUES (?, ?, ?, ?, 1)
+    `).bind(userId, email, name || email.split('@')[0], hashedPassword).run();
+    
+    // Generate JWT token
+    const secret = env.JWT_SECRET || 'avanta-finance-secret-key-change-in-production';
+    const payload = {
+      sub: userId,
+      user_id: userId,
+      email: email,
+      name: name || email.split('@')[0],
+    };
+    
+    const token = await generateJWT(payload, secret);
+    
+    return new Response(JSON.stringify({
+      success: true,
+      token,
+      user: {
+        id: userId,
+        email: email,
+        name: name || email.split('@')[0],
+      }
+    }), {
+      headers: corsHeaders
+    });
+    
+  } catch (error) {
+    console.error('Registration error:', error);
+    return new Response(JSON.stringify({
+      error: 'Registration failed',
+      message: error.message,
+      code: 'REGISTRATION_ERROR'
+    }), {
+      status: 500,
+      headers: corsHeaders
+    });
+  }
 }
 
 /**
@@ -121,9 +309,23 @@ async function handleLogin(request, env) {
       });
     }
     
-    // In production, use proper password hashing (bcrypt, argon2)
-    // For now, simple comparison (NOT SECURE - DEMO ONLY)
-    const passwordMatch = user.password === password;
+    // Verify password using secure hashing
+    // Check if password is hashed (contains ':' separator)
+    let passwordMatch = false;
+    if (user.password && user.password.includes(':')) {
+      // New format: verify with hashing
+      passwordMatch = await verifyPassword(password, user.password);
+    } else if (user.password) {
+      // Legacy format: plain text (migrate to hashed)
+      passwordMatch = user.password === password;
+      if (passwordMatch) {
+        // Migrate to hashed password
+        const hashedPassword = await hashPassword(password);
+        await env.DB.prepare(
+          'UPDATE users SET password = ? WHERE id = ?'
+        ).bind(hashedPassword, user.id).run();
+      }
+    }
     
     if (!passwordMatch) {
       return new Response(JSON.stringify({
@@ -142,11 +344,9 @@ async function handleLogin(request, env) {
       user_id: user.id,
       email: user.email,
       name: user.name,
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // 24 hours
     };
     
-    const token = encodeJWT(payload, secret);
+    const token = await generateJWT(payload, secret);
     
     // Update last login
     await env.DB.prepare(
@@ -254,11 +454,9 @@ async function handleGoogleLogin(request, env) {
       email: user.email,
       name: user.name,
       picture: user.avatar_url,
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // 24 hours
     };
     
-    const token = encodeJWT(tokenPayload, secret);
+    const token = await generateJWT(tokenPayload, secret);
     
     return new Response(JSON.stringify({
       success: true,
@@ -336,11 +534,9 @@ async function handleRefreshToken(request, env) {
       user_id: user.id,
       email: user.email,
       name: user.name,
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // 24 hours
     };
     
-    const token = encodeJWT(payload, secret);
+    const token = await generateJWT(payload, secret);
     
     return new Response(JSON.stringify({
       success: true,
@@ -429,6 +625,10 @@ export async function onRequest(context) {
   const path = url.pathname;
   
   // Handle different auth endpoints
+  if (path.endsWith('/register') && request.method === 'POST') {
+    return handleRegister(request, env);
+  }
+  
   if (path.endsWith('/login') && request.method === 'POST') {
     return handleLogin(request, env);
   }

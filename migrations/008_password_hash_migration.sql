@@ -1,0 +1,34 @@
+-- Migration: Hash existing plaintext passwords
+-- Phase 1: Critical Security Hardening
+-- Date: 2025-10-15
+--
+-- IMPORTANT: This migration cannot automatically hash existing plaintext passwords
+-- because the plaintext values are needed for hashing. Instead, this migration:
+-- 1. Documents the password format change
+-- 2. Provides instructions for manual migration
+-- 3. The application code handles the migration on next login (see auth.js)
+--
+-- New Password Format:
+--   - Old: plaintext password
+--   - New: salt:hash (hex encoded)
+--   - Example: "a1b2c3d4e5f6....:f7e8d9c0b1a2...."
+--
+-- Migration Strategy:
+--   The application automatically migrates passwords on next successful login.
+--   Users with plaintext passwords will have them hashed when they log in.
+--
+-- Manual Migration (Optional):
+--   If you have a list of users and want to force password resets:
+--   UPDATE users SET password = NULL WHERE password IS NOT NULL AND password NOT LIKE '%:%';
+--   This will require users to use password reset or re-register.
+--
+-- Security Notes:
+--   - All new passwords are automatically hashed
+--   - Existing passwords are migrated on first login
+--   - Password hashing uses Web Crypto API with SHA-256
+--   - Each password has a unique random salt (16 bytes)
+--   - Constant-time comparison prevents timing attacks
+
+-- No actual schema changes needed - password column already exists
+-- This file documents the password format migration
+SELECT 'Password hashing migration documented - passwords will be hashed on next login' AS status;
