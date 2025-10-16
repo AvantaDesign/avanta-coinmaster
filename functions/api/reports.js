@@ -14,6 +14,8 @@
  *   GET /api/reports/ap-aging - Accounts payable aging
  */
 
+import Decimal from 'decimal.js';
+
 // CORS headers
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -103,23 +105,29 @@ async function generateMonthlySummaryReport(context) {
       ORDER BY date DESC
     `).bind(`${month}%`).all();
 
-    // Calculate summary
-    let totalIncome = 0;
-    let totalExpenses = 0;
+    // Calculate summary using Decimal for precision
+    let totalIncome = new Decimal(0);
+    let totalExpenses = new Decimal(0);
     const categoryBreakdown = {};
 
     transactions.results.forEach(t => {
       const category = t.category || 'Sin categoría';
       if (!categoryBreakdown[category]) {
-        categoryBreakdown[category] = { income: 0, expenses: 0, count: 0 };
+        categoryBreakdown[category] = { 
+          income: new Decimal(0), 
+          expenses: new Decimal(0), 
+          count: 0 
+        };
       }
 
-      if (t.amount > 0) {
-        totalIncome += t.amount;
-        categoryBreakdown[category].income += t.amount;
+      const amount = new Decimal(t.amount);
+      if (amount.gt(0)) {
+        totalIncome = totalIncome.plus(amount);
+        categoryBreakdown[category].income = categoryBreakdown[category].income.plus(amount);
       } else {
-        totalExpenses += Math.abs(t.amount);
-        categoryBreakdown[category].expenses += Math.abs(t.amount);
+        const absAmount = amount.abs();
+        totalExpenses = totalExpenses.plus(absAmount);
+        categoryBreakdown[category].expenses = categoryBreakdown[category].expenses.plus(absAmount);
       }
       categoryBreakdown[category].count++;
     });
@@ -127,15 +135,17 @@ async function generateMonthlySummaryReport(context) {
     const report = {
       month,
       summary: {
-        totalIncome,
-        totalExpenses,
-        netIncome: totalIncome - totalExpenses,
+        totalIncome: parseFloat(totalIncome.toFixed(2)),
+        totalExpenses: parseFloat(totalExpenses.toFixed(2)),
+        netIncome: parseFloat(totalIncome.minus(totalExpenses).toFixed(2)),
         transactionCount: transactions.results.length
       },
       categoryBreakdown: Object.entries(categoryBreakdown).map(([category, data]) => ({
         category,
-        ...data,
-        net: data.income - data.expenses
+        income: parseFloat(data.income.toFixed(2)),
+        expenses: parseFloat(data.expenses.toFixed(2)),
+        count: data.count,
+        net: parseFloat(data.income.minus(data.expenses).toFixed(2))
       })),
       transactions: transactions.results
     };
@@ -184,25 +194,34 @@ async function generateProfitabilityReport(context) {
       ORDER BY (income - expenses) DESC
     `).bind(from, to).all();
 
-    const totalIncome = transactions.results.reduce((sum, t) => sum + t.income, 0);
-    const totalExpenses = transactions.results.reduce((sum, t) => sum + t.expenses, 0);
+    const totalIncome = transactions.results.reduce((sum, t) => 
+      sum.plus(new Decimal(t.income)), new Decimal(0));
+    const totalExpenses = transactions.results.reduce((sum, t) => 
+      sum.plus(new Decimal(t.expenses)), new Decimal(0));
 
     const report = {
       period: { from, to },
       summary: {
-        totalIncome,
-        totalExpenses,
-        totalProfit: totalIncome - totalExpenses,
-        totalMargin: totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0
+        totalIncome: parseFloat(totalIncome.toFixed(2)),
+        totalExpenses: parseFloat(totalExpenses.toFixed(2)),
+        totalProfit: parseFloat(totalIncome.minus(totalExpenses).toFixed(2)),
+        totalMargin: totalIncome.gt(0) 
+          ? parseFloat(totalIncome.minus(totalExpenses).div(totalIncome).times(new Decimal(100)).toFixed(2)) 
+          : 0
       },
-      categories: transactions.results.map(t => ({
-        category: t.category || 'Sin categoría',
-        income: t.income,
-        expenses: t.expenses,
-        profit: t.income - t.expenses,
-        margin: t.income > 0 ? ((t.income - t.expenses) / t.income) * 100 : 0,
-        transactions: t.count
-      }))
+      categories: transactions.results.map(t => {
+        const income = new Decimal(t.income);
+        const expenses = new Decimal(t.expenses);
+        const profit = income.minus(expenses);
+        return {
+          category: t.category || 'Sin categoría',
+          income: parseFloat(income.toFixed(2)),
+          expenses: parseFloat(expenses.toFixed(2)),
+          profit: parseFloat(profit.toFixed(2)),
+          margin: income.gt(0) ? parseFloat(profit.div(income).times(new Decimal(100)).toFixed(2)) : 0,
+          transactions: t.count
+        };
+      })
     };
 
     return new Response(JSON.stringify({
@@ -252,15 +271,21 @@ async function generateCashFlowReport(context) {
 
     const report = {
       period: { from, to },
-      monthlyFlow: monthlyFlow.results.map(m => ({
-        month: m.month,
-        income: m.income,
-        expenses: m.expenses,
-        netFlow: m.income - m.expenses
-      })),
+      monthlyFlow: monthlyFlow.results.map(m => {
+        const income = new Decimal(m.income);
+        const expenses = new Decimal(m.expenses);
+        return {
+          month: m.month,
+          income: parseFloat(income.toFixed(2)),
+          expenses: parseFloat(expenses.toFixed(2)),
+          netFlow: parseFloat(income.minus(expenses).toFixed(2))
+        };
+      }),
       summary: {
-        totalIncome: monthlyFlow.results.reduce((sum, m) => sum + m.income, 0),
-        totalExpenses: monthlyFlow.results.reduce((sum, m) => sum + m.expenses, 0),
+        totalIncome: parseFloat(monthlyFlow.results.reduce((sum, m) => 
+          sum.plus(new Decimal(m.income)), new Decimal(0)).toFixed(2)),
+        totalExpenses: parseFloat(monthlyFlow.results.reduce((sum, m) => 
+          sum.plus(new Decimal(m.expenses)), new Decimal(0)).toFixed(2)),
         averageMonthlyIncome: monthlyFlow.results.length > 0 
           ? monthlyFlow.results.reduce((sum, m) => sum + m.income, 0) / monthlyFlow.results.length 
           : 0,

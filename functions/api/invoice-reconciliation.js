@@ -12,6 +12,7 @@
  */
 
 import { getUserIdFromToken, authenticateRequest, validateRequired, generateId, getApiResponse } from './auth.js';
+import Decimal from 'decimal.js';
 
 /**
  * Main request handler
@@ -174,8 +175,9 @@ async function linkTransactionToInvoice(env, userId, request) {
   }
 
   // Validate amount if provided
-  const linkAmount = data.amount || transaction.amount;
-  if (linkAmount > transaction.amount) {
+  const transactionAmount = new Decimal(transaction.amount);
+  const linkAmount = data.amount ? new Decimal(data.amount) : transactionAmount;
+  if (linkAmount.gt(transactionAmount)) {
     return getApiResponse(null, 'Link amount cannot exceed transaction amount', 400);
   }
 
@@ -191,7 +193,7 @@ async function linkTransactionToInvoice(env, userId, request) {
     linkId,
     data.transaction_id,
     data.invoice_id,
-    linkAmount,
+    parseFloat(linkAmount.toFixed(2)),
     data.notes || null,
     now,
     userId

@@ -1,6 +1,7 @@
 // Fiscal API - Calculate ISR and IVA
 
 import { getUserIdFromToken } from './auth.js';
+import Decimal from 'decimal.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -113,26 +114,29 @@ export async function onRequestGet(context) {
       WHERE user_id = ? AND date >= ? AND date <= ? AND is_deleted = 0
     `).bind(userId, firstDay, lastDay).first();
     
-    const businessIncome = summary?.business_income || 0;
-    const businessExpenses = summary?.business_expenses || 0;
-    const deductible = summary?.deductible || 0;
-    const totalIncome = summary?.total_income || 0;
-    const totalExpenses = summary?.total_expenses || 0;
-    const personalExpenses = summary?.personal_expenses || 0;
+    // Use Decimal for precise financial calculations
+    const businessIncome = new Decimal(summary?.business_income || 0);
+    const businessExpenses = new Decimal(summary?.business_expenses || 0);
+    const deductible = new Decimal(summary?.deductible || 0);
+    const totalIncome = new Decimal(summary?.total_income || 0);
+    const totalExpenses = new Decimal(summary?.total_expenses || 0);
+    const personalExpenses = new Decimal(summary?.personal_expenses || 0);
     
-    const utilidad = businessIncome - deductible;
+    const utilidad = businessIncome.minus(deductible);
     
     // Calculate ISR using Mexican tax brackets
     const isr = calculateISR(utilidad);
     
     // Calculate IVA (16%)
-    const ivaCobrado = businessIncome * 0.16;
-    const ivaPagado = deductible * 0.16;
-    const iva = Math.max(0, ivaCobrado - ivaPagado);
-    const ivaAFavor = Math.max(0, ivaPagado - ivaCobrado);
+    const ivaCobrado = businessIncome.times(new Decimal('0.16'));
+    const ivaPagado = deductible.times(new Decimal('0.16'));
+    const iva = Decimal.max(new Decimal(0), ivaCobrado.minus(ivaPagado));
+    const ivaAFavor = Decimal.max(new Decimal(0), ivaPagado.minus(ivaCobrado));
     
     // Calculate deductible percentage
-    const deductiblePercentage = businessExpenses > 0 ? (deductible / businessExpenses) * 100 : 0;
+    const deductiblePercentage = businessExpenses.gt(0) 
+      ? deductible.div(businessExpenses).times(new Decimal(100)) 
+      : new Decimal(0);
     
     const response = {
       period,
@@ -156,7 +160,7 @@ export async function onRequestGet(context) {
         ivaAFavor: parseFloat(ivaAFavor.toFixed(2)),
         rate: 16
       },
-      effectiveRate: utilidad > 0 ? parseFloat(((isr / utilidad) * 100).toFixed(2)) : 0,
+      effectiveRate: utilidad.gt(0) ? parseFloat(isr.div(utilidad).times(new Decimal(100)).toFixed(2)) : 0,
       dueDate
     };
     
@@ -178,7 +182,10 @@ export async function onRequestGet(context) {
 
 // ISR calculation using Mexican tax brackets
 function calculateISR(taxableIncome) {
-  if (taxableIncome <= 0) return 0;
+  // Convert to Decimal if not already
+  const income = taxableIncome instanceof Decimal ? taxableIncome : new Decimal(taxableIncome);
+  
+  if (income.lte(0)) return new Decimal(0);
 
   const brackets = [
     { min: 0, max: 7735.00, rate: 0.0192, fixedFee: 0, lowerLimit: 0 },
@@ -194,14 +201,17 @@ function calculateISR(taxableIncome) {
     { min: 3898140.13, max: Infinity, rate: 0.3500, fixedFee: 1222522.76, lowerLimit: 3898140.12 }
   ];
 
-  const bracket = brackets.find(b => taxableIncome >= b.min && taxableIncome <= b.max);
+  const bracket = brackets.find(b => income.gte(b.min) && income.lte(b.max));
   
   if (!bracket) {
     const lastBracket = brackets[brackets.length - 1];
-    return (taxableIncome - lastBracket.lowerLimit) * lastBracket.rate + lastBracket.fixedFee;
+    return income.minus(new Decimal(lastBracket.lowerLimit))
+      .times(new Decimal(lastBracket.rate))
+      .plus(new Decimal(lastBracket.fixedFee));
   }
 
-  return bracket.fixedFee + (taxableIncome - bracket.lowerLimit) * bracket.rate;
+  return new Decimal(bracket.fixedFee)
+    .plus(income.minus(new Decimal(bracket.lowerLimit)).times(new Decimal(bracket.rate)));
 }
 
 export async function onRequestOptions(context) {

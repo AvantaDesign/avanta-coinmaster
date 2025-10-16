@@ -1,5 +1,7 @@
 // Payables API - Manage accounts payable and vendor payments
 
+import Decimal from 'decimal.js';
+
 const corsHeaders = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
@@ -246,8 +248,15 @@ export async function onRequestPut(context) {
 
     // If recording a payment
     if (amount_paid !== undefined && amount_paid > 0) {
-      // Record payment
-      await env.DB.prepare(
+      // Update payable amount paid using Decimal for precision
+      const currentAmountPaid = new Decimal(payable.amount_paid || 0);
+      const paymentAmount = new Decimal(amount_paid);
+      const newAmountPaid = currentAmountPaid.plus(paymentAmount);
+      const payableAmount = new Decimal(payable.amount);
+      const newStatus = newAmountPaid.gte(payableAmount) ? 'paid' : 'partial';
+
+      // Use batch() for atomic operation - both statements succeed or fail together
+      const insertPayment = env.DB.prepare(
         `INSERT INTO payable_payments (
           payable_id, payment_date, amount, payment_method, reference_number, notes
         ) VALUES (?, ?, ?, ?, ?, ?)`
@@ -258,15 +267,14 @@ export async function onRequestPut(context) {
         payment_method || null,
         reference_number || null,
         notes || null
-      ).run();
+      );
 
-      // Update payable amount paid
-      const newAmountPaid = (payable.amount_paid || 0) + amount_paid;
-      const newStatus = newAmountPaid >= payable.amount ? 'paid' : 'partial';
-
-      await env.DB.prepare(
+      const updatePayable = env.DB.prepare(
         'UPDATE payables SET amount_paid = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
-      ).bind(newAmountPaid, newStatus, id).run();
+      ).bind(parseFloat(newAmountPaid.toFixed(2)), newStatus, id);
+
+      // Execute both operations atomically
+      await env.DB.batch([insertPayment, updatePayable]);
     } else if (status !== undefined) {
       // Just update status
       await env.DB.prepare(
