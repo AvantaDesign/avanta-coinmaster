@@ -13,6 +13,7 @@
  */
 
 import { getUserIdFromToken, authenticateRequest, validateRequired, generateId, getApiResponse } from './auth.js';
+import Decimal from 'decimal.js';
 
 /**
  * Main request handler
@@ -385,17 +386,19 @@ async function getBudgetProgress(env, userId, url) {
 
     const actual = await env.DB.prepare(actualQuery).bind(...actualParams).first();
 
-    const actualAmount = actual.total_expense || 0;
-    const percentUsed = budget.amount > 0 ? (actualAmount / budget.amount) * 100 : 0;
-    const remaining = budget.amount - actualAmount;
-    const status = percentUsed >= 100 ? 'exceeded' : percentUsed >= 90 ? 'warning' : percentUsed >= 75 ? 'caution' : 'good';
+    const actualAmount = new Decimal(actual.total_expense || 0);
+    const budgetAmount = new Decimal(budget.amount);
+    const percentUsed = budgetAmount.gt(0) ? actualAmount.div(budgetAmount).times(new Decimal(100)) : new Decimal(0);
+    const remaining = budgetAmount.minus(actualAmount);
+    const percentUsedNum = parseFloat(percentUsed.toFixed(2));
+    const status = percentUsedNum >= 100 ? 'exceeded' : percentUsedNum >= 90 ? 'warning' : percentUsedNum >= 75 ? 'caution' : 'good';
 
     return {
       ...budget,
-      actual: actualAmount,
-      income: actual.total_income || 0,
-      percent_used: Math.round(percentUsed * 100) / 100,
-      remaining: remaining,
+      actual: parseFloat(actualAmount.toFixed(2)),
+      income: parseFloat(new Decimal(actual.total_income || 0).toFixed(2)),
+      percent_used: percentUsedNum,
+      remaining: parseFloat(remaining.toFixed(2)),
       status: status,
       transaction_count: actual.transaction_count || 0,
       start_date: startDate,
@@ -405,9 +408,9 @@ async function getBudgetProgress(env, userId, url) {
 
   // Calculate totals
   const totals = progress.reduce((acc, p) => ({
-    total_budgeted: acc.total_budgeted + p.amount,
-    total_actual: acc.total_actual + p.actual,
-    total_remaining: acc.total_remaining + p.remaining
+    total_budgeted: parseFloat(new Decimal(acc.total_budgeted).plus(new Decimal(p.amount)).toFixed(2)),
+    total_actual: parseFloat(new Decimal(acc.total_actual).plus(new Decimal(p.actual)).toFixed(2)),
+    total_remaining: parseFloat(new Decimal(acc.total_remaining).plus(new Decimal(p.remaining)).toFixed(2))
   }), { total_budgeted: 0, total_actual: 0, total_remaining: 0 });
 
   return getApiResponse({
