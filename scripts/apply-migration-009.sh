@@ -1,0 +1,28 @@
+#!/bin/bash
+# Script to apply migration 009 to restore admin user access
+# This script should be run with wrangler CLI
+
+echo "=========================================="
+echo "Migration 009: Add Admin User and Roles"
+echo "=========================================="
+echo ""
+echo "This migration will:"
+echo "  1. Add role column to users table"
+echo "  2. Create/update admin user m@avantadesign.com"
+echo "  3. Set password to: AvantaAdmin2025!"
+echo ""
+echo "To apply this migration to your D1 database, run:"
+echo ""
+echo "  wrangler d1 execute avanta-finance --file=migrations/009_add_admin_user_and_roles.sql"
+echo ""
+echo "Or for local development database:"
+echo ""
+echo "  wrangler d1 execute avanta-finance --local --file=migrations/009_add_admin_user_and_roles.sql"
+echo ""
+echo "After running the migration, you can login with:"
+echo "  Email: m@avantadesign.com"
+echo "  Password: AvantaAdmin2025!"
+echo ""
+echo "IMPORTANT: Change the password immediately after first login!"
+echo ""
+echo "=========================================="

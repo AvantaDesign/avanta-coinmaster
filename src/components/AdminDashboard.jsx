@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './AuthProvider';
-import { showToast } from '../utils/notifications';
+import { showSuccess, showError } from '../utils/notifications';
 
 /**
  * AdminDashboard component
@@ -49,7 +49,7 @@ export default function AdminDashboard() {
       setName(data.user.name || '');
     } catch (error) {
       console.error('Error fetching profile:', error);
-      showToast('Error loading profile', 'error');
+      showError('Error loading profile');
     } finally {
       setLoading(false);
     }
@@ -79,13 +79,13 @@ export default function AdminDashboard() {
       const data = await response.json();
       setProfile(data.user);
       setEditingName(false);
-      showToast('Profile updated successfully', 'success');
+      showSuccess('Profile updated successfully');
       
       // Refresh auth context
       await checkAuth();
     } catch (error) {
       console.error('Error updating profile:', error);
-      showToast('Failed to update profile', 'error');
+      showError('Failed to update profile');
     } finally {
       setLoading(false);
     }
@@ -159,10 +159,10 @@ export default function AdminDashboard() {
       setConfirmPassword('');
       setPasswordErrors({});
       
-      showToast('Password changed successfully', 'success');
+      showSuccess('Password changed successfully');
     } catch (error) {
       console.error('Error changing password:', error);
-      showToast(error.message || 'Failed to change password', 'error');
+      showError(error.message || 'Failed to change password');
     } finally {
       setLoading(false);
     }
