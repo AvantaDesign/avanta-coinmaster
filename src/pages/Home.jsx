@@ -8,6 +8,7 @@ import AccountBreakdown from '../components/AccountBreakdown';
 import PeriodSelector from '../components/PeriodSelector';
 import InteractiveCharts from '../components/InteractiveCharts';
 import UpcomingPayments from '../components/UpcomingPayments';
+import BudgetSummaryWidget from '../components/BudgetSummaryWidget';
 import { Link, useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../utils/calculations';
 import { calculateFinancialHealthScore } from '../utils/advancedAnalytics';
@@ -317,6 +318,9 @@ export default function Home() {
       {credits.length > 0 && (
         <UpcomingPayments credits={credits} onPaymentClick={handlePaymentClick} />
       )}
+
+      {/* Budget Summary Widget */}
+      <BudgetSummaryWidget classification={viewMode !== 'all' ? viewMode : 'all'} />
 
       {/* Advanced Analytics Banner */}
       {showAdvancedAnalytics && (
