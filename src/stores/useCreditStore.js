@@ -10,7 +10,7 @@ import {
   isPaymentOverdue
 } from '../utils/credits';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://avanta-finance.pages.dev';
+const API_URL = import.meta.env.VITE_API_URL || 'https://avanta-coinmaster.pages.dev';
 
 /**
  * Credit Store using Zustand

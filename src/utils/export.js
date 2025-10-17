@@ -228,7 +228,7 @@ export function exportToPDF(data, title = 'Report', columns = null) {
  */
 export function createBackup(allData, filename = null) {
   const timestamp = new Date().toISOString().split('T')[0];
-  const defaultFilename = `avanta-finance-backup-${timestamp}.json`;
+  const defaultFilename = `avanta-coinmaster-backup-${timestamp}.json`;
   
   const backup = {
     version: '2.0',

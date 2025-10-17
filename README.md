@@ -2,7 +2,7 @@
 
 > **Production-Ready Financial Management Platform for Personas Físicas con Actividad Empresarial (PFAE) in Mexico**
 
-[![Deploy Status](https://img.shields.io/badge/Deploy-Cloudflare%20Pages-green)](https://avanta-finance.pages.dev)
+[![Deploy Status](https://img.shields.io/badge/Deploy-Cloudflare%20Pages-green)](https://avanta-coinmaster.pages.dev)
 [![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen)]()
 [![All Phases](https://img.shields.io/badge/Phases-All%204%20Complete-success)]()
 
@@ -19,7 +19,7 @@
 
 ## 🌟 **Live Application**
 
-**🔗 [https://avanta-finance.pages.dev](https://avanta-finance.pages.dev)**
+**🔗 [https://avanta-coinmaster.pages.dev](https://avanta-coinmaster.pages.dev)**
 
 **Login Credentials:**
 - **Email:** `m@avantadesign.com`
@@ -104,7 +104,7 @@ Authentication: JWT + Google OAuth
 ## 📁 **Project Structure**
 
 ```
-avanta-finance/
+avanta-coinmaster/
 ├── src/                          # React frontend
 │   ├── components/               # 38 React components
 │   ├── pages/                    # 8 main pages
@@ -123,7 +123,7 @@ avanta-finance/
 ## 🚀 **Quick Start**
 
 ### **For Users**
-1. Visit [https://avanta-finance.pages.dev](https://avanta-finance.pages.dev)
+1. Visit [https://avanta-coinmaster.pages.dev](https://avanta-coinmaster.pages.dev)
 2. Login with provided credentials
 3. Start managing your finances!
 
@@ -140,7 +140,7 @@ npm install
 npm run build
 
 # Run locally with Cloudflare backend
-npx wrangler pages dev dist --d1 DB=avanta-finance --r2 RECEIPTS=avanta-receipts --port 8788
+npx wrangler pages dev dist --d1 DB=avanta-coinmaster --r2 RECEIPTS=avanta-receipts --port 8788
 ```
 
 ## 📊 **Implementation Statistics**
@@ -175,7 +175,7 @@ npx wrangler pages dev dist --d1 DB=avanta-finance --r2 RECEIPTS=avanta-receipts
 
 ```bash
 # Test production API
-./scripts/test-production.sh https://avanta-finance.pages.dev
+./scripts/test-production.sh https://avanta-coinmaster.pages.dev
 
 # Test database
 ./scripts/test-d1-database.sh
@@ -199,10 +199,10 @@ VITE_APP_NAME=Avanta Finance
 ### **Database Setup**
 ```bash
 # Create D1 database
-wrangler d1 create avanta-finance
+wrangler d1 create avanta-coinmaster
 
 # Run migrations
-wrangler d1 execute avanta-finance --file=schema.sql
+wrangler d1 execute avanta-coinmaster --file=schema.sql
 
 # Create R2 bucket
 wrangler r2 bucket create avanta-receipts

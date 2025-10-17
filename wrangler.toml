@@ -10,7 +10,7 @@
 # ============================================================================
 
 # Application name (must be unique across Cloudflare)
-name = "avanta-finance"
+name = "avanta-coinmaster"
 
 # Compatibility date determines which Cloudflare Workers runtime features are available
 # Format: YYYY-MM-DD
@@ -34,23 +34,23 @@ pages_build_output_dir = "dist"
 #
 # Setup Instructions:
 # 1. Create the database:
-#    wrangler d1 create avanta-finance
+#    wrangler d1 create avanta-coinmaster
 # 
 # 2. Copy the database_id from the output and replace the placeholder below
 #
 # 3. Run migrations to create tables:
-#    wrangler d1 execute avanta-finance --file=schema.sql
+#    wrangler d1 execute avanta-coinmaster --file=schema.sql
 #
 # 4. (Optional) Load seed data:
-#    wrangler d1 execute avanta-finance --file=seed.sql
+#    wrangler d1 execute avanta-coinmaster --file=seed.sql
 #
 # Local Development:
-#   wrangler pages dev dist --d1 DB=avanta-finance
+#   wrangler pages dev dist --d1 DB=avanta-coinmaster
 #
 # Database Operations:
 #   List databases:     wrangler d1 list
-#   Query database:     wrangler d1 execute avanta-finance --command="SELECT * FROM transactions LIMIT 5"
-#   Backup database:    wrangler d1 export avanta-finance --output=backup.sql
+#   Query database:     wrangler d1 execute avanta-coinmaster --command="SELECT * FROM transactions LIMIT 5"
+#   Backup database:    wrangler d1 export avanta-coinmaster --output=backup.sql
 #
 # Free Tier Limits:
 #   - Storage: 5 GB
@@ -172,8 +172,8 @@ IVA_RATE = "0.16"
 # D1 Database binding for production
 [[env.production.d1_databases]]
 binding = "DB"
-database_name = "avanta-finance"
-database_id = "7b6bcbdc-457d-4a13-a500-246cd8f3d4e6"
+database_name = "avanta-coinmaster"
+database_id = "04aff2ec-b447-4af7-ae5d-0363bf6c8e49"
 
 # R2 Bucket binding for production
 [[env.production.r2_buckets]]
@@ -230,9 +230,9 @@ bucket_name = "avanta-receipts"
 #
 # Production Deployment:
 #   1. Login to Cloudflare:          wrangler login
-#   2. Create D1 database:           wrangler d1 create avanta-finance
+#   2. Create D1 database:           wrangler d1 create avanta-coinmaster
 #   3. Update database_id above with the output ID
-#   4. Run migrations:               wrangler d1 execute avanta-finance --file=schema.sql
+#   4. Run migrations:               wrangler d1 execute avanta-coinmaster --file=schema.sql
 #   5. Create R2 bucket:             wrangler r2 bucket create avanta-receipts
 #   6. Build application:            npm run build
 #   7. Deploy to Pages:              wrangler pages deploy dist
@@ -246,7 +246,7 @@ bucket_name = "avanta-receipts"
 #   - List databases:     wrangler d1 list
 #   - List buckets:       wrangler r2 bucket list
 #   - View logs:          wrangler pages deployment tail
-#   - Test query:         wrangler d1 execute avanta-finance --command="SELECT COUNT(*) FROM transactions"
+#   - Test query:         wrangler d1 execute avanta-coinmaster --command="SELECT COUNT(*) FROM transactions"
 #
 # Documentation:
 #   - Wrangler:          https://developers.cloudflare.com/workers/wrangler/

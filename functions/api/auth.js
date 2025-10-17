@@ -99,8 +99,8 @@ async function generateJWT(payload, secret) {
   const jwt = await new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
     .setIssuedAt()
-    .setIssuer('avanta-finance')
-    .setAudience('avanta-finance-api')
+    .setIssuer('avanta-coinmaster')
+    .setAudience('avanta-coinmaster-api')
     .setExpirationTime('24h')
     .sign(secretKey);
   
@@ -119,8 +119,8 @@ async function verifyJWT(token, secret) {
     const secretKey = encoder.encode(secret);
     
     const { payload } = await jwtVerify(token, secretKey, {
-      issuer: 'avanta-finance',
-      audience: 'avanta-finance-api',
+      issuer: 'avanta-coinmaster',
+      audience: 'avanta-coinmaster-api',
     });
     
     return payload;
@@ -140,7 +140,7 @@ export async function getUserIdFromToken(request, env) {
   }
   
   const token = authHeader.substring(7);
-  const secret = env.JWT_SECRET || 'avanta-finance-secret-key-change-in-production';
+  const secret = env.JWT_SECRET || 'avanta-coinmaster-secret-key-change-in-production';
   const payload = await verifyJWT(token, secret);
   
   return payload?.sub || payload?.user_id || null;
@@ -230,7 +230,7 @@ async function handleRegister(request, env) {
     `).bind(userId, email, name || email.split('@')[0], hashedPassword).run();
     
     // Generate JWT token with role
-    const secret = env.JWT_SECRET || 'avanta-finance-secret-key-change-in-production';
+    const secret = env.JWT_SECRET || 'avanta-coinmaster-secret-key-change-in-production';
     const payload = {
       sub: userId,
       user_id: userId,
@@ -340,7 +340,7 @@ async function handleLogin(request, env) {
     }
     
     // Generate JWT token with role information
-    const secret = env.JWT_SECRET || 'avanta-finance-secret-key-change-in-production';
+    const secret = env.JWT_SECRET || 'avanta-coinmaster-secret-key-change-in-production';
     const payload = {
       sub: user.id,
       user_id: user.id,
@@ -451,7 +451,7 @@ async function handleGoogleLogin(request, env) {
     }
     
     // Generate JWT token
-    const secret = env.JWT_SECRET || 'avanta-finance-secret-key-change-in-production';
+    const secret = env.JWT_SECRET || 'avanta-coinmaster-secret-key-change-in-production';
     const tokenPayload = {
       sub: user.id,
       user_id: user.id,
@@ -532,7 +532,7 @@ async function handleRefreshToken(request, env) {
     }
     
     // Generate new JWT token with role
-    const secret = env.JWT_SECRET || 'avanta-finance-secret-key-change-in-production';
+    const secret = env.JWT_SECRET || 'avanta-coinmaster-secret-key-change-in-production';
     const payload = {
       sub: user.id,
       user_id: user.id,

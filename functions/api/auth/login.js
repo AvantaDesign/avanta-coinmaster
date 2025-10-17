@@ -9,6 +9,81 @@ const corsHeaders = {
 };
 
 /**
+ * Hash password using Web Crypto API with SHA-256
+ * Generates a unique salt for each password
+ * @param {string} password - Plain text password
+ * @returns {Promise<string>} - Hashed password in format: salt:hash
+ */
+async function hashPassword(password) {
+  // Generate a random salt (16 bytes = 128 bits)
+  const salt = new Uint8Array(16);
+  crypto.getRandomValues(salt);
+  
+  // Convert password to bytes
+  const encoder = new TextEncoder();
+  const passwordData = encoder.encode(password);
+  
+  // Combine salt and password
+  const saltedPassword = new Uint8Array(salt.length + passwordData.length);
+  saltedPassword.set(salt);
+  saltedPassword.set(passwordData, salt.length);
+  
+  // Hash using SHA-256
+  const hashBuffer = await crypto.subtle.digest('SHA-256', saltedPassword);
+  const hashArray = new Uint8Array(hashBuffer);
+  
+  // Convert to hex strings
+  const saltHex = Array.from(salt).map(b => b.toString(16).padStart(2, '0')).join('');
+  const hashHex = Array.from(hashArray).map(b => b.toString(16).padStart(2, '0')).join('');
+  
+  return `${saltHex}:${hashHex}`;
+}
+
+/**
+ * Verify password using constant-time comparison
+ * @param {string} password - Plain text password to verify
+ * @param {string} storedHash - Stored hash in format: salt:hash
+ * @returns {Promise<boolean>} - True if password matches
+ */
+async function verifyPassword(password, storedHash) {
+  try {
+    const [saltHex, hashHex] = storedHash.split(':');
+    
+    // Convert hex salt back to bytes
+    const salt = new Uint8Array(saltHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+    
+    // Convert password to bytes
+    const encoder = new TextEncoder();
+    const passwordData = encoder.encode(password);
+    
+    // Combine salt and password
+    const saltedPassword = new Uint8Array(salt.length + passwordData.length);
+    saltedPassword.set(salt);
+    saltedPassword.set(passwordData, salt.length);
+    
+    // Hash using SHA-256
+    const hashBuffer = await crypto.subtle.digest('SHA-256', saltedPassword);
+    const hashArray = new Uint8Array(hashBuffer);
+    const computedHashHex = Array.from(hashArray).map(b => b.toString(16).padStart(2, '0')).join('');
+    
+    // Constant-time comparison
+    if (computedHashHex.length !== hashHex.length) {
+      return false;
+    }
+    
+    let result = 0;
+    for (let i = 0; i < computedHashHex.length; i++) {
+      result |= computedHashHex.charCodeAt(i) ^ hashHex.charCodeAt(i);
+    }
+    
+    return result === 0;
+  } catch (error) {
+    console.error('Error verifying password:', error);
+    return false;
+  }
+}
+
+/**
  * Simple JWT encoding (for demo purposes)
  * In production, use a proper JWT library with signature verification
  */
@@ -53,7 +128,7 @@ export async function getUserIdFromToken(request, env) {
   }
   
   const token = authHeader.substring(7);
-  const secret = env.JWT_SECRET || 'avanta-finance-secret-key-change-in-production';
+  const secret = env.JWT_SECRET || 'avanta-coinmaster-secret-key-change-in-production';
   const payload = decodeJWT(token, secret);
   
   return payload?.sub || payload?.user_id || null;
@@ -121,9 +196,23 @@ async function handleLogin(request, env) {
       });
     }
     
-    // In production, use proper password hashing (bcrypt, argon2)
-    // For now, simple comparison (NOT SECURE - DEMO ONLY)
-    const passwordMatch = user.password === password;
+    // Verify password using secure hashing
+    // Check if password is hashed (contains ':' separator)
+    let passwordMatch = false;
+    if (user.password && user.password.includes(':')) {
+      // New format: verify with hashing
+      passwordMatch = await verifyPassword(password, user.password);
+    } else if (user.password) {
+      // Legacy format: plain text (migrate to hashed)
+      passwordMatch = user.password === password;
+      if (passwordMatch) {
+        // Migrate to hashed password
+        const hashedPassword = await hashPassword(password);
+        await env.DB.prepare(
+          'UPDATE users SET password = ? WHERE id = ?'
+        ).bind(hashedPassword, user.id).run();
+      }
+    }
     
     if (!passwordMatch) {
       return new Response(JSON.stringify({
@@ -136,7 +225,7 @@ async function handleLogin(request, env) {
     }
     
     // Generate JWT token
-    const secret = env.JWT_SECRET || 'avanta-finance-secret-key-change-in-production';
+    const secret = env.JWT_SECRET || 'avanta-coinmaster-secret-key-change-in-production';
     const payload = {
       sub: user.id,
       user_id: user.id,
@@ -247,7 +336,7 @@ async function handleGoogleLogin(request, env) {
     }
     
     // Generate JWT token
-    const secret = env.JWT_SECRET || 'avanta-finance-secret-key-change-in-production';
+    const secret = env.JWT_SECRET || 'avanta-coinmaster-secret-key-change-in-production';
     const tokenPayload = {
       sub: user.id,
       user_id: user.id,
@@ -330,7 +419,7 @@ async function handleRefreshToken(request, env) {
     }
     
     // Generate new JWT token
-    const secret = env.JWT_SECRET || 'avanta-finance-secret-key-change-in-production';
+    const secret = env.JWT_SECRET || 'avanta-coinmaster-secret-key-change-in-production';
     const payload = {
       sub: user.id,
       user_id: user.id,
