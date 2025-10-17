@@ -135,7 +135,11 @@ function NavigationBar() {
           {/* Logo */}
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center">
-              <h1 className="text-xl font-bold text-blue-600">Avanta Finance</h1>
+              <Link to="/" className="flex items-center hover:opacity-80 transition-opacity duration-200">
+                <h1 className="text-2xl font-black text-blue-600 tracking-wider" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+                  AVANTA COINMASTER
+                </h1>
+              </Link>
             </div>
             
             {/* Navigation Menu */}
@@ -191,9 +195,12 @@ function NavigationBar() {
           <div className="flex items-center space-x-4">
             {user && (
               <>
-                {/* User Profile */}
+                {/* User Profile - Clickable to Admin */}
                 <div className="flex items-center space-x-3">
-                  <div className="flex items-center space-x-2">
+                  <Link
+                    to="/admin"
+                    className="flex items-center space-x-2 hover:bg-blue-50 rounded-lg px-2 py-1 transition-colors duration-200 cursor-pointer"
+                  >
                     {user.avatar ? (
                       <img 
                         src={user.avatar} 
@@ -207,17 +214,8 @@ function NavigationBar() {
                     )}
                     <div className="hidden sm:block">
                       <div className="text-sm font-medium text-gray-900">{user.name || 'Usuario'}</div>
-                      <div className="text-xs text-gray-500">Mi Cuenta</div>
+                      <div className="text-xs text-gray-500">Panel de Administración</div>
                     </div>
-                  </div>
-                  
-                  {/* Admin Link */}
-                  <Link
-                    to="/admin"
-                    className="hidden sm:inline-flex items-center px-3 py-1 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors duration-200"
-                  >
-                    <span className="mr-1">⚙️</span>
-                    Admin
                   </Link>
                   
                   {/* Logout Button */}

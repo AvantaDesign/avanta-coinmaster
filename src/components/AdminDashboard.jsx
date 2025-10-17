@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './AuthProvider';
 import { showSuccess, showError } from '../utils/notifications';
+import { authFetch } from '../utils/auth';
 
 /**
  * AdminDashboard component
@@ -32,13 +33,8 @@ export default function AdminDashboard() {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('authToken');
       
-      const response = await fetch('/api/user-profile', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const response = await authFetch('/api/user-profile');
 
       if (!response.ok) {
         throw new Error('Failed to fetch profile');
@@ -61,13 +57,11 @@ export default function AdminDashboard() {
   const handleUpdateName = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('authToken');
       
-      const response = await fetch('/api/user-profile', {
+      const response = await authFetch('/api/user-profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ name }),
       });
@@ -133,13 +127,11 @@ export default function AdminDashboard() {
 
     try {
       setLoading(true);
-      const token = localStorage.getItem('authToken');
       
-      const response = await fetch('/api/user-profile/change-password', {
+      const response = await authFetch('/api/user-profile/change-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           currentPassword,
