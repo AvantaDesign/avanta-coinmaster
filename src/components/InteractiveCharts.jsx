@@ -104,7 +104,7 @@ function InteractiveBarChart({ data, hoveredIndex, selectedIndex, onHover, onSel
                 <div className="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-8 overflow-hidden">
                   <div
                     className={`h-full flex items-center justify-end px-2 text-xs font-medium text-white transition-all duration-300 ${
-                      isPositive ? 'bg-green-500' : 'bg-red-500'
+                      isPositive ? 'bg-green-500 dark:bg-green-600' : 'bg-red-500 dark:bg-red-600'
                     } ${isHovered ? 'opacity-90 scale-105' : ''} ${
                       isSelected ? 'ring-2 ring-blue-500' : ''
                     }`}

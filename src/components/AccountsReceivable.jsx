@@ -336,13 +336,13 @@ export default function AccountsReceivable() {
           <div className="p-4 border-b flex gap-2">
             <button
               onClick={() => setFilterStatus('all')}
-              className={`px-3 py-1 rounded ${filterStatus === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+              className={`px-3 py-1 rounded ${filterStatus === 'all' ? 'bg-blue-600 dark:bg-blue-700 text-white' : 'bg-gray-200 dark:bg-slate-700 dark:text-gray-300'}`}
             >
               Todas
             </button>
             <button
               onClick={() => setFilterStatus('pending')}
-              className={`px-3 py-1 rounded ${filterStatus === 'pending' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+              className={`px-3 py-1 rounded ${filterStatus === 'pending' ? 'bg-blue-600 dark:bg-blue-700 text-white' : 'bg-gray-200 dark:bg-slate-700 dark:text-gray-300'}`}
             >
               Pendientes
             </button>

@@ -55,7 +55,7 @@ export default function AccountBreakdown({ accounts }) {
                   <div className="flex items-center gap-3">
                     <div className="text-right">
                       <div className={`text-sm font-semibold ${
-                        isPositive ? 'text-green-600' : 'text-red-600'
+                        isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                       }`}>
                         {formatCurrency(Math.abs(displayBalance))}
                       </div>
@@ -64,7 +64,7 @@ export default function AccountBreakdown({ accounts }) {
                     {/* Visual bar */}
                     <div className="w-24 bg-gray-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
                       <div
-                        className={`h-full ${isPositive ? 'bg-green-500' : 'bg-red-500'}`}
+                        className={`h-full ${isPositive ? 'bg-green-500 dark:bg-green-600' : 'bg-red-500 dark:bg-red-600'}`}
                         style={{ 
                           width: `${Math.min(100, (Math.abs(displayBalance) / Math.abs(totalBalance)) * 100)}%` 
                         }}
@@ -84,7 +84,7 @@ export default function AccountBreakdown({ accounts }) {
               Balance Total
             </div>
             <div className={`text-lg font-bold ${
-              totalBalance >= 0 ? 'text-green-600' : 'text-red-600'
+              totalBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
             }`}>
               {formatCurrency(totalBalance)}
             </div>

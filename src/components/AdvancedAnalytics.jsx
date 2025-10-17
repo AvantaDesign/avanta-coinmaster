@@ -80,8 +80,8 @@ export default function AdvancedAnalytics({ transactions = [], financialData = {
             onClick={() => setActiveTab('health')}
             className={`flex-1 min-w-[150px] px-4 py-3 rounded-md font-medium transition-colors ${
               activeTab === 'health'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-blue-600 dark:bg-blue-700 text-white'
+                : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
             }`}
           >
             💓 Salud Financiera
@@ -90,8 +90,8 @@ export default function AdvancedAnalytics({ transactions = [], financialData = {
             onClick={() => setActiveTab('forecast')}
             className={`flex-1 min-w-[150px] px-4 py-3 rounded-md font-medium transition-colors ${
               activeTab === 'forecast'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-blue-600 dark:bg-blue-700 text-white'
+                : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
             }`}
           >
             📈 Pronóstico
@@ -100,8 +100,8 @@ export default function AdvancedAnalytics({ transactions = [], financialData = {
             onClick={() => setActiveTab('profitability')}
             className={`flex-1 min-w-[150px] px-4 py-3 rounded-md font-medium transition-colors ${
               activeTab === 'profitability'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-blue-600 dark:bg-blue-700 text-white'
+                : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
             }`}
           >
             💰 Rentabilidad
@@ -110,8 +110,8 @@ export default function AdvancedAnalytics({ transactions = [], financialData = {
             onClick={() => setActiveTab('kpis')}
             className={`flex-1 min-w-[150px] px-4 py-3 rounded-md font-medium transition-colors ${
               activeTab === 'kpis'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-blue-600 dark:bg-blue-700 text-white'
+                : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
             }`}
           >
             📊 KPIs
@@ -120,8 +120,8 @@ export default function AdvancedAnalytics({ transactions = [], financialData = {
             onClick={() => setActiveTab('anomalies')}
             className={`flex-1 min-w-[150px] px-4 py-3 rounded-md font-medium transition-colors ${
               activeTab === 'anomalies'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-blue-600 dark:bg-blue-700 text-white'
+                : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
             }`}
           >
             🔍 Anomalías
@@ -231,9 +231,9 @@ function HealthScoreTab({ healthScore }) {
                 key={index}
                 className={`p-4 rounded-lg border-l-4 ${
                   rec.priority === 'critical'
-                    ? 'bg-red-50 border-red-500'
+                    ? 'bg-red-50 dark:bg-red-900/20 border-red-500 dark:border-red-600'
                     : rec.priority === 'high'
-                    ? 'bg-orange-50 border-orange-500'
+                    ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-500 dark:border-orange-600'
                     : 'bg-blue-50 border-blue-500'
                 }`}
               >
@@ -244,7 +244,7 @@ function HealthScoreTab({ healthScore }) {
                       rec.priority === 'critical'
                         ? 'bg-red-200 text-red-800 dark:text-red-300'
                         : rec.priority === 'high'
-                        ? 'bg-orange-200 text-orange-800'
+                        ? 'bg-orange-200 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300'
                         : 'bg-blue-200 text-blue-800 dark:text-blue-300'
                     }`}
                   >

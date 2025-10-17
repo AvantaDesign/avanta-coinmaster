@@ -234,7 +234,7 @@ export default function AccountManager() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">
                     <span className={`text-sm font-semibold ${
-                      account.balance >= 0 ? 'text-green-600' : 'text-red-600'
+                      account.balance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                     }`}>
                       {formatCurrency(account.balance)}
                     </span>
