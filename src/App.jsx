@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate, useNavigate } from 'react-router-dom';
-import { useEffect, lazy, Suspense } from 'react';
+import { useEffect, lazy, Suspense, useState } from 'react';
 import { AuthProvider, useAuth, ProtectedRoute } from './components/AuthProvider';
 import LoginForm from './components/LoginForm';
 import ToastContainer from './components/ToastNotification';
@@ -47,126 +47,230 @@ function AnalyticsTracker() {
   return null;
 }
 
-// Navigation bar component with user info
+// Navigation bar component with dropdowns and improved UI
 function NavigationBar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [activeDropdown, setActiveDropdown] = useState(null);
   
   const handleLogout = () => {
     logout();
     navigate('/login', { replace: true });
   };
-  
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (activeDropdown && !event.target.closest('.dropdown-container')) {
+        setActiveDropdown(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [activeDropdown]);
+
+  // Define navigation modules with icons
+  const navigationModules = [
+    {
+      name: 'Dashboard',
+      icon: '🏠',
+      path: '/',
+      type: 'single'
+    },
+    {
+      name: 'Finanzas',
+      icon: '💰',
+      type: 'dropdown',
+      items: [
+        { name: 'Transacciones', icon: '📊', path: '/transactions' },
+        { name: 'Cuentas', icon: '🏦', path: '/accounts' },
+        { name: 'Categorías', icon: '📂', path: '/categories' },
+        { name: 'Créditos', icon: '💳', path: '/credits' },
+        { name: 'Presupuestos', icon: '📋', path: '/budgets' }
+      ]
+    },
+    {
+      name: 'Fiscal',
+      icon: '📄',
+      type: 'dropdown',
+      items: [
+        { name: 'Fiscal', icon: '🧾', path: '/fiscal' },
+        { name: 'Facturas', icon: '📑', path: '/invoices' },
+        { name: 'Cuentas por Cobrar', icon: '📈', path: '/receivables' },
+        { name: 'Cuentas por Pagar', icon: '📉', path: '/payables' }
+      ]
+    },
+    {
+      name: 'Automatización',
+      icon: '⚙️',
+      type: 'dropdown',
+      items: [
+        { name: 'Automatización', icon: '🤖', path: '/automation' },
+        { name: 'Automatización de Facturas', icon: '📄', path: '/invoice-automation' }
+      ]
+    },
+    {
+      name: 'Análisis',
+      icon: '📊',
+      type: 'dropdown',
+      items: [
+        { name: 'Analytics', icon: '📈', path: '/analytics' },
+        { name: 'Reportes', icon: '📋', path: '/reports' },
+        { name: 'Dashboard Personalizado', icon: '🎛️', path: '/dashboard' }
+      ]
+    }
+  ];
+
+  const toggleDropdown = (moduleName) => {
+    setActiveDropdown(activeDropdown === moduleName ? null : moduleName);
+  };
+
   return (
-    <nav className="bg-white shadow-lg">
+    <nav className="bg-white shadow-lg border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          <div className="flex">
+          {/* Logo */}
+          <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center">
               <h1 className="text-xl font-bold text-blue-600">Avanta Finance</h1>
             </div>
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              <Link
-                to="/"
-                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-              >
-                Dashboard
-              </Link>
-              <Link
-                to="/transactions"
-                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-              >
-                Transacciones
-              </Link>
-              <Link
-                to="/accounts"
-                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-              >
-                Cuentas
-              </Link>
-              <Link
-                to="/categories"
-                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-              >
-                Categorías
-              </Link>
-              <Link
-                to="/credits"
-                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-              >
-                Créditos
-              </Link>
-              <Link
-                to="/budgets"
-                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-              >
-                Presupuestos
-              </Link>
-              <Link
-                to="/fiscal"
-                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-              >
-                Fiscal
-              </Link>
-              <Link
-                to="/invoices"
-                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-              >
-                Facturas
-              </Link>
-              <Link
-                to="/automation"
-                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-              >
-                Automatización
-              </Link>
-              <Link
-                to="/analytics"
-                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-              >
-                Analytics
-              </Link>
-              <Link
-                to="/reports"
-                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-              >
-                Reportes
-              </Link>
-              <Link
-                to="/admin"
-                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
-              >
-                Mi Cuenta
-              </Link>
+            
+            {/* Navigation Menu */}
+            <div className="hidden lg:ml-8 lg:flex lg:space-x-1">
+              {navigationModules.map((module) => (
+                <div key={module.name} className="relative dropdown-container">
+                  {module.type === 'single' ? (
+                    <Link
+                      to={module.path}
+                      className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors duration-200"
+                    >
+                      <span className="mr-2">{module.icon}</span>
+                      {module.name}
+                    </Link>
+                  ) : (
+                    <div className="relative dropdown-container">
+                      <button
+                        onClick={() => toggleDropdown(module.name)}
+                        className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors duration-200"
+                      >
+                        <span className="mr-2">{module.icon}</span>
+                        {module.name}
+                        <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      
+                      {activeDropdown === module.name && (
+                        <div className="absolute left-0 mt-2 w-56 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50 dropdown-container">
+                          <div className="py-1">
+                            {module.items.map((item) => (
+                              <Link
+                                key={item.name}
+                                to={item.path}
+                                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+                                onClick={() => setActiveDropdown(null)}
+                              >
+                                <span className="mr-3">{item.icon}</span>
+                                {item.name}
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
+
+          {/* User Menu */}
           <div className="flex items-center space-x-4">
             {user && (
               <>
-                <div className="flex items-center space-x-2">
-                  {user.avatar && (
-                    <img 
-                      src={user.avatar} 
-                      alt={user.name} 
-                      className="h-8 w-8 rounded-full"
-                    />
-                  )}
-                  {!user.avatar && (
-                    <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold">
-                      {user.initials || 'U'}
+                {/* User Profile */}
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2">
+                    {user.avatar ? (
+                      <img 
+                        src={user.avatar} 
+                        alt={user.name} 
+                        className="h-8 w-8 rounded-full ring-2 ring-blue-100"
+                      />
+                    ) : (
+                      <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold ring-2 ring-blue-100">
+                        {user.initials || 'U'}
+                      </div>
+                    )}
+                    <div className="hidden sm:block">
+                      <div className="text-sm font-medium text-gray-900">{user.name || 'Usuario'}</div>
+                      <div className="text-xs text-gray-500">Mi Cuenta</div>
                     </div>
-                  )}
-                  <span className="text-sm text-gray-700 font-medium">{user.name || user.email}</span>
+                  </div>
+                  
+                  {/* Admin Link */}
+                  <Link
+                    to="/admin"
+                    className="hidden sm:inline-flex items-center px-3 py-1 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors duration-200"
+                  >
+                    <span className="mr-1">⚙️</span>
+                    Admin
+                  </Link>
+                  
+                  {/* Logout Button */}
+                  <button
+                    onClick={handleLogout}
+                    className="inline-flex items-center px-3 py-1 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-md border border-gray-200 hover:border-red-200 transition-colors duration-200"
+                  >
+                    <span className="mr-1">🚪</span>
+                    <span className="hidden sm:inline">Cerrar Sesión</span>
+                    <span className="sm:hidden">Salir</span>
+                  </button>
                 </div>
-                <button
-                  onClick={handleLogout}
-                  className="text-sm text-gray-600 hover:text-gray-900 px-3 py-1 rounded border border-gray-300 hover:border-gray-400"
-                >
-                  Cerrar Sesión
-                </button>
               </>
             )}
           </div>
+        </div>
+      </div>
+      
+      {/* Mobile Menu Button */}
+      <div className="lg:hidden">
+        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50">
+          {navigationModules.map((module) => (
+            <div key={module.name}>
+              {module.type === 'single' ? (
+                <Link
+                  to={module.path}
+                  className="flex items-center px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md"
+                >
+                  <span className="mr-2">{module.icon}</span>
+                  {module.name}
+                </Link>
+              ) : (
+                <div>
+                  <div className="flex items-center px-3 py-2 text-base font-medium text-gray-700">
+                    <span className="mr-2">{module.icon}</span>
+                    {module.name}
+                  </div>
+                  <div className="pl-6 space-y-1">
+                    {module.items.map((item) => (
+                      <Link
+                        key={item.name}
+                        to={item.path}
+                        className="flex items-center px-3 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md"
+                      >
+                        <span className="mr-2">{item.icon}</span>
+                        {item.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </nav>

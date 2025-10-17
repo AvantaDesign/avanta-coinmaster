@@ -9,9 +9,7 @@ const API_BASE = '/api';
 export async function fetchDashboard(params = {}) {
   const queryString = new URLSearchParams(params).toString();
   const url = `${API_BASE}/dashboard${queryString ? '?' + queryString : ''}`;
-  const response = await authFetch(url, {
-    headers: getAuthHeaders()
-  });
+  const response = await authFetch(url);
   if (!response.ok) throw new Error('Failed to fetch dashboard');
   return response.json();
 }
@@ -19,9 +17,7 @@ export async function fetchDashboard(params = {}) {
 export async function fetchTransactions(params = {}) {
   const queryString = new URLSearchParams(params).toString();
   const url = `${API_BASE}/transactions${queryString ? '?' + queryString : ''}`;
-  const response = await authFetch(url, {
-    headers: getAuthHeaders()
-  });
+  const response = await authFetch(url);
   if (!response.ok) throw new Error('Failed to fetch transactions');
   return response.json();
 }
@@ -30,8 +26,7 @@ export async function createTransaction(data) {
   const response = await authFetch(`${API_BASE}/transactions`, {
     method: 'POST',
     headers: { 
-      'Content-Type': 'application/json',
-      ...getAuthHeaders()
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify(data)
   });
@@ -74,9 +69,7 @@ export async function restoreTransaction(id) {
 }
 
 export async function fetchAccounts() {
-  const response = await authFetch(`${API_BASE}/accounts`, {
-    headers: getAuthHeaders()
-  });
+  const response = await authFetch(`${API_BASE}/accounts`);
   if (!response.ok) throw new Error('Failed to fetch accounts');
   return response.json();
 }
@@ -161,9 +154,7 @@ export async function deleteCategory(id) {
 
 export async function fetchFiscal(month, year) {
   const params = new URLSearchParams({ month, year }).toString();
-  const response = await authFetch(`${API_BASE}/fiscal?${params}`, {
-    headers: getAuthHeaders()
-  });
+  const response = await authFetch(`${API_BASE}/fiscal?${params}`);
   if (!response.ok) throw new Error('Failed to fetch fiscal data');
   return response.json();
 }
@@ -369,9 +360,7 @@ export async function deleteAutomationRule(id) {
 export async function fetchCredits(params = {}) {
   const queryString = new URLSearchParams(params).toString();
   const url = `${API_BASE}/credits${queryString ? '?' + queryString : ''}`;
-  const response = await authFetch(url, {
-    headers: getAuthHeaders()
-  });
+  const response = await authFetch(url);
   if (!response.ok) throw new Error('Failed to fetch credits');
   return response.json();
 }

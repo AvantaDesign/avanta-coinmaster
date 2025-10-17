@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { formatCurrency } from '../utils/calculations';
 import { getBudgetStatusIcon } from '../utils/budgets';
+import { authFetch } from '../utils/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -23,8 +24,8 @@ export default function BudgetSummaryWidget({ classification = 'all' }) {
       params.append('is_active', 'true');
 
       const [budgetsRes, progressRes] = await Promise.all([
-        fetch(`${API_URL}/api/budgets?${params}`, { credentials: 'include' }),
-        fetch(`${API_URL}/api/budgets/progress?${params}`, { credentials: 'include' })
+        authFetch(`${API_URL}/api/budgets?${params}`),
+        authFetch(`${API_URL}/api/budgets/progress?${params}`)
       ]);
 
       const budgetsData = await budgetsRes.json();

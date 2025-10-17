@@ -10,6 +10,7 @@ import {
   getPeriodLabel,
   generateBudgetAlerts
 } from '../utils/budgets';
+import { authFetch } from '../utils/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -35,9 +36,7 @@ export default function Budgets() {
       if (filter !== 'all') params.append('classification', filter);
       params.append('period', periodFilter);
 
-      const response = await fetch(`${API_URL}/api/budgets?${params}`, {
-        credentials: 'include'
-      });
+      const response = await authFetch(`${API_URL}/api/budgets?${params}`);
       const data = await response.json();
       setBudgets(data.budgets || []);
     } catch (error) {
@@ -53,9 +52,7 @@ export default function Budgets() {
       if (filter !== 'all') params.append('classification', filter);
       params.append('period', periodFilter);
 
-      const response = await fetch(`${API_URL}/api/budgets/progress?${params}`, {
-        credentials: 'include'
-      });
+      const response = await authFetch(`${API_URL}/api/budgets/progress?${params}`);
       const data = await response.json();
       setProgress(data.progress || []);
       
@@ -69,10 +66,9 @@ export default function Budgets() {
 
   const handleCreateBudget = async (budgetData) => {
     try {
-      const response = await fetch(`${API_URL}/api/budgets`, {
+      const response = await authFetch(`${API_URL}/api/budgets`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify(budgetData)
       });
 
@@ -88,10 +84,9 @@ export default function Budgets() {
 
   const handleUpdateBudget = async (budgetId, budgetData) => {
     try {
-      const response = await fetch(`${API_URL}/api/budgets/${budgetId}`, {
+      const response = await authFetch(`${API_URL}/api/budgets/${budgetId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify(budgetData)
       });
 
@@ -110,9 +105,8 @@ export default function Budgets() {
     if (!confirm('¿Estás seguro de eliminar este presupuesto?')) return;
 
     try {
-      const response = await fetch(`${API_URL}/api/budgets/${budgetId}`, {
-        method: 'DELETE',
-        credentials: 'include'
+      const response = await authFetch(`${API_URL}/api/budgets/${budgetId}`, {
+        method: 'DELETE'
       });
 
       if (response.ok) {

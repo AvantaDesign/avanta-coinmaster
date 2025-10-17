@@ -98,7 +98,7 @@ async function handleGetProfile(request, env) {
     }
 
     const user = await env.DB.prepare(
-      'SELECT id, email, name, avatar_url, role, created_at, last_login_at, preferences FROM users WHERE id = ? AND is_active = 1'
+      'SELECT id, email, name, role, created_at, last_login_at FROM users WHERE id = ? AND is_active = 1'
     ).bind(userId).first();
 
     if (!user) {
@@ -111,14 +111,9 @@ async function handleGetProfile(request, env) {
       });
     }
 
-    // Parse preferences if stored as JSON string
-    if (user.preferences && typeof user.preferences === 'string') {
-      try {
-        user.preferences = JSON.parse(user.preferences);
-      } catch (e) {
-        user.preferences = {};
-      }
-    }
+    // Add default preferences since column might not exist
+    user.preferences = {};
+    user.avatar_url = null;
 
     return new Response(JSON.stringify({
       success: true,
@@ -203,17 +198,12 @@ async function handleUpdateProfile(request, env) {
 
     // Fetch updated user
     const user = await env.DB.prepare(
-      'SELECT id, email, name, avatar_url, role, created_at, last_login_at, preferences FROM users WHERE id = ?'
+      'SELECT id, email, name, role, created_at, last_login_at FROM users WHERE id = ?'
     ).bind(userId).first();
 
-    // Parse preferences
-    if (user.preferences && typeof user.preferences === 'string') {
-      try {
-        user.preferences = JSON.parse(user.preferences);
-      } catch (e) {
-        user.preferences = {};
-      }
-    }
+    // Add default values for columns that might not exist
+    user.preferences = {};
+    user.avatar_url = null;
 
     return new Response(JSON.stringify({
       success: true,

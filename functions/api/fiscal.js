@@ -104,14 +104,15 @@ export async function onRequestGet(context) {
     // Get income and deductible expenses for the period
     const summary = await env.DB.prepare(`
       SELECT 
-        SUM(CASE WHEN type = 'ingreso' AND (category = 'avanta' OR transaction_type = 'business') THEN amount ELSE 0 END) as business_income,
-        SUM(CASE WHEN type = 'gasto' AND (category = 'avanta' OR transaction_type = 'business') THEN amount ELSE 0 END) as business_expenses,
-        SUM(CASE WHEN type = 'gasto' AND (category = 'avanta' OR transaction_type = 'business') AND is_deductible = 1 THEN amount ELSE 0 END) as deductible,
-        SUM(CASE WHEN type = 'ingreso' THEN amount ELSE 0 END) as total_income,
-        SUM(CASE WHEN type = 'gasto' THEN amount ELSE 0 END) as total_expenses,
-        SUM(CASE WHEN type = 'gasto' AND (category = 'personal' OR transaction_type = 'personal') THEN amount ELSE 0 END) as personal_expenses
-      FROM transactions
-      WHERE user_id = ? AND date >= ? AND date <= ? AND is_deleted = 0
+        SUM(CASE WHEN t.type = 'ingreso' AND (t.category = 'avanta' OR t.transaction_type = 'business') THEN t.amount ELSE 0 END) as business_income,
+        SUM(CASE WHEN t.type = 'gasto' AND (t.category = 'avanta' OR t.transaction_type = 'business') THEN t.amount ELSE 0 END) as business_expenses,
+        SUM(CASE WHEN t.type = 'gasto' AND (t.category = 'avanta' OR t.transaction_type = 'business') AND COALESCE(c.is_deductible, 0) = 1 THEN t.amount ELSE 0 END) as deductible,
+        SUM(CASE WHEN t.type = 'ingreso' THEN t.amount ELSE 0 END) as total_income,
+        SUM(CASE WHEN t.type = 'gasto' THEN t.amount ELSE 0 END) as total_expenses,
+        SUM(CASE WHEN t.type = 'gasto' AND (t.category = 'personal' OR t.transaction_type = 'personal') THEN t.amount ELSE 0 END) as personal_expenses
+      FROM transactions t
+      LEFT JOIN categories c ON t.category_id = c.id
+      WHERE t.user_id = ? AND t.date >= ? AND t.date <= ? AND t.is_deleted = 0
     `).bind(userId, firstDay, lastDay).first();
     
     // Use Decimal for precise financial calculations
