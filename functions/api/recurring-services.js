@@ -1,0 +1,381 @@
+// Recurring Services API - Manage recurring payments for services and subscriptions
+
+import Decimal from 'decimal.js';
+
+const corsHeaders = {
+  'Content-Type': 'application/json',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
+// Helper function to calculate next payment date based on frequency
+function calculateNextPaymentDate(frequency, paymentDay, fromDate = null) {
+  const baseDate = fromDate ? new Date(fromDate) : new Date();
+  let nextDate = new Date(baseDate);
+  
+  switch (frequency) {
+    case 'weekly':
+      nextDate.setDate(nextDate.getDate() + 7);
+      break;
+    case 'biweekly':
+      nextDate.setDate(nextDate.getDate() + 14);
+      break;
+    case 'monthly':
+      nextDate.setMonth(nextDate.getMonth() + 1);
+      if (paymentDay) {
+        nextDate.setDate(Math.min(paymentDay, new Date(nextDate.getFullYear(), nextDate.getMonth() + 1, 0).getDate()));
+      }
+      break;
+    case 'quarterly':
+      nextDate.setMonth(nextDate.getMonth() + 3);
+      if (paymentDay) {
+        nextDate.setDate(Math.min(paymentDay, new Date(nextDate.getFullYear(), nextDate.getMonth() + 1, 0).getDate()));
+      }
+      break;
+    case 'yearly':
+      nextDate.setFullYear(nextDate.getFullYear() + 1);
+      if (paymentDay) {
+        nextDate.setDate(Math.min(paymentDay, new Date(nextDate.getFullYear(), nextDate.getMonth() + 1, 0).getDate()));
+      }
+      break;
+  }
+  
+  return nextDate.toISOString().split('T')[0];
+}
+
+export async function onRequestOptions(context) {
+  return new Response(null, { headers: corsHeaders });
+}
+
+export async function onRequestGet(context) {
+  const { env, request } = context;
+  
+  try {
+    if (!env.DB) {
+      return new Response(JSON.stringify({ 
+        error: 'Database not available',
+        code: 'DB_NOT_CONFIGURED'
+      }), {
+        status: 503,
+        headers: corsHeaders
+      });
+    }
+
+    const url = new URL(request.url);
+    const status = url.searchParams.get('status');
+    const id = url.searchParams.get('id');
+
+    // Get specific recurring service
+    if (id) {
+      const service = await env.DB.prepare(
+        'SELECT * FROM recurring_services WHERE id = ?'
+      ).bind(id).first();
+
+      if (!service) {
+        return new Response(JSON.stringify({ 
+          error: 'Recurring service not found',
+          code: 'NOT_FOUND'
+        }), {
+          status: 404,
+          headers: corsHeaders
+        });
+      }
+
+      return new Response(JSON.stringify(service), {
+        headers: corsHeaders
+      });
+    }
+
+    // Build query
+    let query = 'SELECT * FROM recurring_services WHERE 1=1';
+    const params = [];
+
+    if (status) {
+      query += ' AND status = ?';
+      params.push(status);
+    }
+
+    query += ' ORDER BY next_payment_date ASC, service_name ASC';
+
+    const stmt = params.length > 0 
+      ? env.DB.prepare(query).bind(...params)
+      : env.DB.prepare(query);
+
+    const result = await stmt.all();
+
+    return new Response(JSON.stringify(result.results || []), {
+      headers: corsHeaders
+    });
+
+  } catch (error) {
+    console.error('Recurring Services GET error:', error);
+    return new Response(JSON.stringify({ 
+      error: 'Failed to fetch recurring services',
+      message: error.message,
+      code: 'QUERY_ERROR'
+    }), {
+      status: 500,
+      headers: corsHeaders
+    });
+  }
+}
+
+export async function onRequestPost(context) {
+  const { env, request } = context;
+  
+  try {
+    if (!env.DB) {
+      return new Response(JSON.stringify({ 
+        error: 'Database not available',
+        code: 'DB_NOT_CONFIGURED'
+      }), {
+        status: 503,
+        headers: corsHeaders
+      });
+    }
+
+    const data = await request.json();
+    const {
+      service_name,
+      provider,
+      amount,
+      frequency,
+      payment_day,
+      description,
+      category
+    } = data;
+
+    // Validate required fields
+    if (!service_name || !provider || !amount || !frequency) {
+      return new Response(JSON.stringify({ 
+        error: 'Missing required fields',
+        required: ['service_name', 'provider', 'amount', 'frequency'],
+        code: 'VALIDATION_ERROR'
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
+
+    // Validate amount
+    if (amount <= 0) {
+      return new Response(JSON.stringify({ 
+        error: 'Amount must be positive',
+        code: 'VALIDATION_ERROR'
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
+
+    // Validate frequency
+    const validFrequencies = ['weekly', 'biweekly', 'monthly', 'quarterly', 'yearly'];
+    if (!validFrequencies.includes(frequency)) {
+      return new Response(JSON.stringify({ 
+        error: 'Invalid frequency',
+        valid: validFrequencies,
+        code: 'VALIDATION_ERROR'
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
+
+    // Calculate next payment date
+    const nextPaymentDate = calculateNextPaymentDate(frequency, payment_day);
+
+    const result = await env.DB.prepare(
+      `INSERT INTO recurring_services (
+        service_name, provider, amount, frequency, payment_day,
+        description, category, next_payment_date, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')`
+    ).bind(
+      service_name,
+      provider,
+      amount,
+      frequency,
+      payment_day || null,
+      description || null,
+      category || null,
+      nextPaymentDate
+    ).run();
+
+    return new Response(JSON.stringify({
+      success: true,
+      id: result.meta.last_row_id,
+      next_payment_date: nextPaymentDate
+    }), {
+      status: 201,
+      headers: corsHeaders
+    });
+
+  } catch (error) {
+    console.error('Recurring Services POST error:', error);
+    return new Response(JSON.stringify({ 
+      error: 'Failed to create recurring service',
+      message: error.message,
+      code: 'CREATE_ERROR'
+    }), {
+      status: 500,
+      headers: corsHeaders
+    });
+  }
+}
+
+export async function onRequestPut(context) {
+  const { env, request } = context;
+  
+  try {
+    if (!env.DB) {
+      return new Response(JSON.stringify({ 
+        error: 'Database not available',
+        code: 'DB_NOT_CONFIGURED'
+      }), {
+        status: 503,
+        headers: corsHeaders
+      });
+    }
+
+    const data = await request.json();
+    const { id, ...updateFields } = data;
+
+    if (!id) {
+      return new Response(JSON.stringify({ 
+        error: 'Recurring service ID is required',
+        code: 'VALIDATION_ERROR'
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
+
+    // Get current record
+    const service = await env.DB.prepare(
+      'SELECT * FROM recurring_services WHERE id = ?'
+    ).bind(id).first();
+
+    if (!service) {
+      return new Response(JSON.stringify({ 
+        error: 'Recurring service not found',
+        code: 'NOT_FOUND'
+      }), {
+        status: 404,
+        headers: corsHeaders
+      });
+    }
+
+    // Build update query dynamically
+    const updates = [];
+    const values = [];
+
+    // List of allowed update fields
+    const allowedFields = [
+      'service_name', 'provider', 'amount', 'frequency', 
+      'payment_day', 'description', 'category', 'status'
+    ];
+
+    for (const field of allowedFields) {
+      if (updateFields[field] !== undefined) {
+        updates.push(`${field} = ?`);
+        values.push(updateFields[field]);
+      }
+    }
+
+    // Recalculate next payment date if frequency or payment_day changed
+    if (updateFields.frequency || updateFields.payment_day !== undefined) {
+      const newFrequency = updateFields.frequency || service.frequency;
+      const newPaymentDay = updateFields.payment_day !== undefined ? updateFields.payment_day : service.payment_day;
+      const nextPaymentDate = calculateNextPaymentDate(newFrequency, newPaymentDay);
+      updates.push('next_payment_date = ?');
+      values.push(nextPaymentDate);
+    }
+
+    if (updates.length === 0) {
+      return new Response(JSON.stringify({ 
+        error: 'No valid fields to update',
+        code: 'VALIDATION_ERROR'
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
+
+    updates.push('updated_at = CURRENT_TIMESTAMP');
+    values.push(id);
+
+    await env.DB.prepare(
+      `UPDATE recurring_services SET ${updates.join(', ')} WHERE id = ?`
+    ).bind(...values).run();
+
+    return new Response(JSON.stringify({
+      success: true,
+      message: 'Recurring service updated successfully'
+    }), {
+      headers: corsHeaders
+    });
+
+  } catch (error) {
+    console.error('Recurring Services PUT error:', error);
+    return new Response(JSON.stringify({ 
+      error: 'Failed to update recurring service',
+      message: error.message,
+      code: 'UPDATE_ERROR'
+    }), {
+      status: 500,
+      headers: corsHeaders
+    });
+  }
+}
+
+export async function onRequestDelete(context) {
+  const { env, request } = context;
+  
+  try {
+    if (!env.DB) {
+      return new Response(JSON.stringify({ 
+        error: 'Database not available',
+        code: 'DB_NOT_CONFIGURED'
+      }), {
+        status: 503,
+        headers: corsHeaders
+      });
+    }
+
+    const url = new URL(request.url);
+    const id = url.searchParams.get('id');
+
+    if (!id) {
+      return new Response(JSON.stringify({ 
+        error: 'Recurring service ID is required',
+        code: 'VALIDATION_ERROR'
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
+
+    // Delete recurring service
+    await env.DB.prepare(
+      'DELETE FROM recurring_services WHERE id = ?'
+    ).bind(id).run();
+
+    return new Response(JSON.stringify({
+      success: true,
+      message: 'Recurring service deleted successfully'
+    }), {
+      headers: corsHeaders
+    });
+
+  } catch (error) {
+    console.error('Recurring Services DELETE error:', error);
+    return new Response(JSON.stringify({ 
+      error: 'Failed to delete recurring service',
+      message: error.message,
+      code: 'DELETE_ERROR'
+    }), {
+      status: 500,
+      headers: corsHeaders
+    });
+  }
+}
