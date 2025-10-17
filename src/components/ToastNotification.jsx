@@ -21,7 +21,7 @@ export default function ToastContainer() {
   }, []);
 
   return (
-    <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-md w-full px-4 pointer-events-none">
+    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-md w-full px-4 pointer-events-none">
       {toasts.map(toast => (
         <Toast
           key={toast.id}
@@ -89,7 +89,7 @@ function Toast({ toast, onDismiss }) {
         flex items-start gap-3
         pointer-events-auto
         transition-all duration-300 ease-in-out
-        ${isExiting ? 'opacity-0 translate-x-full' : 'opacity-100 translate-x-0'}
+        ${isExiting ? 'opacity-0 translate-y-full' : 'opacity-100 translate-y-0'}
         animate-slide-in
       `}
       role="alert"
