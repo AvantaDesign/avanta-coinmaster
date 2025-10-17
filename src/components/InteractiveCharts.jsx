@@ -19,14 +19,14 @@ export default function InteractiveCharts({ data, type = 'bar', title, onDrillDo
 
   if (!data || data.length === 0) {
     return (
-      <div className="bg-white p-6 rounded-lg shadow-md text-center text-gray-500">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md text-center text-gray-500 dark:text-gray-400">
         No hay datos para visualizar
       </div>
     );
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
+    <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
       {title && <h3 className="text-xl font-bold mb-4">{title}</h3>}
       
       {type === 'bar' && (
@@ -101,10 +101,10 @@ function InteractiveBarChart({ data, hoveredIndex, selectedIndex, onHover, onSel
                 {item.label || item.name}
               </div>
               <div className="flex-1 relative">
-                <div className="w-full bg-gray-100 rounded-full h-8 overflow-hidden">
+                <div className="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-8 overflow-hidden">
                   <div
                     className={`h-full flex items-center justify-end px-2 text-xs font-medium text-white transition-all duration-300 ${
-                      isPositive ? 'bg-green-500' : 'bg-red-500'
+                      isPositive ? 'bg-green-500 dark:bg-green-600' : 'bg-red-500 dark:bg-red-600'
                     } ${isHovered ? 'opacity-90 scale-105' : ''} ${
                       isSelected ? 'ring-2 ring-blue-500' : ''
                     }`}
@@ -115,10 +115,10 @@ function InteractiveBarChart({ data, hoveredIndex, selectedIndex, onHover, onSel
                 </div>
                 {/* Tooltip */}
                 {isHovered && (
-                  <div className="absolute z-10 bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-3 py-2 rounded text-xs whitespace-nowrap">
+                  <div className="absolute z-10 bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-900 dark:bg-slate-700 text-white px-3 py-2 rounded text-xs whitespace-nowrap shadow-lg">
                     {formatCurrency(value)}
                     {item.count && ` (${item.count} transacciones)`}
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-slate-700"></div>
                   </div>
                 )}
               </div>
@@ -170,7 +170,7 @@ function InteractiveLineChart({ data, hoveredIndex, onHover }) {
                 y1={y}
                 x2={width - padding}
                 y2={y}
-                stroke="#e5e7eb"
+                stroke="var(--color-chart-grid)"
                 strokeWidth="1"
               />
               <text
@@ -178,7 +178,7 @@ function InteractiveLineChart({ data, hoveredIndex, onHover }) {
                 y={y + 5}
                 textAnchor="end"
                 fontSize="12"
-                fill="#6b7280"
+                fill="var(--color-chart-text)"
               >
                 {formatCurrency(minValue + (range * percent) / 100)}
               </text>
@@ -196,7 +196,7 @@ function InteractiveLineChart({ data, hoveredIndex, onHover }) {
         />
 
         {/* Line */}
-        <path d={pathD} stroke="#3b82f6" strokeWidth="3" fill="none" />
+        <path d={pathD} stroke="var(--color-chart-line)" strokeWidth="3" fill="none" />
 
         {/* Points */}
         {points.map((point, index) => (
@@ -210,7 +210,7 @@ function InteractiveLineChart({ data, hoveredIndex, onHover }) {
               cx={point.x}
               cy={point.y}
               r={hoveredIndex === index ? 8 : 5}
-              fill="#3b82f6"
+              fill="var(--color-chart-line)"
               stroke="white"
               strokeWidth="2"
               className="transition-all duration-200"
@@ -221,7 +221,7 @@ function InteractiveLineChart({ data, hoveredIndex, onHover }) {
               y={height - padding + 20}
               textAnchor="middle"
               fontSize="10"
-              fill="#6b7280"
+              fill="var(--color-chart-text)"
             >
               {point.label}
             </text>
@@ -231,15 +231,15 @@ function InteractiveLineChart({ data, hoveredIndex, onHover }) {
         {/* Gradient definition */}
         <defs>
           <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.5" />
-            <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+            <stop offset="0%" stopColor="var(--color-chart-line)" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="var(--color-chart-line)" stopOpacity="0" />
           </linearGradient>
         </defs>
       </svg>
 
       {/* Hover tooltip */}
       {hoveredIndex !== null && (
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-4 py-2 rounded shadow-lg text-sm z-10">
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-gray-900 dark:bg-slate-700 text-white px-4 py-2 rounded shadow-lg text-sm z-10">
           <div className="font-bold">{points[hoveredIndex].label}</div>
           <div>{formatCurrency(points[hoveredIndex].value)}</div>
         </div>
@@ -254,7 +254,7 @@ function InteractiveDonutChart({ data, hoveredIndex, selectedIndex, onHover, onS
   
   if (total === 0) {
     return (
-      <div className="text-center text-gray-500 py-8">
+      <div className="text-center text-gray-500 dark:text-gray-400 py-8">
         No hay datos para visualizar
       </div>
     );
@@ -312,7 +312,7 @@ function InteractiveDonutChart({ data, hoveredIndex, selectedIndex, onHover, onS
         {/* Center text */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <div className="text-3xl font-bold">{formatCurrency(total)}</div>
-          <div className="text-sm text-gray-600">Total</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400">Total</div>
         </div>
       </div>
 
@@ -342,7 +342,7 @@ function InteractiveDonutChart({ data, hoveredIndex, selectedIndex, onHover, onS
                 <div className="text-sm font-medium truncate">
                   {item.label || item.name}
                 </div>
-                <div className="text-xs text-gray-500">{percentage}%</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">{percentage}%</div>
               </div>
               <div className="text-sm font-bold">{formatCurrency(value)}</div>
             </div>
@@ -381,11 +381,11 @@ function InteractiveComparisonChart({ data, hoveredIndex, onHover }) {
             
             {/* Value 1 */}
             <div className="mb-1">
-              <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+              <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 mb-1">
                 <span>{item.label1 || 'Valor 1'}</span>
                 <span className="font-bold">{formatCurrency(value1)}</span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-4">
+              <div className="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-4">
                 <div
                   className="bg-blue-500 h-4 rounded-full transition-all duration-300"
                   style={{ width: `${percentage1}%` }}
@@ -395,11 +395,11 @@ function InteractiveComparisonChart({ data, hoveredIndex, onHover }) {
 
             {/* Value 2 */}
             <div>
-              <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+              <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 mb-1">
                 <span>{item.label2 || 'Valor 2'}</span>
                 <span className="font-bold">{formatCurrency(value2)}</span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-4">
+              <div className="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-4">
                 <div
                   className="bg-purple-500 h-4 rounded-full transition-all duration-300"
                   style={{ width: `${percentage2}%` }}
@@ -409,7 +409,7 @@ function InteractiveComparisonChart({ data, hoveredIndex, onHover }) {
 
             {/* Difference */}
             {item.showDifference !== false && (
-              <div className="mt-2 text-xs text-gray-600 text-right">
+              <div className="mt-2 text-xs text-gray-600 dark:text-gray-400 text-right">
                 Diferencia: 
                 <span className={`ml-1 font-bold ${
                   value1 > value2 ? 'text-green-600' : 'text-red-600'

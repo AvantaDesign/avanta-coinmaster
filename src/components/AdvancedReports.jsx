@@ -185,7 +185,7 @@ export default function AdvancedReports({ data = {} }) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-6 rounded-lg shadow-lg text-white">
+      <div className="bg-gradient-to-r from-purple-600 dark:from-purple-700 to-blue-600 dark:to-blue-700 p-6 rounded-lg shadow-lg text-white">
         <h2 className="text-2xl font-bold mb-2">📊 Reportes Avanzados</h2>
         <p className="text-purple-100">
           Genera reportes personalizados y exporta en múltiples formatos
@@ -193,7 +193,7 @@ export default function AdvancedReports({ data = {} }) {
       </div>
 
       {/* Report Templates Grid */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
         <h3 className="text-xl font-bold mb-4">Selecciona un Tipo de Reporte</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -211,7 +211,7 @@ export default function AdvancedReports({ data = {} }) {
                 <span className="text-3xl">{template.icon}</span>
                 <div className="flex-1 min-w-0">
                   <h4 className="font-bold text-sm mb-1">{template.name}</h4>
-                  <p className="text-xs text-gray-600">{template.description}</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">{template.description}</p>
                 </div>
               </div>
             </button>
@@ -221,44 +221,44 @@ export default function AdvancedReports({ data = {} }) {
 
       {/* Report Configuration */}
       {selectedTemplate && (
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
           <h3 className="text-xl font-bold mb-4">⚙️ Configurar Reporte</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Date Range */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Fecha Desde
               </label>
               <input
                 type="date"
                 value={dateRange.from}
                 onChange={(e) => setDateRange({ ...dateRange, from: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Fecha Hasta
               </label>
               <input
                 type="date"
                 value={dateRange.to}
                 onChange={(e) => setDateRange({ ...dateRange, to: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
               />
             </div>
 
             {/* Export Format */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Formato de Exportación
               </label>
               <select
                 value={exportFormat}
                 onChange={(e) => setExportFormat(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
               >
                 <option value="pdf">📄 PDF</option>
                 <option value="excel">📊 Excel</option>
@@ -275,7 +275,7 @@ export default function AdvancedReports({ data = {} }) {
                 className={`w-full px-4 py-2 rounded-md font-medium ${
                   isGenerating
                     ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700'
+                    : 'bg-blue-600 hover:bg-blue-700 dark:hover:bg-blue-600'
                 } text-white`}
               >
                 {isGenerating ? '⏳ Generando...' : '🚀 Generar Reporte'}
@@ -284,12 +284,12 @@ export default function AdvancedReports({ data = {} }) {
           </div>
 
           {/* Selected Template Info */}
-          <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200">
             <div className="flex items-center gap-3">
               <span className="text-3xl">{selectedTemplate.icon}</span>
               <div>
                 <h4 className="font-bold">{selectedTemplate.name}</h4>
-                <p className="text-sm text-gray-600">{selectedTemplate.description}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{selectedTemplate.description}</p>
               </div>
             </div>
           </div>
@@ -297,17 +297,17 @@ export default function AdvancedReports({ data = {} }) {
       )}
 
       {/* Quick Actions */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
         <h3 className="text-xl font-bold mb-4">⚡ Acciones Rápidas</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <button
             onClick={handleBackup}
-            className="p-4 bg-green-50 hover:bg-green-100 border-2 border-green-300 rounded-lg text-left transition-colors"
+            className="p-4 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:bg-green-900/30 border-2 border-green-300 rounded-lg text-left transition-colors"
           >
             <div className="text-2xl mb-2">💾</div>
             <div className="font-bold text-sm mb-1">Crear Backup</div>
-            <div className="text-xs text-gray-600">
+            <div className="text-xs text-gray-600 dark:text-gray-400">
               Respalda todos tus datos en formato JSON
             </div>
           </button>
@@ -317,11 +317,11 @@ export default function AdvancedReports({ data = {} }) {
               setSelectedTemplate(REPORT_TEMPLATES.find(t => t.id === 'transactions-detail'));
               setExportFormat('excel');
             }}
-            className="p-4 bg-blue-50 hover:bg-blue-100 border-2 border-blue-300 rounded-lg text-left transition-colors"
+            className="p-4 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:bg-blue-900/30 border-2 border-blue-300 rounded-lg text-left transition-colors"
           >
             <div className="text-2xl mb-2">📊</div>
             <div className="font-bold text-sm mb-1">Exportar Transacciones</div>
-            <div className="text-xs text-gray-600">
+            <div className="text-xs text-gray-600 dark:text-gray-400">
               Descarga todas tus transacciones a Excel
             </div>
           </button>
@@ -331,11 +331,11 @@ export default function AdvancedReports({ data = {} }) {
               setSelectedTemplate(REPORT_TEMPLATES.find(t => t.id === 'fiscal-report'));
               setExportFormat('pdf');
             }}
-            className="p-4 bg-purple-50 hover:bg-purple-100 border-2 border-purple-300 rounded-lg text-left transition-colors"
+            className="p-4 bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/30 border-2 border-purple-300 rounded-lg text-left transition-colors"
           >
             <div className="text-2xl mb-2">💰</div>
             <div className="font-bold text-sm mb-1">Reporte Fiscal</div>
-            <div className="text-xs text-gray-600">
+            <div className="text-xs text-gray-600 dark:text-gray-400">
               Genera tu reporte de impuestos en PDF
             </div>
           </button>
@@ -343,12 +343,12 @@ export default function AdvancedReports({ data = {} }) {
       </div>
 
       {/* Report History (Future Feature) */}
-      <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+      <div className="bg-gray-50 dark:bg-slate-800 border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-lg p-8 text-center">
         <div className="text-4xl mb-3">📜</div>
-        <h3 className="text-lg font-bold text-gray-600 mb-2">
+        <h3 className="text-lg font-bold text-gray-600 dark:text-gray-400 mb-2">
           Historial de Reportes
         </h3>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
           Próximamente: accede a reportes generados anteriormente
         </p>
       </div>

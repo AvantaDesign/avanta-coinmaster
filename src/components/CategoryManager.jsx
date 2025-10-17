@@ -88,8 +88,8 @@ export default function CategoryManager() {
 
   if (loading) {
     return (
-      <div className="bg-white p-6 rounded-lg shadow-md text-center">
-        <p className="text-gray-600">Cargando categorías...</p>
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md text-center">
+        <p className="text-gray-600 dark:text-gray-400">Cargando categorías...</p>
       </div>
     );
   }
@@ -102,7 +102,7 @@ export default function CategoryManager() {
         {!isAdding && (
           <button
             onClick={() => setIsAdding(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+            className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600"
           >
             + Nueva Categoría
           </button>
@@ -110,35 +110,35 @@ export default function CategoryManager() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 text-red-700 px-4 py-3 rounded">
           {error}
         </div>
       )}
 
       {/* Add/Edit Form */}
       {isAdding && (
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
           <h3 className="text-lg font-semibold mb-4">
             {editingId ? 'Editar Categoría' : 'Nueva Categoría'}
           </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Nombre *
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                   required
                   placeholder="ej. Servicios Profesionales"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Color
                 </label>
                 <div className="flex gap-2 flex-wrap">
@@ -159,13 +159,13 @@ export default function CategoryManager() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Descripción
               </label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                 rows="3"
                 placeholder="Descripción opcional de la categoría"
               />
@@ -174,14 +174,14 @@ export default function CategoryManager() {
             <div className="flex gap-2">
               <button
                 type="submit"
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600"
               >
                 {editingId ? 'Actualizar' : 'Crear'}
               </button>
               <button
                 type="button"
                 onClick={resetForm}
-                className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
+                className="bg-gray-300 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md hover:bg-gray-400"
               >
                 Cancelar
               </button>
@@ -193,14 +193,14 @@ export default function CategoryManager() {
       {/* Categories Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {categories.length === 0 ? (
-          <div className="col-span-full bg-white p-6 rounded-lg shadow-md text-center text-gray-500">
+          <div className="col-span-full bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md text-center text-gray-500 dark:text-gray-400">
             No hay categorías registradas
           </div>
         ) : (
           categories.map((category) => (
             <div
               key={category.id}
-              className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+              className="bg-white dark:bg-slate-900 p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
@@ -209,9 +209,9 @@ export default function CategoryManager() {
                     style={{ backgroundColor: category.color }}
                   />
                   <div>
-                    <h3 className="font-semibold text-gray-900">{category.name}</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100">{category.name}</h3>
                     {category.description && (
-                      <p className="text-sm text-gray-600 mt-1">{category.description}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{category.description}</p>
                     )}
                   </div>
                 </div>
@@ -238,7 +238,7 @@ export default function CategoryManager() {
 
       {/* Summary */}
       {categories.length > 0 && (
-        <div className="bg-blue-50 p-4 rounded-lg">
+        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium text-blue-900">Total de categorías:</span>
             <span className="text-lg font-bold text-blue-900">{categories.length}</span>

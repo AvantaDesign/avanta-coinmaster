@@ -100,7 +100,7 @@ export default function BudgetForm({ budget, onSubmit, onCancel }) {
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Errors */}
       {errors.length > 0 && (
-        <div className="bg-red-50 border border-red-300 text-red-800 px-4 py-3 rounded">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-300 text-red-800 dark:text-red-300 px-4 py-3 rounded">
           <p className="font-semibold mb-2">Por favor corrige los siguientes errores:</p>
           <ul className="list-disc list-inside space-y-1">
             {errors.map((error, index) => (
@@ -112,7 +112,7 @@ export default function BudgetForm({ budget, onSubmit, onCancel }) {
 
       {/* Classification */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Clasificación <span className="text-red-500">*</span>
         </label>
         <div className="grid grid-cols-2 gap-4">
@@ -149,14 +149,14 @@ export default function BudgetForm({ budget, onSubmit, onCancel }) {
 
       {/* Category */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Categoría (opcional)
         </label>
         <select
           name="category_id"
           value={formData.category_id}
           onChange={handleChange}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
         >
           <option value="">Sin categoría específica (General)</option>
           {filteredCategories.map(category => (
@@ -165,18 +165,18 @@ export default function BudgetForm({ budget, onSubmit, onCancel }) {
             </option>
           ))}
         </select>
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
           Deja vacío para crear un presupuesto general que cubra todas las categorías
         </p>
       </div>
 
       {/* Amount */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Monto <span className="text-red-500">*</span>
         </label>
         <div className="relative">
-          <span className="absolute left-3 top-2 text-gray-500">$</span>
+          <span className="absolute left-3 top-2 text-gray-500 dark:text-gray-400">$</span>
           <input
             type="number"
             name="amount"
@@ -185,7 +185,7 @@ export default function BudgetForm({ budget, onSubmit, onCancel }) {
             min="0"
             step="0.01"
             required
-            className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full pl-8 pr-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
             placeholder="0.00"
           />
         </div>
@@ -193,7 +193,7 @@ export default function BudgetForm({ budget, onSubmit, onCancel }) {
 
       {/* Period */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Período <span className="text-red-500">*</span>
         </label>
         <select
@@ -201,7 +201,7 @@ export default function BudgetForm({ budget, onSubmit, onCancel }) {
           value={formData.period}
           onChange={handleChange}
           required
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
         >
           <option value="monthly">Mensual</option>
           <option value="quarterly">Trimestral</option>
@@ -212,7 +212,7 @@ export default function BudgetForm({ budget, onSubmit, onCancel }) {
       {/* Dates */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Fecha de Inicio <span className="text-red-500">*</span>
           </label>
           <input
@@ -221,11 +221,11 @@ export default function BudgetForm({ budget, onSubmit, onCancel }) {
             value={formData.start_date}
             onChange={handleChange}
             required
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Fecha de Fin
           </label>
           <input
@@ -233,9 +233,9 @@ export default function BudgetForm({ budget, onSubmit, onCancel }) {
             name="end_date"
             value={formData.end_date}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             Se calcula automáticamente según el período
           </p>
         </div>
@@ -243,7 +243,7 @@ export default function BudgetForm({ budget, onSubmit, onCancel }) {
 
       {/* Notes */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Notas (opcional)
         </label>
         <textarea
@@ -251,7 +251,7 @@ export default function BudgetForm({ budget, onSubmit, onCancel }) {
           value={formData.notes}
           onChange={handleChange}
           rows="3"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
           placeholder="Agregar notas sobre este presupuesto..."
         />
       </div>
@@ -264,9 +264,9 @@ export default function BudgetForm({ budget, onSubmit, onCancel }) {
           id="is_active"
           checked={formData.is_active}
           onChange={handleChange}
-          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          className="w-4 h-4 text-blue-600 border-gray-300 dark:border-slate-600 rounded focus:ring-blue-500 dark:focus:ring-blue-400"
         />
-        <label htmlFor="is_active" className="ml-2 text-sm text-gray-700">
+        <label htmlFor="is_active" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
           Presupuesto activo
         </label>
       </div>
@@ -276,14 +276,14 @@ export default function BudgetForm({ budget, onSubmit, onCancel }) {
         <button
           type="button"
           onClick={onCancel}
-          className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+          className="px-6 py-2 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50"
           disabled={loading}
         >
           Cancelar
         </button>
         <button
           type="submit"
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          className="px-6 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50"
           disabled={loading}
         >
           {loading ? 'Guardando...' : budget ? 'Actualizar' : 'Crear'}

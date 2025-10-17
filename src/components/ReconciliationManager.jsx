@@ -101,7 +101,7 @@ export default function ReconciliationManager() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
         <h2 className="text-2xl font-bold mb-4">Conciliación de Cuentas</h2>
         
         {/* Configuration */}
@@ -116,9 +116,9 @@ export default function ReconciliationManager() {
               onChange={(e) => setToleranceDays(parseInt(e.target.value))}
               min="1"
               max="30"
-              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Diferencia máxima entre fechas
             </p>
           </div>
@@ -134,9 +134,9 @@ export default function ReconciliationManager() {
               min="0"
               max="10"
               step="0.1"
-              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Diferencia máxima en monto
             </p>
           </div>
@@ -151,9 +151,9 @@ export default function ReconciliationManager() {
               onChange={(e) => setMinConfidence(parseInt(e.target.value))}
               min="50"
               max="100"
-              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Filtrar por confianza
             </p>
           </div>
@@ -162,7 +162,7 @@ export default function ReconciliationManager() {
             <button
               onClick={runReconciliation}
               disabled={loading || transactions.length === 0}
-              className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
+              className="w-full bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50"
             >
               {loading ? 'Procesando...' : 'Ejecutar Conciliación'}
             </button>
@@ -172,26 +172,26 @@ export default function ReconciliationManager() {
         {/* Statistics */}
         {stats && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 pt-6 border-t">
-            <div className="bg-blue-50 p-3 rounded-lg">
-              <div className="text-xs text-gray-600">Total Transacciones</div>
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+              <div className="text-xs text-gray-600 dark:text-gray-400">Total Transacciones</div>
               <div className="text-2xl font-bold text-blue-700">
                 {stats.totalTransactions}
               </div>
             </div>
-            <div className="bg-green-50 p-3 rounded-lg">
-              <div className="text-xs text-gray-600">Transferencias</div>
+            <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
+              <div className="text-xs text-gray-600 dark:text-gray-400">Transferencias</div>
               <div className="text-2xl font-bold text-green-700">
                 {stats.totalTransfers}
               </div>
             </div>
-            <div className="bg-yellow-50 p-3 rounded-lg">
-              <div className="text-xs text-gray-600">Sin Coincidir</div>
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg">
+              <div className="text-xs text-gray-600 dark:text-gray-400">Sin Coincidir</div>
               <div className="text-2xl font-bold text-yellow-700">
                 {stats.totalUnmatched}
               </div>
             </div>
             <div className="bg-purple-50 p-3 rounded-lg">
-              <div className="text-xs text-gray-600">% Conciliado</div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">% Conciliado</div>
               <div className="text-2xl font-bold text-purple-700">
                 {stats.matchedPercentage.toFixed(1)}%
               </div>
@@ -202,7 +202,7 @@ export default function ReconciliationManager() {
 
       {/* Results Tabs */}
       {(matches.length > 0 || duplicates.length > 0) && (
-        <div className="bg-white rounded-lg shadow-md">
+        <div className="bg-white dark:bg-slate-900 rounded-lg shadow-md">
           <div className="border-b">
             <div className="flex">
               <button
@@ -243,7 +243,7 @@ export default function ReconciliationManager() {
             {activeTab === 'matches' && (
               <div className="space-y-4">
                 {matches.length === 0 ? (
-                  <p className="text-center text-gray-500 py-8">
+                  <p className="text-center text-gray-500 dark:text-gray-400 py-8">
                     No se encontraron transferencias con la confianza mínima establecida
                   </p>
                 ) : (
@@ -254,7 +254,7 @@ export default function ReconciliationManager() {
                           <span className="text-2xl">🔄</span>
                           <div>
                             <div className="font-medium">Transferencia Detectada</div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
                               Diferencia: {match.daysDiff.toFixed(1)} días, 
                               {formatCurrency(match.amountDiff)}
                             </div>
@@ -267,11 +267,11 @@ export default function ReconciliationManager() {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Transaction 1 */}
-                        <div className="bg-red-50 p-3 rounded border border-red-200">
-                          <div className="text-xs text-gray-600 mb-2">Origen</div>
+                        <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded border border-red-200">
+                          <div className="text-xs text-gray-600 dark:text-gray-400 mb-2">Origen</div>
                           <div className="space-y-1">
                             <div className="font-medium">{match.tx1.description}</div>
-                            <div className="text-sm text-gray-600">
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
                               {formatDate(match.tx1.date)} • {match.tx1.account || 'Sin cuenta'}
                             </div>
                             <div className="text-lg font-bold text-red-700">
@@ -281,11 +281,11 @@ export default function ReconciliationManager() {
                         </div>
 
                         {/* Transaction 2 */}
-                        <div className="bg-green-50 p-3 rounded border border-green-200">
-                          <div className="text-xs text-gray-600 mb-2">Destino</div>
+                        <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded border border-green-200">
+                          <div className="text-xs text-gray-600 dark:text-gray-400 mb-2">Destino</div>
                           <div className="space-y-1">
                             <div className="font-medium">{match.tx2.description}</div>
-                            <div className="text-sm text-gray-600">
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
                               {formatDate(match.tx2.date)} • {match.tx2.account || 'Sin cuenta'}
                             </div>
                             <div className="text-lg font-bold text-green-700">
@@ -304,7 +304,7 @@ export default function ReconciliationManager() {
             {activeTab === 'duplicates' && (
               <div className="space-y-4">
                 {duplicates.length === 0 ? (
-                  <p className="text-center text-gray-500 py-8">
+                  <p className="text-center text-gray-500 dark:text-gray-400 py-8">
                     No se encontraron duplicados con la confianza mínima establecida
                   </p>
                 ) : (
@@ -315,7 +315,7 @@ export default function ReconciliationManager() {
                           <span className="text-2xl">⚠️</span>
                           <div>
                             <div className="font-medium">Posible Duplicado</div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
                               {group.duplicates.length} coincidencia(s) encontrada(s)
                             </div>
                           </div>
@@ -323,11 +323,11 @@ export default function ReconciliationManager() {
                       </div>
 
                       {/* Original Transaction */}
-                      <div className="bg-blue-50 p-3 rounded mb-3 border border-blue-200">
-                        <div className="text-xs text-gray-600 mb-2">Transacción Original</div>
+                      <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded mb-3 border border-blue-200">
+                        <div className="text-xs text-gray-600 dark:text-gray-400 mb-2">Transacción Original</div>
                         <div className="space-y-1">
                           <div className="font-medium">{group.original.description}</div>
-                          <div className="text-sm text-gray-600">
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
                             {formatDate(group.original.date)} • {group.original.account || 'Sin cuenta'}
                           </div>
                           <div className="text-lg font-bold text-blue-700">
@@ -339,11 +339,11 @@ export default function ReconciliationManager() {
                       {/* Duplicate Transactions */}
                       <div className="space-y-2">
                         {group.duplicates.map((dup, dupIdx) => (
-                          <div key={dupIdx} className="bg-yellow-50 p-3 rounded border border-yellow-200">
+                          <div key={dupIdx} className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded border border-yellow-200">
                             <div className="flex justify-between items-start">
                               <div className="space-y-1 flex-1">
                                 <div className="font-medium">{dup.tx.description}</div>
-                                <div className="text-sm text-gray-600">
+                                <div className="text-sm text-gray-600 dark:text-gray-400">
                                   {formatDate(dup.tx.date)} • {dup.tx.account || 'Sin cuenta'}
                                 </div>
                                 <div className="text-lg font-bold text-yellow-700">
@@ -354,7 +354,7 @@ export default function ReconciliationManager() {
                                 {dup.confidence.toFixed(0)}%
                               </span>
                             </div>
-                            <div className="text-xs text-gray-500 mt-2">
+                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                               Diferencia: {dup.hoursDiff.toFixed(1)} horas • 
                               Similitud: {(dup.similarity * 100).toFixed(0)}%
                             </div>
@@ -381,46 +381,46 @@ export default function ReconciliationManager() {
                 </div>
 
                 {invoiceLinks.length === 0 ? (
-                  <div className="text-center py-12 bg-gray-50 rounded-lg">
-                    <p className="text-gray-600 mb-4">
+                  <div className="text-center py-12 bg-gray-50 dark:bg-slate-800 rounded-lg">
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">
                       No hay transacciones vinculadas a facturas (CFDIs)
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       Usa la tabla de transacciones para vincular facturas a tus pagos
                     </p>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {invoiceLinks.map((link) => (
-                      <div key={link.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div key={link.id} className="border border-gray-200 dark:border-slate-700 rounded-lg p-4 hover:shadow-md transition-shadow">
                         <div className="flex justify-between items-start mb-3">
                           <div className="flex-1">
-                            <p className="font-semibold text-gray-900">
+                            <p className="font-semibold text-gray-900 dark:text-gray-100">
                               {link.transaction_description}
                             </p>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
                               Fecha: {formatDate(link.transaction_date)}
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="text-lg font-bold text-gray-900">
+                            <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
                               {formatCurrency(link.transaction_amount)}
                             </p>
                             <span className={`text-xs px-2 py-1 rounded-full ${
                               link.transaction_type === 'ingreso' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-red-100 text-red-800'
+                                ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' 
+                                : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
                             }`}>
                               {link.transaction_type}
                             </span>
                           </div>
                         </div>
                         
-                        <div className="bg-blue-50 p-3 rounded-lg">
+                        <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
                           <p className="text-sm font-semibold text-blue-900 mb-1">
                             Factura: {link.invoice_uuid}
                           </p>
-                          <div className="flex justify-between text-sm text-blue-800">
+                          <div className="flex justify-between text-sm text-blue-800 dark:text-blue-300">
                             <span>Total: {formatCurrency(link.invoice_total)}</span>
                             <span>Fecha: {formatDate(link.invoice_date)}</span>
                             <span className={`px-2 py-0.5 rounded ${
@@ -434,7 +434,7 @@ export default function ReconciliationManager() {
                         </div>
 
                         {link.notes && (
-                          <p className="text-sm text-gray-600 mt-2">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
                             <strong>Notas:</strong> {link.notes}
                           </p>
                         )}
@@ -450,8 +450,8 @@ export default function ReconciliationManager() {
 
       {/* Empty State */}
       {transactions.length === 0 && !loading && (
-        <div className="bg-white p-6 rounded-lg shadow-md text-center">
-          <p className="text-gray-500">No hay transacciones para conciliar</p>
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md text-center">
+          <p className="text-gray-500 dark:text-gray-400">No hay transacciones para conciliar</p>
         </div>
       )}
 

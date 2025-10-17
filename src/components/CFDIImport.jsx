@@ -142,13 +142,13 @@ export default function CFDIImport({ onSuccess, onClose, mode = 'invoice' }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b sticky top-0 bg-white z-10">
+      <div className="bg-white dark:bg-slate-900 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b sticky top-0 bg-white dark:bg-slate-900 z-10">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold">Importar CFDI (XML)</h2>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 text-2xl"
+              className="text-gray-500 dark:text-gray-400 hover:text-gray-700 text-2xl"
             >
               ✕
             </button>
@@ -166,11 +166,11 @@ export default function CFDIImport({ onSuccess, onClose, mode = 'invoice' }) {
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 transition"
+                className="border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 transition"
               >
                 <div className="text-4xl mb-2">📋</div>
                 <p className="text-lg font-medium mb-1">Arrastra tu CFDI XML aquí</p>
-                <p className="text-sm text-gray-600">o haz clic para seleccionar</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">o haz clic para seleccionar</p>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -183,17 +183,17 @@ export default function CFDIImport({ onSuccess, onClose, mode = 'invoice' }) {
 
             {/* Selected File */}
             {file && !parseResult && (
-              <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">📋 {file.name}</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       {(file.size / 1024).toFixed(2)} KB
                     </p>
                   </div>
                   <button
                     onClick={() => setFile(null)}
-                    className="text-red-600 hover:text-red-800"
+                    className="text-red-600 hover:text-red-800 dark:text-red-300"
                   >
                     Eliminar
                   </button>
@@ -201,7 +201,7 @@ export default function CFDIImport({ onSuccess, onClose, mode = 'invoice' }) {
                 <button
                   onClick={parseFile}
                   disabled={loading}
-                  className="mt-4 w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+                  className="mt-4 w-full bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 disabled:bg-gray-400"
                 >
                   {loading ? 'Analizando...' : 'Analizar CFDI'}
                 </button>
@@ -211,7 +211,7 @@ export default function CFDIImport({ onSuccess, onClose, mode = 'invoice' }) {
 
           {/* Error Display */}
           {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 text-red-700 px-4 py-3 rounded">
               <p className="font-semibold">❌ Error</p>
               <p className="text-sm">{error}</p>
             </div>
@@ -223,51 +223,51 @@ export default function CFDIImport({ onSuccess, onClose, mode = 'invoice' }) {
               <h3 className="text-lg font-semibold mb-3">2. Revisar Datos del CFDI</h3>
 
               {/* CFDI Details */}
-              <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+              <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-lg space-y-3">
                 {/* Basic Info */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-600">Folio:</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Folio:</p>
                     <p className="font-medium">{parseResult.display.folio}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Fecha:</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Fecha:</p>
                     <p className="font-medium">{parseResult.display.fecha}</p>
                   </div>
                 </div>
 
                 {/* UUID */}
                 <div>
-                  <p className="text-sm text-gray-600">UUID (Folio Fiscal):</p>
-                  <p className="font-mono text-sm bg-white p-2 rounded border">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">UUID (Folio Fiscal):</p>
+                  <p className="font-mono text-sm bg-white dark:bg-slate-900 p-2 rounded border">
                     {parseResult.display.uuid}
                   </p>
                 </div>
 
                 {/* Emisor */}
                 <div>
-                  <p className="text-sm text-gray-600">Emisor:</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Emisor:</p>
                   <p className="font-medium">{parseResult.display.emisor}</p>
                 </div>
 
                 {/* Receptor */}
                 <div>
-                  <p className="text-sm text-gray-600">Receptor:</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Receptor:</p>
                   <p className="font-medium">{parseResult.display.receptor}</p>
                 </div>
 
                 {/* Amounts */}
                 <div className="grid grid-cols-3 gap-4 pt-3 border-t">
                   <div>
-                    <p className="text-sm text-gray-600">Subtotal:</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Subtotal:</p>
                     <p className="font-bold">{parseResult.display.subtotal}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">IVA (16%):</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">IVA (16%):</p>
                     <p className="font-bold">{parseResult.display.iva}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Total:</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Total:</p>
                     <p className="font-bold text-blue-600">{parseResult.display.total}</p>
                   </div>
                 </div>
@@ -275,17 +275,17 @@ export default function CFDIImport({ onSuccess, onClose, mode = 'invoice' }) {
                 {/* Conceptos */}
                 {parseResult.display.conceptos.length > 0 && (
                   <div className="pt-3 border-t">
-                    <p className="text-sm text-gray-600 mb-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                       Conceptos ({parseResult.display.conceptos.length}):
                     </p>
                     <div className="space-y-2 max-h-40 overflow-y-auto">
                       {parseResult.display.conceptos.map((concepto, idx) => (
-                        <div key={idx} className="bg-white p-2 rounded text-sm">
+                        <div key={idx} className="bg-white dark:bg-slate-900 p-2 rounded text-sm">
                           <div className="flex justify-between">
                             <span>{concepto.descripcion}</span>
                             <span className="font-medium">{concepto.importe}</span>
                           </div>
-                          <span className="text-gray-500 text-xs">
+                          <span className="text-gray-500 dark:text-gray-400 text-xs">
                             Cantidad: {concepto.cantidad}
                           </span>
                         </div>
@@ -296,7 +296,7 @@ export default function CFDIImport({ onSuccess, onClose, mode = 'invoice' }) {
               </div>
 
               {/* Import Options */}
-              <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
                 <label className="flex items-center">
                   <input
                     type="checkbox"
@@ -324,7 +324,7 @@ export default function CFDIImport({ onSuccess, onClose, mode = 'invoice' }) {
                 <button
                   onClick={importCFDI}
                   disabled={importing}
-                  className="flex-1 bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 disabled:bg-gray-400"
+                  className="flex-1 bg-green-600 dark:bg-green-700 text-white px-6 py-2 rounded-md hover:bg-green-700 disabled:bg-gray-400"
                 >
                   {importing ? 'Importando...' : 'Importar CFDI'}
                 </button>
@@ -334,17 +334,17 @@ export default function CFDIImport({ onSuccess, onClose, mode = 'invoice' }) {
 
           {/* Help Section */}
           {!parseResult && (
-            <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-lg">
               <h4 className="font-semibold mb-2">💡 Acerca del CFDI:</h4>
-              <ul className="text-sm space-y-1 text-gray-700">
+              <ul className="text-sm space-y-1 text-gray-700 dark:text-gray-300">
                 <li>• El CFDI es el Comprobante Fiscal Digital por Internet oficial del SAT</li>
                 <li>• Soporta versiones CFDI 3.3 y 4.0</li>
                 <li>• El UUID debe ser único (no se pueden importar facturas duplicadas)</li>
                 <li>• El sistema detecta automáticamente si es ingreso o gasto</li>
                 <li>• Se calcula automáticamente el IVA del 16%</li>
               </ul>
-              <p className="text-sm text-gray-600 mt-2">
-                Los archivos de ejemplo están en la carpeta <code className="bg-gray-200 px-1 rounded">samples/</code>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                Los archivos de ejemplo están en la carpeta <code className="bg-gray-200 dark:bg-slate-700 px-1 rounded">samples/</code>
               </p>
             </div>
           )}

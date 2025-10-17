@@ -94,14 +94,14 @@ export default function InvoiceAutomation() {
         <h1 className="text-3xl font-bold">Automatización de Facturas</h1>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+          className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600"
         >
           {showForm ? 'Cancelar' : '+ Nueva Regla'}
         </button>
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md">
+        <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
           <h2 className="text-2xl font-bold mb-4">Nueva Regla de Facturación Recurrente</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
@@ -200,24 +200,24 @@ export default function InvoiceAutomation() {
           </div>
           <button
             type="submit"
-            className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
+            className="mt-4 bg-blue-600 dark:bg-blue-700 text-white px-6 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600"
           >
             Guardar Regla
           </button>
         </form>
       )}
 
-      <div className="bg-white rounded-lg shadow-md">
+      <div className="bg-white dark:bg-slate-900 rounded-lg shadow-md">
         <div className="p-4 border-b">
           <h2 className="text-lg font-bold">Reglas de Facturación Recurrente</h2>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             Configura facturas que se generan automáticamente según un calendario
           </p>
         </div>
         {loading ? (
           <div className="p-6 text-center">Cargando...</div>
         ) : rules.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">
+          <div className="p-6 text-center text-gray-500 dark:text-gray-400">
             No hay reglas configuradas. Crea tu primera regla para automatizar la facturación.
           </div>
         ) : (
@@ -228,30 +228,30 @@ export default function InvoiceAutomation() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <h3 className="font-bold text-lg">{rule.name}</h3>
-                      <span className={`px-2 py-1 rounded-full text-xs ${rule.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                      <span className={`px-2 py-1 rounded-full text-xs ${rule.is_active ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' : 'bg-gray-100 text-gray-800'}`}>
                         {rule.is_active ? 'Activa' : 'Inactiva'}
                       </span>
                     </div>
                     {rule.description && (
-                      <p className="text-sm text-gray-600 mt-1">{rule.description}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{rule.description}</p>
                     )}
                     <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
                       <div>
-                        <span className="text-gray-600">Cliente:</span>
+                        <span className="text-gray-600 dark:text-gray-400">Cliente:</span>
                         <span className="ml-1 font-medium">{rule.customer_name}</span>
                       </div>
                       <div>
-                        <span className="text-gray-600">Monto:</span>
+                        <span className="text-gray-600 dark:text-gray-400">Monto:</span>
                         <span className="ml-1 font-medium">
                           ${parseFloat(rule.amount).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                         </span>
                       </div>
                       <div>
-                        <span className="text-gray-600">Frecuencia:</span>
+                        <span className="text-gray-600 dark:text-gray-400">Frecuencia:</span>
                         <span className="ml-1 font-medium capitalize">{rule.frequency}</span>
                       </div>
                       <div>
-                        <span className="text-gray-600">Próxima:</span>
+                        <span className="text-gray-600 dark:text-gray-400">Próxima:</span>
                         <span className="ml-1 font-medium">
                           {rule.next_generation_date ? new Date(rule.next_generation_date).toLocaleDateString('es-MX') : 'N/A'}
                         </span>
@@ -261,13 +261,13 @@ export default function InvoiceAutomation() {
                   <div className="flex gap-2 ml-4">
                     <button
                       onClick={() => toggleRule(rule.id, !rule.is_active)}
-                      className={`px-3 py-1 rounded text-sm ${rule.is_active ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' : 'bg-green-100 text-green-800 hover:bg-green-200'}`}
+                      className={`px-3 py-1 rounded text-sm ${rule.is_active ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 hover:bg-yellow-200' : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 hover:bg-green-200'}`}
                     >
                       {rule.is_active ? 'Pausar' : 'Activar'}
                     </button>
                     <button
                       onClick={() => handleDelete(rule.id)}
-                      className="px-3 py-1 rounded text-sm bg-red-100 text-red-800 hover:bg-red-200"
+                      className="px-3 py-1 rounded text-sm bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 hover:bg-red-200"
                     >
                       Eliminar
                     </button>
@@ -279,9 +279,9 @@ export default function InvoiceAutomation() {
         )}
       </div>
 
-      <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+      <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-lg border border-blue-200">
         <h3 className="font-bold text-blue-900 mb-2">ℹ️ Cómo Funciona</h3>
-        <ul className="text-sm text-blue-800 space-y-1">
+        <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-1">
           <li>• Las facturas se generan automáticamente según la frecuencia configurada</li>
           <li>• Puedes pausar o reactivar reglas en cualquier momento</li>
           <li>• Las reglas activas se ejecutan diariamente a las 00:00 hrs</li>

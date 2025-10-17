@@ -69,13 +69,13 @@ export default function FiscalSimulation() {
   return (
     <div className="space-y-6">
       {/* Simulation Form */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
         <h2 className="text-2xl font-bold mb-6">Simulador Fiscal</h2>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Año Fiscal
               </label>
               <input
@@ -84,41 +84,41 @@ export default function FiscalSimulation() {
                 onChange={(e) => setFormData(prev => ({ ...prev, year: parseInt(e.target.value) }))}
                 min="2020"
                 max="2030"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Ingresos Proyectados
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-2 text-gray-500">$</span>
+                <span className="absolute left-3 top-2 text-gray-500 dark:text-gray-400">$</span>
                 <input
                   type="number"
                   value={formData.projected_income}
                   onChange={(e) => setFormData(prev => ({ ...prev, projected_income: e.target.value }))}
                   min="0"
                   step="1000"
-                  className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-8 pr-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                   placeholder="0.00"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Gastos Proyectados
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-2 text-gray-500">$</span>
+                <span className="absolute left-3 top-2 text-gray-500 dark:text-gray-400">$</span>
                 <input
                   type="number"
                   value={formData.projected_expenses}
                   onChange={(e) => setFormData(prev => ({ ...prev, projected_expenses: e.target.value }))}
                   min="0"
                   step="1000"
-                  className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-8 pr-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                   placeholder="0.00"
                 />
               </div>
@@ -131,9 +131,9 @@ export default function FiscalSimulation() {
               id="include_current"
               checked={formData.include_current_data}
               onChange={(e) => setFormData(prev => ({ ...prev, include_current_data: e.target.checked }))}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              className="w-4 h-4 text-blue-600 border-gray-300 dark:border-slate-600 rounded focus:ring-blue-500 dark:focus:ring-blue-400"
             />
-            <label htmlFor="include_current" className="ml-2 text-sm text-gray-700">
+            <label htmlFor="include_current" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
               Incluir datos actuales del año
             </label>
           </div>
@@ -141,7 +141,7 @@ export default function FiscalSimulation() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="w-full px-6 py-3 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50"
           >
             {loading ? 'Calculando...' : 'Simular Impuestos'}
           </button>
@@ -153,26 +153,26 @@ export default function FiscalSimulation() {
         <>
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <p className="text-sm text-gray-600 mb-2">Ingresos Totales</p>
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Ingresos Totales</p>
               <p className="text-2xl font-bold text-green-600">
                 {formatCurrency(simulation.totals.total_income)}
               </p>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <p className="text-sm text-gray-600 mb-2">Gastos Deducibles</p>
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Gastos Deducibles</p>
               <p className="text-2xl font-bold text-blue-600">
                 {formatCurrency(simulation.totals.total_deductible)}
               </p>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <p className="text-sm text-gray-600 mb-2">ISR Anual</p>
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">ISR Anual</p>
               <p className="text-2xl font-bold text-orange-600">
                 {formatCurrency(simulation.taxes.annual_isr)}
               </p>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <p className="text-sm text-gray-600 mb-2">IVA a Pagar</p>
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">IVA a Pagar</p>
               <p className="text-2xl font-bold text-red-600">
                 {formatCurrency(simulation.taxes.annual_iva)}
               </p>
@@ -180,8 +180,8 @@ export default function FiscalSimulation() {
           </div>
 
           {/* Tabs */}
-          <div className="bg-white rounded-lg shadow-md">
-            <div className="border-b border-gray-200">
+          <div className="bg-white dark:bg-slate-900 rounded-lg shadow-md">
+            <div className="border-b border-gray-200 dark:border-slate-700">
               <nav className="flex space-x-4 px-6" aria-label="Tabs">
                 <button
                   onClick={() => setActiveTab('summary')}
@@ -235,17 +235,17 @@ export default function FiscalSimulation() {
                       <h3 className="text-lg font-semibold mb-4">Resumen Anual</h3>
                       <div className="space-y-3">
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Base Gravable:</span>
+                          <span className="text-gray-600 dark:text-gray-400">Base Gravable:</span>
                           <span className="font-semibold">{formatCurrency(simulation.totals.taxable_base)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">ISR Anual:</span>
+                          <span className="text-gray-600 dark:text-gray-400">ISR Anual:</span>
                           <span className="font-semibold text-orange-600">
                             {formatCurrency(simulation.taxes.annual_isr)}
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">IVA a Pagar:</span>
+                          <span className="text-gray-600 dark:text-gray-400">IVA a Pagar:</span>
                           <span className="font-semibold text-red-600">
                             {formatCurrency(simulation.taxes.annual_iva)}
                           </span>
@@ -257,7 +257,7 @@ export default function FiscalSimulation() {
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Tasa Efectiva:</span>
+                          <span className="text-gray-600 dark:text-gray-400">Tasa Efectiva:</span>
                           <span className="font-semibold">{simulation.taxes.effective_rate}%</span>
                         </div>
                       </div>
@@ -267,11 +267,11 @@ export default function FiscalSimulation() {
                       <h3 className="text-lg font-semibold mb-4">Pagos Provisionales Mensuales</h3>
                       <div className="space-y-3">
                         <div className="flex justify-between">
-                          <span className="text-gray-600">ISR Mensual:</span>
+                          <span className="text-gray-600 dark:text-gray-400">ISR Mensual:</span>
                           <span className="font-semibold">{formatCurrency(simulation.taxes.monthly_isr)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">IVA Mensual:</span>
+                          <span className="text-gray-600 dark:text-gray-400">IVA Mensual:</span>
                           <span className="font-semibold">{formatCurrency(simulation.taxes.monthly_iva)}</span>
                         </div>
                         <div className="flex justify-between pt-3 border-t">
@@ -285,7 +285,7 @@ export default function FiscalSimulation() {
                   </div>
 
                   {/* Savings */}
-                  <div className="bg-green-50 p-6 rounded-lg border border-green-200">
+                  <div className="bg-green-50 dark:bg-green-900/20 p-6 rounded-lg border border-green-200">
                     <h3 className="text-lg font-semibold text-green-900 mb-4">💰 Ahorro por Deducciones</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
@@ -314,18 +314,18 @@ export default function FiscalSimulation() {
               {/* Monthly Tab */}
               {activeTab === 'monthly' && (
                 <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                  <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+                    <thead className="bg-gray-50 dark:bg-slate-800">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mes</th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Ingresos</th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Gastos</th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">ISR</th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">IVA</th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Mes</th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Ingresos</th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Gastos</th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">ISR</th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">IVA</th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Total</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white dark:bg-slate-900 divide-y divide-gray-200 dark:divide-slate-700">
                       {simulation.monthly_breakdown.map((month) => (
                         <tr key={month.month} className={month.is_past ? 'bg-blue-50' : ''}>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -358,21 +358,21 @@ export default function FiscalSimulation() {
               {activeTab === 'scenarios' && config && (
                 <div>
                   <h3 className="text-lg font-semibold mb-4">Comparación de Escenarios</h3>
-                  <p className="text-sm text-gray-600 mb-6">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
                     Visualiza cómo diferentes niveles de deducciones afectan tu carga fiscal
                   </p>
                   <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
+                    <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+                      <thead className="bg-gray-50 dark:bg-slate-800">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Escenario</th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Deducciones</th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Base Gravable</th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">ISR</th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Tasa Efectiva</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Escenario</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Deducciones</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Base Gravable</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">ISR</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Tasa Efectiva</th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody className="bg-white dark:bg-slate-900 divide-y divide-gray-200 dark:divide-slate-700">
                         {calculateTaxScenarios(simulation.totals.total_income, config).map((scenario, index) => (
                           <tr key={index} className={index === 3 ? 'bg-green-50' : ''}>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -405,12 +405,12 @@ export default function FiscalSimulation() {
                   <h3 className="text-lg font-semibold mb-4">Calendario de Pagos {simulation.year}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {getTaxPaymentCalendar(simulation.year).map((payment) => (
-                      <div key={payment.month} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div key={payment.month} className="border border-gray-200 dark:border-slate-700 rounded-lg p-4 hover:shadow-md transition-shadow">
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-lg font-semibold">{payment.month_name}</span>
-                          <span className="text-sm text-gray-600">{payment.period}</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">{payment.period}</span>
                         </div>
-                        <p className="text-sm text-gray-700 mb-2">{payment.payment_type}</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">{payment.payment_type}</p>
                         <p className="text-sm font-semibold text-blue-600">
                           Vence: {new Date(payment.payment_date).toLocaleDateString('es-MX', { 
                             day: 'numeric', 

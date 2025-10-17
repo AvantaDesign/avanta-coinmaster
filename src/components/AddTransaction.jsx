@@ -119,11 +119,11 @@ export default function AddTransaction({ onSuccess }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md">
+    <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-4">Agregar Transacción</h2>
       
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           {error}
         </div>
       )}
@@ -231,7 +231,7 @@ export default function AddTransaction({ onSuccess }) {
 
         {/* Phase 1: Advanced Transaction Classification Fields */}
         <div className="md:col-span-2 border-t pt-4 mt-4">
-          <h3 className="text-lg font-semibold mb-3 text-gray-700">Clasificación Avanzada</h3>
+          <h3 className="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-300">Clasificación Avanzada</h3>
         </div>
 
         <div>
@@ -246,7 +246,7 @@ export default function AddTransaction({ onSuccess }) {
             <option value="business">Negocio</option>
             <option value="transfer">Transferencia</option>
           </select>
-          <p className="text-xs text-gray-500 mt-1">Clasificación fiscal de la transacción</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Clasificación fiscal de la transacción</p>
         </div>
 
         <div>
@@ -264,7 +264,7 @@ export default function AddTransaction({ onSuccess }) {
               </option>
             ))}
           </select>
-          <p className="text-xs text-gray-500 mt-1">Opcional: Categoría personalizada</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Opcional: Categoría personalizada</p>
         </div>
 
         <div>
@@ -282,7 +282,7 @@ export default function AddTransaction({ onSuccess }) {
               </option>
             ))}
           </select>
-          <p className="text-xs text-gray-500 mt-1">Opcional: Vincular con factura existente</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Opcional: Vincular con factura existente</p>
         </div>
 
         <div className="md:col-span-2">
@@ -296,7 +296,7 @@ export default function AddTransaction({ onSuccess }) {
             className="w-full px-3 py-2 border rounded-md resize-none"
             placeholder="Notas adicionales sobre esta transacción..."
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             {formData.notes.length}/1000 caracteres
           </p>
         </div>
@@ -305,7 +305,7 @@ export default function AddTransaction({ onSuccess }) {
       <button
         type="submit"
         disabled={loading}
-        className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+        className="mt-4 bg-blue-600 dark:bg-blue-700 text-white px-6 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 disabled:bg-gray-400"
       >
         {loading ? 'Guardando...' : 'Agregar Transacción'}
       </button>

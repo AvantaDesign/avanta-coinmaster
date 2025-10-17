@@ -109,7 +109,7 @@ export default function FiscalReports() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
         <h2 className="text-2xl font-bold mb-4">Reportes Fiscales</h2>
         
         {/* Report Configuration */}
@@ -119,7 +119,7 @@ export default function FiscalReports() {
             <select
               value={reportType}
               onChange={(e) => setReportType(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
             >
               <option value="quarterly">Trimestral</option>
               <option value="annual">Anual</option>
@@ -132,7 +132,7 @@ export default function FiscalReports() {
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
             >
               {years.map((year) => (
                 <option key={year} value={year}>
@@ -146,7 +146,7 @@ export default function FiscalReports() {
             <button
               onClick={generateReport}
               disabled={loading}
-              className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
+              className="w-full bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50"
             >
               {loading ? 'Generando...' : 'Generar'}
             </button>
@@ -156,7 +156,7 @@ export default function FiscalReports() {
             <button
               onClick={() => exportReport('csv')}
               disabled={!reportData}
-              className="flex-1 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
+              className="flex-1 bg-green-600 dark:bg-green-700 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
               title="Exportar CSV"
             >
               📄 CSV
@@ -175,16 +175,16 @@ export default function FiscalReports() {
 
       {/* Report Content */}
       {loading && (
-        <div className="bg-white p-6 rounded-lg shadow-md text-center">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md text-center">
           <div className="animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-1/4 mx-auto mb-4"></div>
-            <div className="h-8 bg-gray-200 rounded w-1/2 mx-auto"></div>
+            <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-1/4 mx-auto mb-4"></div>
+            <div className="h-8 bg-gray-200 dark:bg-slate-700 rounded w-1/2 mx-auto"></div>
           </div>
         </div>
       )}
 
       {!loading && reportData && reportData.type === 'quarterly' && (
-        <div className="bg-white p-6 rounded-lg shadow-md print:shadow-none">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md print:shadow-none">
           <h3 className="text-xl font-bold mb-4">Resumen Trimestral {selectedYear}</h3>
           
           <div className="space-y-4">
@@ -192,32 +192,32 @@ export default function FiscalReports() {
               <div key={idx} className="border rounded-lg p-4 hover:bg-gray-50 print:break-inside-avoid">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-lg font-bold">{quarter.name}</h4>
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
                     Vence: {formatFiscalDate(quarter.dueDate)}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
-                  <div className="bg-green-50 p-2 rounded">
-                    <div className="text-xs text-gray-600">Ingresos</div>
+                  <div className="bg-green-50 dark:bg-green-900/20 p-2 rounded">
+                    <div className="text-xs text-gray-600 dark:text-gray-400">Ingresos</div>
                     <div className="text-sm font-bold text-green-700">
                       {formatCurrency(quarter.businessIncome)}
                     </div>
                   </div>
-                  <div className="bg-red-50 p-2 rounded">
-                    <div className="text-xs text-gray-600">Gastos</div>
+                  <div className="bg-red-50 dark:bg-red-900/20 p-2 rounded">
+                    <div className="text-xs text-gray-600 dark:text-gray-400">Gastos</div>
                     <div className="text-sm font-bold text-red-700">
                       {formatCurrency(quarter.businessExpenses)}
                     </div>
                   </div>
-                  <div className="bg-blue-50 p-2 rounded">
-                    <div className="text-xs text-gray-600">Deducibles</div>
+                  <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
+                    <div className="text-xs text-gray-600 dark:text-gray-400">Deducibles</div>
                     <div className="text-sm font-bold text-blue-700">
                       {formatCurrency(quarter.deductibleExpenses)}
                     </div>
                   </div>
                   <div className="bg-purple-50 p-2 rounded">
-                    <div className="text-xs text-gray-600">Utilidad</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">Utilidad</div>
                     <div className="text-sm font-bold text-purple-700">
                       {formatCurrency(quarter.utilidad)}
                     </div>
@@ -226,13 +226,13 @@ export default function FiscalReports() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-orange-50 p-2 rounded border border-orange-200">
-                    <div className="text-xs text-gray-600">ISR</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">ISR</div>
                     <div className="text-lg font-bold text-orange-700">
                       {formatCurrency(quarter.isr)}
                     </div>
                   </div>
-                  <div className="bg-yellow-50 p-2 rounded border border-yellow-200">
-                    <div className="text-xs text-gray-600">IVA</div>
+                  <div className="bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded border border-yellow-200">
+                    <div className="text-xs text-gray-600 dark:text-gray-400">IVA</div>
                     <div className="text-lg font-bold text-yellow-700">
                       {formatCurrency(quarter.iva)}
                     </div>
@@ -246,26 +246,26 @@ export default function FiscalReports() {
           <div className="mt-6 pt-6 border-t">
             <h4 className="text-lg font-bold mb-3">Totales Anuales</h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div className="bg-green-100 p-3 rounded">
-                <div className="text-xs text-gray-600">Ingresos Totales</div>
+              <div className="bg-green-100 dark:bg-green-900/30 p-3 rounded">
+                <div className="text-xs text-gray-600 dark:text-gray-400">Ingresos Totales</div>
                 <div className="text-lg font-bold text-green-700">
                   {formatCurrency(reportData.data.reduce((sum, q) => sum + q.businessIncome, 0))}
                 </div>
               </div>
-              <div className="bg-blue-100 p-3 rounded">
-                <div className="text-xs text-gray-600">Deducibles Totales</div>
+              <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded">
+                <div className="text-xs text-gray-600 dark:text-gray-400">Deducibles Totales</div>
                 <div className="text-lg font-bold text-blue-700">
                   {formatCurrency(reportData.data.reduce((sum, q) => sum + q.deductibleExpenses, 0))}
                 </div>
               </div>
               <div className="bg-orange-100 p-3 rounded">
-                <div className="text-xs text-gray-600">ISR Total</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400">ISR Total</div>
                 <div className="text-lg font-bold text-orange-700">
                   {formatCurrency(reportData.data.reduce((sum, q) => sum + q.isr, 0))}
                 </div>
               </div>
-              <div className="bg-yellow-100 p-3 rounded">
-                <div className="text-xs text-gray-600">IVA Total</div>
+              <div className="bg-yellow-100 dark:bg-yellow-900/30 p-3 rounded">
+                <div className="text-xs text-gray-600 dark:text-gray-400">IVA Total</div>
                 <div className="text-lg font-bold text-yellow-700">
                   {formatCurrency(reportData.data.reduce((sum, q) => sum + q.iva, 0))}
                 </div>
@@ -276,7 +276,7 @@ export default function FiscalReports() {
       )}
 
       {!loading && reportData && reportData.type === 'annual' && (
-        <div className="bg-white p-6 rounded-lg shadow-md print:shadow-none">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md print:shadow-none">
           <h3 className="text-xl font-bold mb-4">Resumen Anual {selectedYear}</h3>
           
           <div className="space-y-6">
@@ -284,20 +284,20 @@ export default function FiscalReports() {
             <div>
               <h4 className="font-bold mb-3">Ingresos y Gastos</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <div className="text-sm text-gray-600">Ingresos Totales</div>
+                <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Ingresos Totales</div>
                   <div className="text-2xl font-bold text-green-700">
                     {formatCurrency(reportData.data.totalIncome)}
                   </div>
                 </div>
-                <div className="bg-red-50 p-4 rounded-lg">
-                  <div className="text-sm text-gray-600">Gastos Totales</div>
+                <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Gastos Totales</div>
                   <div className="text-2xl font-bold text-red-700">
                     {formatCurrency(reportData.data.totalExpenses)}
                   </div>
                 </div>
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <div className="text-sm text-gray-600">Balance</div>
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Balance</div>
                   <div className="text-2xl font-bold text-blue-700">
                     {formatCurrency(reportData.data.totalIncome - reportData.data.totalExpenses)}
                   </div>
@@ -310,19 +310,19 @@ export default function FiscalReports() {
               <h4 className="font-bold mb-3">Negocio vs Personal</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-purple-50 p-4 rounded-lg">
-                  <div className="text-sm text-gray-600">Ingresos de Negocio</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Ingresos de Negocio</div>
                   <div className="text-2xl font-bold text-purple-700">
                     {formatCurrency(reportData.data.businessIncome)}
                   </div>
                 </div>
                 <div className="bg-orange-50 p-4 rounded-lg">
-                  <div className="text-sm text-gray-600">Gastos de Negocio</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Gastos de Negocio</div>
                   <div className="text-2xl font-bold text-orange-700">
                     {formatCurrency(reportData.data.businessExpenses)}
                   </div>
                 </div>
-                <div className="bg-yellow-50 p-4 rounded-lg">
-                  <div className="text-sm text-gray-600">Gastos Personales</div>
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Gastos Personales</div>
                   <div className="text-2xl font-bold text-yellow-700">
                     {formatCurrency(reportData.data.personalExpenses)}
                   </div>
@@ -334,29 +334,29 @@ export default function FiscalReports() {
             <div className="pt-6 border-t">
               <h4 className="font-bold mb-3">Resumen Fiscal</h4>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <div className="text-sm text-gray-600">Gastos Deducibles</div>
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Gastos Deducibles</div>
                   <div className="text-2xl font-bold text-blue-700">
                     {formatCurrency(reportData.data.deductibleExpenses)}
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     {formatPercentage(reportData.data.deductiblePercentage)} del total
                   </div>
                 </div>
                 <div className="bg-purple-50 p-4 rounded-lg">
-                  <div className="text-sm text-gray-600">Utilidad</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Utilidad</div>
                   <div className="text-2xl font-bold text-purple-700">
                     {formatCurrency(reportData.data.utilidad)}
                   </div>
                 </div>
-                <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-                  <div className="text-sm text-gray-600">ISR Anual</div>
+                <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">ISR Anual</div>
                   <div className="text-2xl font-bold text-red-700">
                     {formatCurrency(reportData.data.isr)}
                   </div>
                 </div>
                 <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                  <div className="text-sm text-gray-600">IVA Anual</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">IVA Anual</div>
                   <div className="text-2xl font-bold text-orange-700">
                     {formatCurrency(reportData.data.iva)}
                   </div>
@@ -368,7 +368,7 @@ export default function FiscalReports() {
       )}
 
       {!loading && reportData && reportData.type === 'expenses' && (
-        <div className="bg-white p-6 rounded-lg shadow-md print:shadow-none">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md print:shadow-none">
           <h3 className="text-xl font-bold mb-4">Gastos por Categoría {selectedYear}</h3>
           
           <div className="overflow-x-auto">
@@ -399,14 +399,14 @@ export default function FiscalReports() {
                       <td className="text-right py-3 px-2 text-green-700 font-medium">
                         {formatCurrency(cat.deductible)}
                       </td>
-                      <td className="text-right py-3 px-2 text-gray-600">
+                      <td className="text-right py-3 px-2 text-gray-600 dark:text-gray-400">
                         {cat.count}
                       </td>
                       <td className="text-right py-3 px-2">
                         <span className={`px-2 py-1 rounded text-xs font-medium ${
-                          deductiblePct > 80 ? 'bg-green-100 text-green-700' :
-                          deductiblePct > 50 ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-red-100 text-red-700'
+                          deductiblePct > 80 ? 'bg-green-100 dark:bg-green-900/30 text-green-700' :
+                          deductiblePct > 50 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700' :
+                          'bg-red-100 dark:bg-red-900/30 text-red-700'
                         }`}>
                           {formatPercentage(deductiblePct)}
                         </span>
@@ -443,8 +443,8 @@ export default function FiscalReports() {
 
       {/* Transaction Count */}
       {!loading && reportData && transactions.length > 0 && (
-        <div className="bg-white p-4 rounded-lg shadow-md print:hidden">
-          <div className="text-sm text-gray-600 text-center">
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-lg shadow-md print:hidden">
+          <div className="text-sm text-gray-600 dark:text-gray-400 text-center">
             Reporte generado con {transactions.length} transacciones
           </div>
         </div>

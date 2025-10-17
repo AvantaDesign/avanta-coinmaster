@@ -147,12 +147,12 @@ export default function FileUpload({ onSuccess, onError, title = 'Subir Archivo'
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
+    <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
       <h3 className="text-lg font-bold mb-4">{title}</h3>
       
       {/* Error Message */}
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 flex items-start">
+        <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 flex items-start">
           <span className="mr-2">❌</span>
           <div className="flex-1">
             <p className="font-semibold">Error</p>
@@ -169,7 +169,7 @@ export default function FileUpload({ onSuccess, onError, title = 'Subir Archivo'
 
       {/* Success Message */}
       {success && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 flex items-start">
+        <div className="bg-green-100 dark:bg-green-900/30 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 flex items-start">
           <span className="mr-2">✅</span>
           <div className="flex-1">
             <p className="font-semibold">Éxito</p>
@@ -223,13 +223,13 @@ export default function FileUpload({ onSuccess, onError, title = 'Subir Archivo'
         {/* Text */}
         <div className="mb-2">
           {uploading ? (
-            <p className="text-gray-600">Subiendo archivo...</p>
+            <p className="text-gray-600 dark:text-gray-400">Subiendo archivo...</p>
           ) : (
             <>
-              <p className="text-gray-600 mb-1">
+              <p className="text-gray-600 dark:text-gray-400 mb-1">
                 <span className="font-semibold text-blue-600">Haz clic para seleccionar</span> o arrastra un archivo aquí
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 Tipos permitidos: JPEG, PNG, GIF, PDF, XML (máx. 10 MB)
               </p>
             </>
@@ -251,12 +251,12 @@ export default function FileUpload({ onSuccess, onError, title = 'Subir Archivo'
       {uploading && (
         <div className="mt-4">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-sm font-medium text-gray-700">Progreso</span>
-            <span className="text-sm font-medium text-gray-700">{progress}%</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Progreso</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{progress}%</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
             <div 
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              className="bg-blue-600 dark:bg-blue-700 h-2 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             ></div>
           </div>
@@ -264,11 +264,11 @@ export default function FileUpload({ onSuccess, onError, title = 'Subir Archivo'
       )}
 
       {/* Allowed File Types Info */}
-      <div className="mt-4 text-xs text-gray-500">
+      <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
         <p className="font-semibold mb-1">Tipos de archivo permitidos:</p>
         <div className="flex flex-wrap gap-2">
           {Object.entries(ALLOWED_TYPES).map(([type, info]) => (
-            <span key={type} className="inline-flex items-center px-2 py-1 bg-gray-100 rounded">
+            <span key={type} className="inline-flex items-center px-2 py-1 bg-gray-100 dark:bg-slate-800 rounded">
               <span className="mr-1">{info.icon}</span>
               {info.label}
             </span>

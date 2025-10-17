@@ -324,13 +324,13 @@ export default function Budgets() {
 
       {/* Budget Cards */}
       {progress.length === 0 ? (
-        <div className="bg-white p-12 rounded-lg shadow-md text-center">
-          <p className="text-gray-600 mb-4">
+        <div className="bg-white dark:bg-slate-900 p-12 rounded-lg shadow-md text-center">
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
             No hay presupuestos configurados para este período.
           </p>
           <button
             onClick={() => setShowForm(true)}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-6 py-3 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600"
           >
             Crear Primer Presupuesto
           </button>

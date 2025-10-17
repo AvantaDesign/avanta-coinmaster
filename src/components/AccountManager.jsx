@@ -87,18 +87,18 @@ export default function AccountManager() {
 
   const getTypeColor = (type) => {
     const colors = {
-      checking: 'bg-blue-100 text-blue-800',
-      savings: 'bg-green-100 text-green-800',
+      checking: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300',
+      savings: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300',
       credit: 'bg-orange-100 text-orange-800',
-      cash: 'bg-purple-100 text-purple-800'
+      cash: 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300'
     };
     return colors[type] || 'bg-gray-100 text-gray-800';
   };
 
   if (loading) {
     return (
-      <div className="bg-white p-6 rounded-lg shadow-md text-center">
-        <p className="text-gray-600">Cargando cuentas...</p>
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md text-center">
+        <p className="text-gray-600 dark:text-gray-400">Cargando cuentas...</p>
       </div>
     );
   }
@@ -111,7 +111,7 @@ export default function AccountManager() {
         {!isAdding && (
           <button
             onClick={() => setIsAdding(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+            className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600"
           >
             + Nueva Cuenta
           </button>
@@ -119,40 +119,40 @@ export default function AccountManager() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 text-red-700 px-4 py-3 rounded">
           {error}
         </div>
       )}
 
       {/* Add/Edit Form */}
       {isAdding && (
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
           <h3 className="text-lg font-semibold mb-4">
             {editingId ? 'Editar Cuenta' : 'Nueva Cuenta'}
           </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Nombre *
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                   required
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Tipo *
                 </label>
                 <select
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                   required
                 >
                   <option value="checking">Cuenta Corriente</option>
@@ -163,7 +163,7 @@ export default function AccountManager() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Balance
                 </label>
                 <input
@@ -171,7 +171,7 @@ export default function AccountManager() {
                   step="0.01"
                   value={formData.balance}
                   onChange={(e) => setFormData({ ...formData, balance: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                 />
               </div>
             </div>
@@ -179,14 +179,14 @@ export default function AccountManager() {
             <div className="flex gap-2">
               <button
                 type="submit"
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600"
               >
                 {editingId ? 'Actualizar' : 'Crear'}
               </button>
               <button
                 type="button"
                 onClick={resetForm}
-                className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
+                className="bg-gray-300 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md hover:bg-gray-400"
               >
                 Cancelar
               </button>
@@ -196,28 +196,28 @@ export default function AccountManager() {
       )}
 
       {/* Accounts List */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="bg-white dark:bg-slate-900 rounded-lg shadow-md overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+          <thead className="bg-gray-50 dark:bg-slate-800">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Nombre
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Tipo
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Balance
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Acciones
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white dark:bg-slate-900 divide-y divide-gray-200 dark:divide-slate-700">
             {accounts.length === 0 ? (
               <tr>
-                <td colSpan="4" className="px-6 py-4 text-center text-gray-500">
+                <td colSpan="4" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
                   No hay cuentas registradas
                 </td>
               </tr>
@@ -225,7 +225,7 @@ export default function AccountManager() {
               accounts.map((account) => (
                 <tr key={account.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{account.name}</div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{account.name}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getTypeColor(account.type)}`}>
@@ -234,7 +234,7 @@ export default function AccountManager() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">
                     <span className={`text-sm font-semibold ${
-                      account.balance >= 0 ? 'text-green-600' : 'text-red-600'
+                      account.balance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                     }`}>
                       {formatCurrency(account.balance)}
                     </span>
@@ -262,7 +262,7 @@ export default function AccountManager() {
 
       {/* Summary */}
       {accounts.length > 0 && (
-        <div className="bg-blue-50 p-4 rounded-lg">
+        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium text-blue-900">Total de cuentas:</span>
             <span className="text-lg font-bold text-blue-900">{accounts.length}</span>

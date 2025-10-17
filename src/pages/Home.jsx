@@ -334,7 +334,7 @@ export default function Home() {
               <div className="flex flex-wrap gap-2">
                 <Link
                   to="/analytics"
-                  className="bg-white text-primary-600 dark:text-primary-700 px-4 py-2 rounded-md hover:bg-primary-50 dark:hover:bg-gray-100 font-medium transition-colors"
+                  className="bg-white dark:bg-slate-900 text-primary-600 dark:text-primary-700 px-4 py-2 rounded-md hover:bg-primary-50 dark:hover:bg-gray-100 font-medium transition-colors"
                 >
                   Ver Analytics Completo
                 </Link>

@@ -56,9 +56,9 @@ export default function AdvancedAnalytics({ transactions = [], financialData = {
 
   if (isLoading) {
     return (
-      <div className="bg-white p-8 rounded-lg shadow-md text-center">
+      <div className="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-        <p className="mt-4 text-gray-600">Calculando analíticas avanzadas...</p>
+        <p className="mt-4 text-gray-600 dark:text-gray-400">Calculando analíticas avanzadas...</p>
       </div>
     );
   }
@@ -66,7 +66,7 @@ export default function AdvancedAnalytics({ transactions = [], financialData = {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 rounded-lg shadow-lg text-white">
+      <div className="bg-gradient-to-r from-blue-600 dark:from-blue-700 to-purple-600 dark:to-purple-700 p-6 rounded-lg shadow-lg text-white">
         <h2 className="text-2xl font-bold mb-2">📊 Analítica Avanzada</h2>
         <p className="text-blue-100">
           Insights profundos sobre la salud financiera de tu negocio
@@ -74,14 +74,14 @@ export default function AdvancedAnalytics({ transactions = [], financialData = {
       </div>
 
       {/* Tab Navigation */}
-      <div className="bg-white rounded-lg shadow-md p-2">
+      <div className="bg-white dark:bg-slate-900 rounded-lg shadow-md p-2">
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setActiveTab('health')}
             className={`flex-1 min-w-[150px] px-4 py-3 rounded-md font-medium transition-colors ${
               activeTab === 'health'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-blue-600 dark:bg-blue-700 text-white'
+                : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
             }`}
           >
             💓 Salud Financiera
@@ -90,8 +90,8 @@ export default function AdvancedAnalytics({ transactions = [], financialData = {
             onClick={() => setActiveTab('forecast')}
             className={`flex-1 min-w-[150px] px-4 py-3 rounded-md font-medium transition-colors ${
               activeTab === 'forecast'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-blue-600 dark:bg-blue-700 text-white'
+                : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
             }`}
           >
             📈 Pronóstico
@@ -100,8 +100,8 @@ export default function AdvancedAnalytics({ transactions = [], financialData = {
             onClick={() => setActiveTab('profitability')}
             className={`flex-1 min-w-[150px] px-4 py-3 rounded-md font-medium transition-colors ${
               activeTab === 'profitability'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-blue-600 dark:bg-blue-700 text-white'
+                : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
             }`}
           >
             💰 Rentabilidad
@@ -110,8 +110,8 @@ export default function AdvancedAnalytics({ transactions = [], financialData = {
             onClick={() => setActiveTab('kpis')}
             className={`flex-1 min-w-[150px] px-4 py-3 rounded-md font-medium transition-colors ${
               activeTab === 'kpis'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-blue-600 dark:bg-blue-700 text-white'
+                : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
             }`}
           >
             📊 KPIs
@@ -120,8 +120,8 @@ export default function AdvancedAnalytics({ transactions = [], financialData = {
             onClick={() => setActiveTab('anomalies')}
             className={`flex-1 min-w-[150px] px-4 py-3 rounded-md font-medium transition-colors ${
               activeTab === 'anomalies'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-blue-600 dark:bg-blue-700 text-white'
+                : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
             }`}
           >
             🔍 Anomalías
@@ -168,10 +168,10 @@ function HealthScoreTab({ healthScore }) {
   };
 
   const colorClasses = {
-    green: 'bg-green-100 text-green-800 border-green-300',
-    blue: 'bg-blue-100 text-blue-800 border-blue-300',
-    yellow: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-    red: 'bg-red-100 text-red-800 border-red-300'
+    green: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-300',
+    blue: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-blue-300',
+    yellow: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border-yellow-300',
+    red: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border-red-300'
   };
 
   const scoreColor = getScoreColor(healthScore.score);
@@ -223,7 +223,7 @@ function HealthScoreTab({ healthScore }) {
 
       {/* Recommendations */}
       {healthScore.recommendations && healthScore.recommendations.length > 0 && (
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
           <h3 className="text-xl font-bold mb-4">💡 Recomendaciones Personalizadas</h3>
           <div className="space-y-4">
             {healthScore.recommendations.map((rec, index) => (
@@ -231,9 +231,9 @@ function HealthScoreTab({ healthScore }) {
                 key={index}
                 className={`p-4 rounded-lg border-l-4 ${
                   rec.priority === 'critical'
-                    ? 'bg-red-50 border-red-500'
+                    ? 'bg-red-50 dark:bg-red-900/20 border-red-500 dark:border-red-600'
                     : rec.priority === 'high'
-                    ? 'bg-orange-50 border-orange-500'
+                    ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-500 dark:border-orange-600'
                     : 'bg-blue-50 border-blue-500'
                 }`}
               >
@@ -242,10 +242,10 @@ function HealthScoreTab({ healthScore }) {
                   <span
                     className={`px-2 py-1 text-xs rounded-full ${
                       rec.priority === 'critical'
-                        ? 'bg-red-200 text-red-800'
+                        ? 'bg-red-200 text-red-800 dark:text-red-300'
                         : rec.priority === 'high'
-                        ? 'bg-orange-200 text-orange-800'
-                        : 'bg-blue-200 text-blue-800'
+                        ? 'bg-orange-200 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300'
+                        : 'bg-blue-200 text-blue-800 dark:text-blue-300'
                     }`}
                   >
                     {rec.priority === 'critical'
@@ -255,8 +255,8 @@ function HealthScoreTab({ healthScore }) {
                       : 'Media'}
                   </span>
                 </div>
-                <p className="text-gray-700 mb-3">{rec.message}</p>
-                <ul className="list-disc list-inside space-y-1 text-sm text-gray-600">
+                <p className="text-gray-700 dark:text-gray-300 mb-3">{rec.message}</p>
+                <ul className="list-disc list-inside space-y-1 text-sm text-gray-600 dark:text-gray-400">
                   {rec.actions.map((action, i) => (
                     <li key={i}>{action}</li>
                   ))}
@@ -275,14 +275,14 @@ function ScoreBreakdownCard({ title, score, maxScore, metrics }) {
   const percentage = (score / maxScore) * 100;
 
   return (
-    <div className="bg-white p-4 rounded-lg border border-gray-200">
+    <div className="bg-white dark:bg-slate-900 p-4 rounded-lg border border-gray-200 dark:border-slate-700">
       <h4 className="font-bold mb-3">{title}</h4>
       <div className="mb-3">
         <div className="flex justify-between text-sm mb-1">
           <span>{score}</span>
-          <span className="text-gray-500">/ {maxScore}</span>
+          <span className="text-gray-500 dark:text-gray-400">/ {maxScore}</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
           <div
             className={`h-2 rounded-full ${
               percentage >= 80
@@ -297,7 +297,7 @@ function ScoreBreakdownCard({ title, score, maxScore, metrics }) {
           ></div>
         </div>
       </div>
-      <div className="text-xs text-gray-600 space-y-1">
+      <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
         {Object.entries(metrics).map(([key, value]) => (
           <div key={key} className="flex justify-between">
             <span className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}:</span>
@@ -328,7 +328,7 @@ function CashFlowForecastTab({ forecast }) {
   return (
     <div className="space-y-6">
       {/* Trend Overview */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
         <h3 className="text-xl font-bold mb-4">📈 Tendencia de Flujo de Caja</h3>
         <div className="flex items-center gap-4">
           <span className="text-4xl">{trendEmoji[forecast.trend]}</span>
@@ -343,7 +343,7 @@ function CashFlowForecastTab({ forecast }) {
                 : 'Datos insuficientes'}
             </p>
             {forecast.historicalAverage && (
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Promedio histórico: {formatCurrency(forecast.historicalAverage.income)} ingresos,{' '}
                 {formatCurrency(forecast.historicalAverage.expenses)} gastos
               </p>
@@ -354,10 +354,10 @@ function CashFlowForecastTab({ forecast }) {
 
       {/* Forecast Table */}
       {forecast.forecasts && forecast.forecasts.length > 0 && (
-        <div className="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md overflow-x-auto">
           <h3 className="text-xl font-bold mb-4">🔮 Pronóstico Próximos Meses</h3>
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 dark:bg-slate-800">
               <tr>
                 <th className="px-4 py-3 text-left text-sm font-semibold">Periodo</th>
                 <th className="px-4 py-3 text-right text-sm font-semibold">Ingresos</th>
@@ -367,7 +367,7 @@ function CashFlowForecastTab({ forecast }) {
                 <th className="px-4 py-3 text-center text-sm font-semibold">Confianza</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
               {forecast.forecasts.map((f, index) => (
                 <tr key={index} className="hover:bg-gray-50">
                   <td className="px-4 py-3 text-sm font-medium">{f.month}</td>
@@ -390,7 +390,7 @@ function CashFlowForecastTab({ forecast }) {
                   <td className="px-4 py-3 text-center">
                     <div className="flex flex-col items-center">
                       <span className="text-sm font-medium">{f.confidence}%</span>
-                      <div className="w-16 bg-gray-200 rounded-full h-1.5 mt-1">
+                      <div className="w-16 bg-gray-200 dark:bg-slate-700 rounded-full h-1.5 mt-1">
                         <div
                           className={`h-1.5 rounded-full ${
                             f.confidence >= 70
@@ -413,13 +413,13 @@ function CashFlowForecastTab({ forecast }) {
 
       {/* Warning for insufficient data */}
       {forecast.trend === 'insufficient_data' && (
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 p-4 rounded">
           <div className="flex">
             <div className="flex-shrink-0">
               <span className="text-2xl">⚠️</span>
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-yellow-800">Datos insuficientes</h3>
+              <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-300">Datos insuficientes</h3>
               <p className="mt-2 text-sm text-yellow-700">
                 Se necesitan más transacciones históricas para generar pronósticos precisos.
                 Continúa registrando tus transacciones para obtener mejores insights.
@@ -438,21 +438,21 @@ function ProfitabilityTab({ profitability }) {
     <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-gradient-to-br from-green-500 to-green-600 p-6 rounded-lg text-white">
+        <div className="bg-gradient-to-br from-green-500 dark:from-green-600 to-green-600 dark:to-green-700 p-6 rounded-lg text-white">
           <div className="text-sm mb-1">Ingresos Totales</div>
           <div className="text-2xl font-bold">{formatCurrency(profitability.totalRevenue)}</div>
         </div>
-        <div className="bg-gradient-to-br from-red-500 to-red-600 p-6 rounded-lg text-white">
+        <div className="bg-gradient-to-br from-red-500 dark:from-red-600 to-red-600 dark:to-red-700 p-6 rounded-lg text-white">
           <div className="text-sm mb-1">Gastos Totales</div>
           <div className="text-2xl font-bold">{formatCurrency(profitability.totalExpenses)}</div>
         </div>
         <div className={`bg-gradient-to-br p-6 rounded-lg text-white ${
-          profitability.totalProfit >= 0 ? 'from-blue-500 to-blue-600' : 'from-orange-500 to-orange-600'
+          profitability.totalProfit >= 0 ? 'from-blue-500 dark:from-blue-600 to-blue-600 dark:to-blue-700' : 'from-orange-500 to-orange-600'
         }`}>
           <div className="text-sm mb-1">Utilidad Total</div>
           <div className="text-2xl font-bold">{formatCurrency(profitability.totalProfit)}</div>
         </div>
-        <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-6 rounded-lg text-white">
+        <div className="bg-gradient-to-br from-purple-500 dark:from-purple-600 to-purple-600 dark:to-purple-700 p-6 rounded-lg text-white">
           <div className="text-sm mb-1">Margen Total</div>
           <div className="text-2xl font-bold">{profitability.totalMargin.toFixed(1)}%</div>
         </div>
@@ -461,15 +461,15 @@ function ProfitabilityTab({ profitability }) {
       {/* Top/Worst Performers */}
       {profitability.summary && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-green-50 p-6 rounded-lg border-2 border-green-200">
-            <h3 className="text-lg font-bold text-green-800 mb-2">🏆 Mejor Desempeño</h3>
+          <div className="bg-green-50 dark:bg-green-900/20 p-6 rounded-lg border-2 border-green-200">
+            <h3 className="text-lg font-bold text-green-800 dark:text-green-300 mb-2">🏆 Mejor Desempeño</h3>
             <div className="text-2xl font-bold text-green-700">{profitability.summary.topPerformer}</div>
             <div className="text-lg text-green-600">
               {formatCurrency(profitability.summary.topPerformerProfit)} de utilidad
             </div>
           </div>
-          <div className="bg-red-50 p-6 rounded-lg border-2 border-red-200">
-            <h3 className="text-lg font-bold text-red-800 mb-2">⚠️ Requiere Atención</h3>
+          <div className="bg-red-50 dark:bg-red-900/20 p-6 rounded-lg border-2 border-red-200">
+            <h3 className="text-lg font-bold text-red-800 dark:text-red-300 mb-2">⚠️ Requiere Atención</h3>
             <div className="text-2xl font-bold text-red-700">{profitability.summary.worstPerformer}</div>
             <div className="text-lg text-red-600">
               {formatCurrency(profitability.summary.worstPerformerProfit)} de utilidad
@@ -479,44 +479,44 @@ function ProfitabilityTab({ profitability }) {
       )}
 
       {/* Profitability by Group */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
         <h3 className="text-xl font-bold mb-4">📊 Rentabilidad por Categoría</h3>
         <div className="space-y-3">
           {profitability.groups.map((group, index) => (
-            <div key={index} className="border border-gray-200 rounded-lg p-4">
+            <div key={index} className="border border-gray-200 dark:border-slate-700 rounded-lg p-4">
               <div className="flex justify-between items-start mb-2">
                 <h4 className="font-bold text-lg">{group.name}</h4>
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                   group.margin >= 20
-                    ? 'bg-green-100 text-green-800'
+                    ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
                     : group.margin >= 10
-                    ? 'bg-blue-100 text-blue-800'
+                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
                     : group.margin >= 0
-                    ? 'bg-yellow-100 text-yellow-800'
-                    : 'bg-red-100 text-red-800'
+                    ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
+                    : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
                 }`}>
                   {group.margin.toFixed(1)}% margen
                 </span>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
-                  <div className="text-gray-600">Ingresos</div>
+                  <div className="text-gray-600 dark:text-gray-400">Ingresos</div>
                   <div className="font-medium text-green-600">{formatCurrency(group.revenue)}</div>
-                  <div className="text-xs text-gray-500">{group.revenueShare.toFixed(1)}% del total</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">{group.revenueShare.toFixed(1)}% del total</div>
                 </div>
                 <div>
-                  <div className="text-gray-600">Gastos</div>
+                  <div className="text-gray-600 dark:text-gray-400">Gastos</div>
                   <div className="font-medium text-red-600">{formatCurrency(group.expenses)}</div>
-                  <div className="text-xs text-gray-500">{group.expenseShare.toFixed(1)}% del total</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">{group.expenseShare.toFixed(1)}% del total</div>
                 </div>
                 <div>
-                  <div className="text-gray-600">Utilidad</div>
+                  <div className="text-gray-600 dark:text-gray-400">Utilidad</div>
                   <div className={`font-medium ${group.profit >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
                     {formatCurrency(group.profit)}
                   </div>
                 </div>
                 <div>
-                  <div className="text-gray-600">Transacciones</div>
+                  <div className="text-gray-600 dark:text-gray-400">Transacciones</div>
                   <div className="font-medium">{group.transactions}</div>
                 </div>
               </div>
@@ -556,7 +556,7 @@ function KPIsTab({ kpis }) {
 // KPI Section Component
 function KPISection({ title, kpis }) {
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
+    <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
       <h3 className="text-xl font-bold mb-4">{title}</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {Object.entries(kpis).map(([key, kpi]) => (
@@ -573,8 +573,8 @@ function KPICard({ kpi }) {
   const performanceColor = performance === 'good' ? 'green' : 'orange';
 
   return (
-    <div className="border border-gray-200 rounded-lg p-4">
-      <div className="text-sm text-gray-600 mb-1">{kpi.label}</div>
+    <div className="border border-gray-200 dark:border-slate-700 rounded-lg p-4">
+      <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">{kpi.label}</div>
       <div className="flex items-end justify-between mb-2">
         <span className="text-2xl font-bold">
           {kpi.unit === '$' ? formatCurrency(kpi.value) : kpi.value.toFixed(2)}
@@ -584,7 +584,7 @@ function KPICard({ kpi }) {
           vs {kpi.benchmark}{kpi.unit}
         </span>
       </div>
-      <div className="w-full bg-gray-200 rounded-full h-2">
+      <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
         <div
           className={`h-2 rounded-full bg-${performanceColor}-500`}
           style={{
@@ -600,10 +600,10 @@ function KPICard({ kpi }) {
 function AnomaliesTab({ anomalies }) {
   if (!anomalies || anomalies.length === 0) {
     return (
-      <div className="bg-white p-8 rounded-lg shadow-md text-center">
+      <div className="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md text-center">
         <span className="text-6xl mb-4 block">✅</span>
         <h3 className="text-xl font-bold text-green-600 mb-2">¡Todo en orden!</h3>
-        <p className="text-gray-600">
+        <p className="text-gray-600 dark:text-gray-400">
           No se detectaron anomalías en tus transacciones recientes.
         </p>
       </div>
@@ -619,13 +619,13 @@ function AnomaliesTab({ anomalies }) {
   return (
     <div className="space-y-6">
       {/* Summary */}
-      <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+      <div className="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 p-4 rounded">
         <div className="flex">
           <div className="flex-shrink-0">
             <span className="text-2xl">🔍</span>
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-yellow-800">
+            <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-300">
               Se detectaron {anomalies.length} anomalías
             </h3>
             <p className="mt-2 text-sm text-yellow-700">
@@ -637,7 +637,7 @@ function AnomaliesTab({ anomalies }) {
 
       {/* High Severity */}
       {anomaliesBySeverity.high.length > 0 && (
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
           <h3 className="text-xl font-bold text-red-600 mb-4">
             🚨 Alta Prioridad ({anomaliesBySeverity.high.length})
           </h3>
@@ -651,7 +651,7 @@ function AnomaliesTab({ anomalies }) {
 
       {/* Medium Severity */}
       {anomaliesBySeverity.medium.length > 0 && (
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
           <h3 className="text-xl font-bold text-orange-600 mb-4">
             ⚠️ Prioridad Media ({anomaliesBySeverity.medium.length})
           </h3>
@@ -665,7 +665,7 @@ function AnomaliesTab({ anomalies }) {
 
       {/* Low Severity */}
       {anomaliesBySeverity.low.length > 0 && (
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
           <h3 className="text-xl font-bold text-blue-600 mb-4">
             ℹ️ Informativo ({anomaliesBySeverity.low.length})
           </h3>
@@ -693,16 +693,16 @@ function AnomalyCard({ anomaly }) {
       <div className="flex justify-between items-start mb-2">
         <div>
           <h4 className="font-bold">{anomaly.transaction.description}</h4>
-          <p className="text-sm text-gray-600">{anomaly.transaction.date}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{anomaly.transaction.date}</p>
         </div>
         <div className="text-right">
           <div className="text-lg font-bold">{formatCurrency(anomaly.transaction.amount)}</div>
-          <div className="text-xs text-gray-600">{anomaly.transaction.category}</div>
+          <div className="text-xs text-gray-600 dark:text-gray-400">{anomaly.transaction.category}</div>
         </div>
       </div>
-      <div className="text-sm text-gray-700 mb-2">{anomaly.message}</div>
+      <div className="text-sm text-gray-700 dark:text-gray-300 mb-2">{anomaly.message}</div>
       {anomaly.expectedRange && (
-        <div className="text-xs text-gray-600">
+        <div className="text-xs text-gray-600 dark:text-gray-400">
           Rango esperado: {formatCurrency(anomaly.expectedRange[0])} -{' '}
           {formatCurrency(anomaly.expectedRange[1])}
         </div>

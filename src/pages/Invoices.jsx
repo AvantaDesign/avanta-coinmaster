@@ -108,7 +108,7 @@ export default function Invoices() {
       )}
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md">
+        <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
           <h2 className="text-2xl font-bold mb-4">Nueva Factura</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -216,7 +216,7 @@ export default function Invoices() {
 
           <button
             type="submit"
-            className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
+            className="mt-4 bg-blue-600 dark:bg-blue-700 text-white px-6 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600"
           >
             Guardar Factura
           </button>
@@ -228,31 +228,31 @@ export default function Invoices() {
       )}
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 text-red-700 px-4 py-3 rounded">
           Error: {error}
         </div>
       )}
 
       {!loading && !error && (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 rounded-lg shadow-md overflow-hidden">
           {invoices.length === 0 ? (
-            <div className="p-6 text-center text-gray-500">
+            <div className="p-6 text-center text-gray-500 dark:text-gray-400">
               No hay facturas registradas
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-50 dark:bg-slate-800">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">UUID</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">RFC Emisor</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">RFC Receptor</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Estado</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Fecha</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">UUID</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">RFC Emisor</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">RFC Receptor</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Total</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Estado</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
                   {invoices.map((invoice) => (
                     <tr key={invoice.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 text-sm">{formatDate(invoice.date)}</td>
@@ -265,8 +265,8 @@ export default function Invoices() {
                       <td className="px-4 py-3 text-sm text-center">
                         <span className={`px-2 py-1 rounded-full text-xs ${
                           invoice.status === 'active' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
+                            ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' 
+                            : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
                         }`}>
                           {invoice.status}
                         </span>

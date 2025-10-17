@@ -3,7 +3,7 @@ import { formatCurrency } from '../utils/calculations';
 export default function MonthlyChart({ data, showFiscal = false }) {
   if (!data || data.length === 0) {
     return (
-      <div className="bg-white p-6 rounded-lg shadow-md text-center text-gray-500">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md text-center text-gray-500 dark:text-gray-400">
         No hay datos para mostrar
       </div>
     );
@@ -21,7 +21,7 @@ export default function MonthlyChart({ data, showFiscal = false }) {
   const maxValue = Math.max(...chartData.map(d => Math.max(d.income, d.expenses, d.taxes)));
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
+    <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
       <h3 className="text-xl font-bold mb-4">Últimos 6 Meses</h3>
       <div className="space-y-4">
         {chartData.map((month, index) => (
@@ -30,8 +30,8 @@ export default function MonthlyChart({ data, showFiscal = false }) {
             <div className="flex gap-2">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <div className="w-20 text-xs text-gray-600">Ingresos</div>
-                  <div className="flex-1 bg-gray-100 rounded-full h-6 overflow-hidden">
+                  <div className="w-20 text-xs text-gray-600 dark:text-gray-400">Ingresos</div>
+                  <div className="flex-1 bg-gray-100 dark:bg-slate-800 rounded-full h-6 overflow-hidden">
                     <div
                       className="bg-green-500 h-full flex items-center justify-end pr-2 text-xs text-white"
                       style={{ width: `${maxValue > 0 ? (month.income / maxValue) * 100 : 0}%` }}
@@ -45,8 +45,8 @@ export default function MonthlyChart({ data, showFiscal = false }) {
             <div className="flex gap-2">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <div className="w-20 text-xs text-gray-600">Gastos</div>
-                  <div className="flex-1 bg-gray-100 rounded-full h-6 overflow-hidden">
+                  <div className="w-20 text-xs text-gray-600 dark:text-gray-400">Gastos</div>
+                  <div className="flex-1 bg-gray-100 dark:bg-slate-800 rounded-full h-6 overflow-hidden">
                     <div
                       className="bg-red-500 h-full flex items-center justify-end pr-2 text-xs text-white"
                       style={{ width: `${maxValue > 0 ? (month.expenses / maxValue) * 100 : 0}%` }}
@@ -61,8 +61,8 @@ export default function MonthlyChart({ data, showFiscal = false }) {
               <div className="flex gap-2">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <div className="w-20 text-xs text-gray-600">Impuestos</div>
-                    <div className="flex-1 bg-gray-100 rounded-full h-6 overflow-hidden">
+                    <div className="w-20 text-xs text-gray-600 dark:text-gray-400">Impuestos</div>
+                    <div className="flex-1 bg-gray-100 dark:bg-slate-800 rounded-full h-6 overflow-hidden">
                       <div
                         className="bg-purple-500 h-full flex items-center justify-end pr-2 text-xs text-white"
                         style={{ width: `${maxValue > 0 ? (month.taxes / maxValue) * 100 : 0}%` }}

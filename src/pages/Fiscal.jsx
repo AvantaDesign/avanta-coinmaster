@@ -126,7 +126,7 @@ function SimpleFiscalView() {
   const years = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
+    <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
       <div className="flex gap-4 mb-6">
         <div>
           <label className="block text-sm font-medium mb-1">Mes</label>
@@ -163,7 +163,7 @@ function SimpleFiscalView() {
       )}
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 text-red-700 px-4 py-3 rounded">
           Error: {error}
         </div>
       )}
@@ -171,29 +171,29 @@ function SimpleFiscalView() {
       {!loading && !error && data && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-green-50 p-4 rounded-lg">
-              <div className="text-sm text-gray-600 mb-1">Ingresos Totales</div>
+            <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+              <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Ingresos Totales</div>
               <div className="text-2xl font-bold text-green-700">
                 {formatCurrency(data.businessIncome || data.income || 0)}
               </div>
             </div>
 
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <div className="text-sm text-gray-600 mb-1">Gastos Deducibles</div>
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+              <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Gastos Deducibles</div>
               <div className="text-2xl font-bold text-blue-700">
                 {formatCurrency(data.deductibleExpenses || data.deductible || 0)}
               </div>
             </div>
 
             <div className="bg-purple-50 p-4 rounded-lg">
-              <div className="text-sm text-gray-600 mb-1">Utilidad</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Utilidad</div>
               <div className="text-2xl font-bold text-purple-700">
                 {formatCurrency(data.utilidad)}
               </div>
             </div>
 
-            <div className="bg-yellow-50 p-4 rounded-lg">
-              <div className="text-sm text-gray-600 mb-1">Fecha Límite</div>
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
+              <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Fecha Límite</div>
               <div className="text-2xl font-bold text-yellow-700">
                 {formatDate(data.dueDate)}
               </div>
@@ -203,30 +203,30 @@ function SimpleFiscalView() {
           <div className="border-t pt-6">
             <h3 className="text-xl font-bold mb-4">Impuestos a Pagar</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-red-50 p-6 rounded-lg">
-                <div className="text-sm text-gray-600 mb-1">ISR</div>
+              <div className="bg-red-50 dark:bg-red-900/20 p-6 rounded-lg">
+                <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">ISR</div>
                 <div className="text-3xl font-bold text-red-700">
                   {formatCurrency(data.isr)}
                 </div>
-                <div className="text-xs text-gray-500 mt-2">
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                   Impuesto Sobre la Renta
                 </div>
               </div>
 
               <div className="bg-orange-50 p-6 rounded-lg">
-                <div className="text-sm text-gray-600 mb-1">IVA</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">IVA</div>
                 <div className="text-3xl font-bold text-orange-700">
                   {formatCurrency(data.iva)}
                 </div>
-                <div className="text-xs text-gray-500 mt-2">
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                   Impuesto al Valor Agregado
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="text-sm text-gray-600 mb-2">
+          <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-lg">
+            <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
               <strong>Nota:</strong> Los cálculos son aproximados para tracking personal.
               Para declaraciones reales, consulta con tu contador.
             </div>

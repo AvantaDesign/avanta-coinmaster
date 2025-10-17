@@ -135,8 +135,8 @@ export default function CSVImportMapper({ file, onMappingComplete, onCancel }) {
 
   if (error && !csvData) {
     return (
-      <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-        <h3 className="text-lg font-semibold text-red-800 mb-2">Error</h3>
+      <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 rounded-lg">
+        <h3 className="text-lg font-semibold text-red-800 dark:text-red-300 mb-2">Error</h3>
         <p className="text-red-700">{error}</p>
         <button
           onClick={onCancel}
@@ -163,7 +163,7 @@ export default function CSVImportMapper({ file, onMappingComplete, onCancel }) {
       {/* Header */}
       <div>
         <h3 className="text-xl font-bold mb-2">Mapear Columnas del CSV</h3>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 dark:text-gray-400">
           Relaciona las columnas de tu CSV con los campos del sistema. 
           Los campos con <span className="text-red-600">*</span> son obligatorios.
         </p>
@@ -171,7 +171,7 @@ export default function CSVImportMapper({ file, onMappingComplete, onCancel }) {
 
       {/* Error display */}
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 rounded text-sm text-red-700">
           {error}
         </div>
       )}
@@ -180,24 +180,24 @@ export default function CSVImportMapper({ file, onMappingComplete, onCancel }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Left side: Field mappings */}
         <div className="space-y-3">
-          <h4 className="font-semibold text-gray-700">Campos del Sistema</h4>
+          <h4 className="font-semibold text-gray-700 dark:text-gray-300">Campos del Sistema</h4>
           
           {allFields.map(field => (
-            <div key={field.key} className="border rounded-lg p-3 bg-gray-50">
+            <div key={field.key} className="border rounded-lg p-3 bg-gray-50 dark:bg-slate-800">
               <div className="flex items-start justify-between mb-2">
                 <div>
-                  <label className="font-medium text-gray-800">
+                  <label className="font-medium text-gray-800 dark:text-gray-200">
                     {field.label}
                     {field.required && <span className="text-red-600 ml-1">*</span>}
                   </label>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                     Ejemplo: {field.example}
                   </p>
                 </div>
                 {mapping[field.key] && (
                   <button
                     onClick={() => handleClearMapping(field.key)}
-                    className="text-red-600 hover:text-red-800 text-sm"
+                    className="text-red-600 hover:text-red-800 dark:text-red-300 text-sm"
                   >
                     ✕
                   </button>
@@ -226,15 +226,15 @@ export default function CSVImportMapper({ file, onMappingComplete, onCancel }) {
 
         {/* Right side: Preview */}
         <div className="space-y-3">
-          <h4 className="font-semibold text-gray-700">Vista Previa (primeras 5 filas)</h4>
+          <h4 className="font-semibold text-gray-700 dark:text-gray-300">Vista Previa (primeras 5 filas)</h4>
           
           <div className="border rounded-lg overflow-hidden">
             <div className="overflow-x-auto max-h-96">
               <table className="w-full text-sm">
-                <thead className="bg-gray-100 sticky top-0">
+                <thead className="bg-gray-100 dark:bg-slate-800 sticky top-0">
                   <tr>
                     {headers.map(header => (
-                      <th key={header} className="px-3 py-2 text-left text-xs font-medium text-gray-700">
+                      <th key={header} className="px-3 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300">
                         {header}
                         {Object.values(mapping).includes(header) && (
                           <span className="ml-1 text-green-600">✓</span>
@@ -243,11 +243,11 @@ export default function CSVImportMapper({ file, onMappingComplete, onCancel }) {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
                   {previewRows.map((row, idx) => (
                     <tr key={idx} className="hover:bg-gray-50">
                       {headers.map(header => (
-                        <td key={header} className="px-3 py-2 text-xs text-gray-600 max-w-xs truncate">
+                        <td key={header} className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400 max-w-xs truncate">
                           {row[header]}
                         </td>
                       ))}
@@ -261,25 +261,25 @@ export default function CSVImportMapper({ file, onMappingComplete, onCancel }) {
           {/* Mapped preview */}
           {Object.keys(mapping).length > 0 && (
             <div className="border rounded-lg overflow-hidden">
-              <div className="bg-blue-50 px-3 py-2 border-b">
+              <div className="bg-blue-50 dark:bg-blue-900/20 px-3 py-2 border-b">
                 <h5 className="text-sm font-semibold text-blue-900">Vista con Campos Mapeados</h5>
               </div>
               <div className="overflow-x-auto max-h-60">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-100">
+                  <thead className="bg-gray-100 dark:bg-slate-800">
                     <tr>
                       {Object.entries(mapping).map(([field, csvColumn]) => (
-                        <th key={field} className="px-3 py-2 text-left text-xs font-medium text-gray-700">
+                        <th key={field} className="px-3 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300">
                           {allFields.find(f => f.key === field)?.label || field}
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
                     {previewRows.map((row, idx) => (
                       <tr key={idx} className="hover:bg-gray-50">
                         {Object.entries(mapping).map(([field, csvColumn]) => (
-                          <td key={field} className="px-3 py-2 text-xs text-gray-600 max-w-xs truncate">
+                          <td key={field} className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400 max-w-xs truncate">
                             {row[csvColumn]}
                           </td>
                         ))}
@@ -295,8 +295,8 @@ export default function CSVImportMapper({ file, onMappingComplete, onCancel }) {
 
       {/* Validation warnings */}
       {validationErrors.length > 0 && (
-        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
-          <h5 className="font-semibold text-yellow-800 mb-1">Pendientes:</h5>
+        <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 rounded">
+          <h5 className="font-semibold text-yellow-800 dark:text-yellow-300 mb-1">Pendientes:</h5>
           <ul className="text-sm text-yellow-700 list-disc list-inside">
             {validationErrors.map((err, idx) => (
               <li key={idx}>{err}</li>
@@ -309,21 +309,21 @@ export default function CSVImportMapper({ file, onMappingComplete, onCancel }) {
       <div className="flex gap-3 pt-4 border-t">
         <button
           onClick={onCancel}
-          className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+          className="px-6 py-2 border border-gray-300 dark:border-slate-600 rounded-md hover:bg-gray-50"
         >
           Cancelar
         </button>
         <button
           onClick={handleConfirm}
           disabled={validationErrors.length > 0}
-          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          className="px-6 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
           Continuar con Mapeo
         </button>
       </div>
 
       {/* Info footer */}
-      <div className="text-xs text-gray-500 p-3 bg-gray-50 rounded">
+      <div className="text-xs text-gray-500 dark:text-gray-400 p-3 bg-gray-50 dark:bg-slate-800 rounded">
         <strong>💡 Consejo:</strong> El sistema intenta detectar automáticamente las columnas. 
         Verifica que el mapeo sea correcto antes de continuar.
       </div>
