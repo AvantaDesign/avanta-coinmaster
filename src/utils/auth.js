@@ -12,11 +12,30 @@ const USER_KEY = 'avanta_user_info';
  * @param {string} token - JWT token
  */
 export function setAuthToken(token) {
+  console.log('setAuthToken called with:', token ? token.substring(0, 50) + '...' : 'null');
+  
   if (!token) {
+    console.log('Removing token from localStorage');
     localStorage.removeItem(TOKEN_KEY);
     return;
   }
-  localStorage.setItem(TOKEN_KEY, token);
+  
+  try {
+    localStorage.setItem(TOKEN_KEY, token);
+    console.log('Token stored in localStorage successfully');
+    
+    // Verify it was stored
+    const stored = localStorage.getItem(TOKEN_KEY);
+    console.log('Verification - token exists:', !!stored);
+    console.log('Verification - token matches:', stored === token);
+  } catch (error) {
+    console.error('Error storing token:', error);
+    localStorage.setItem('auth_debug', JSON.stringify({
+      timestamp: new Date().toISOString(),
+      issue: 'Error storing token',
+      error: error.message
+    }));
+  }
 }
 
 /**
@@ -76,7 +95,9 @@ export function decodeToken(token) {
     if (parts.length !== 3) return null;
     
     const payload = parts[1];
-    const decoded = JSON.parse(atob(payload));
+    // Add padding if needed for base64 decoding
+    const paddedPayload = payload + '='.repeat((4 - payload.length % 4) % 4);
+    const decoded = JSON.parse(atob(paddedPayload));
     return decoded;
   } catch (error) {
     console.error('Error decoding token:', error);
@@ -91,10 +112,38 @@ export function decodeToken(token) {
  */
 export function isTokenExpired(token) {
   const decoded = decodeToken(token);
-  if (!decoded || !decoded.exp) return true;
+  if (!decoded || !decoded.exp) {
+    console.log('Token decode failed or no exp field');
+    localStorage.setItem('auth_debug', JSON.stringify({
+      timestamp: new Date().toISOString(),
+      issue: 'Token decode failed',
+      token: token.substring(0, 50) + '...',
+      decoded: decoded,
+      action: 'Token validation'
+    }));
+    return true;
+  }
   
   const currentTime = Math.floor(Date.now() / 1000);
-  return decoded.exp < currentTime;
+  const isExpired = decoded.exp < currentTime;
+  
+  console.log('Token exp:', decoded.exp);
+  console.log('Current time:', currentTime);
+  console.log('Time until expiry:', decoded.exp - currentTime);
+  console.log('Is expired:', isExpired);
+  
+  // Store detailed debug info
+  localStorage.setItem('auth_debug', JSON.stringify({
+    timestamp: new Date().toISOString(),
+    tokenExp: decoded.exp,
+    currentTime: currentTime,
+    timeUntilExpiry: decoded.exp - currentTime,
+    isExpired: isExpired,
+    token: token.substring(0, 50) + '...',
+    action: 'Token expiration check'
+  }));
+  
+  return isExpired;
 }
 
 /**
@@ -103,9 +152,37 @@ export function isTokenExpired(token) {
  */
 export function isAuthenticated() {
   const token = getAuthToken();
-  if (!token) return false;
+  if (!token) {
+    console.log('No token found');
+    // Store in localStorage for debugging
+    localStorage.setItem('auth_debug', JSON.stringify({
+      timestamp: new Date().toISOString(),
+      issue: 'No token found',
+      action: 'isAuthenticated check'
+    }));
+    return false;
+  }
   
-  return !isTokenExpired(token);
+  const isExpired = isTokenExpired(token);
+  console.log('Token expired:', isExpired);
+  
+  if (isExpired) {
+    console.log('Token is expired, removing it');
+    // Store debug info before removing token
+    localStorage.setItem('auth_debug', JSON.stringify({
+      timestamp: new Date().toISOString(),
+      issue: 'Token expired',
+      token: token.substring(0, 50) + '...',
+      action: 'Token removal'
+    }));
+    removeAuthToken();
+    return false;
+  }
+  
+  console.log('User is authenticated');
+  // Clear any previous debug info on successful auth
+  localStorage.removeItem('auth_debug');
+  return true;
 }
 
 /**
@@ -127,6 +204,8 @@ export function getUserId() {
  * @returns {Promise<object>} Authentication response
  */
 export async function login(email, password) {
+  console.log('Starting login process...');
+  
   const response = await fetch('/api/auth/login', {
     method: 'POST',
     headers: {
@@ -135,18 +214,44 @@ export async function login(email, password) {
     body: JSON.stringify({ email, password }),
   });
   
+  console.log('Login response status:', response.status);
+  
   if (!response.ok) {
     const error = await response.json();
+    console.error('Login failed:', error);
     throw new Error(error.message || 'Login failed');
   }
   
   const data = await response.json();
+  console.log('Login response data:', data);
   
   // Store token and user info
   if (data.token) {
+    console.log('Storing token:', data.token.substring(0, 50) + '...');
     setAuthToken(data.token);
+    
+    // Verify token was stored
+    const storedToken = getAuthToken();
+    console.log('Token stored successfully:', !!storedToken);
+    
+    // Store debug info
+    localStorage.setItem('auth_debug', JSON.stringify({
+      timestamp: new Date().toISOString(),
+      action: 'Login successful',
+      tokenStored: !!storedToken,
+      tokenLength: storedToken ? storedToken.length : 0
+    }));
+  } else {
+    console.error('No token in response');
+    localStorage.setItem('auth_debug', JSON.stringify({
+      timestamp: new Date().toISOString(),
+      issue: 'No token in login response',
+      response: data
+    }));
   }
+  
   if (data.user) {
+    console.log('Storing user info:', data.user);
     setUserInfo(data.user);
   }
   

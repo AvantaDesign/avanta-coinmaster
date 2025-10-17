@@ -1,18 +1,25 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from './AuthProvider';
 import { isValidEmail, validatePassword } from '../utils/auth';
+import { Navigate } from 'react-router-dom';
 
 /**
  * LoginForm component
  * Provides login interface with email/password and Google OAuth
  */
 export default function LoginForm() {
-  const { login, loginGoogle, loading, error: authError } = useAuth();
+  const { login, loginGoogle, loading, error: authError, isAuthenticated } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [validationErrors, setValidationErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+
+  // Redirect if already authenticated
+  if (isAuthenticated) {
+    console.log('LoginForm: User is authenticated, redirecting to home...');
+    return <Navigate to="/" replace />;
+  }
 
   /**
    * Validate form fields
@@ -49,10 +56,14 @@ export default function LoginForm() {
     }
 
     try {
-      await login(email, password);
-      // Redirect will be handled by AuthProvider
-      window.location.href = '/';
+      console.log('LoginForm: Starting login...');
+      const result = await login(email, password);
+      console.log('LoginForm: Login successful, result:', result);
+      
+      // Don't redirect immediately - let AuthProvider handle it
+      // The AuthProvider will detect the authentication change and redirect
     } catch (err) {
+      console.error('LoginForm: Login failed:', err);
       setError(err.message || 'Login failed');
     }
   };
@@ -63,9 +74,13 @@ export default function LoginForm() {
   const handleGoogleLogin = async (response) => {
     try {
       setError('');
-      await loginGoogle(response.credential);
-      window.location.href = '/';
+      console.log('LoginForm: Starting Google login...');
+      const result = await loginGoogle(response.credential);
+      console.log('LoginForm: Google login successful, result:', result);
+      
+      // Don't redirect immediately - let AuthProvider handle it
     } catch (err) {
+      console.error('LoginForm: Google login failed:', err);
       setError(err.message || 'Google login failed');
     }
   };
