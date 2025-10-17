@@ -1,14 +1,19 @@
 import { useState, useEffect } from 'react';
-import { fetchReceivables, fetchPayables, fetchAutomationRules } from '../utils/api';
+import { fetchReceivables, fetchPayables, fetchAutomationRules, fetchAccounts } from '../utils/api';
 import { calculateCollectionMetrics } from '../utils/receivables';
 import { calculatePaymentMetrics } from '../utils/payables';
 import { calculateCashFlowForecast, calculateFinancialHealthIndicators, generateAutomatedAlerts, calculateAutomationMetrics } from '../utils/automation';
 import { formatCurrency } from '../utils/calculations';
+import AccountBreakdown from './AccountBreakdown';
+import BudgetSummaryWidget from './BudgetSummaryWidget';
+import UpcomingPayments from './UpcomingPayments';
 
 export default function FinancialDashboard() {
   const [receivables, setReceivables] = useState([]);
   const [payables, setPayables] = useState([]);
   const [automationRules, setAutomationRules] = useState([]);
+  const [accounts, setAccounts] = useState([]);
+  const [credits, setCredits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [forecastDays, setForecastDays] = useState(30);
 
@@ -19,14 +24,22 @@ export default function FinancialDashboard() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [receivablesData, payablesData, rulesData] = await Promise.all([
+      const [receivablesData, payablesData, rulesData, accountsData] = await Promise.all([
         fetchReceivables(),
         fetchPayables(),
-        fetchAutomationRules()
+        fetchAutomationRules(),
+        fetchAccounts()
       ]);
       setReceivables(receivablesData);
       setPayables(payablesData);
       setAutomationRules(rulesData);
+      setAccounts(Array.isArray(accountsData) ? accountsData : []);
+      
+      // Extract credits from accounts (credit cards)
+      const creditCards = Array.isArray(accountsData) 
+        ? accountsData.filter(acc => acc.type === 'tarjeta') 
+        : [];
+      setCredits(creditCards);
     } catch (err) {
       console.error('Error loading dashboard data:', err);
     } finally {
@@ -80,7 +93,7 @@ export default function FinancialDashboard() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Dashboard de Automatización</h1>
+        <h1 className="text-3xl font-bold">Dashboard Financiero</h1>
         <button
           onClick={loadData}
           className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600"
@@ -88,6 +101,93 @@ export default function FinancialDashboard() {
           🔄 Actualizar
         </button>
       </div>
+
+      {/* Account Balances and Budget Summary */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <AccountBreakdown accounts={accounts} />
+        <BudgetSummaryWidget />
+      </div>
+
+      {/* AP/AR Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
+          <h3 className="text-xl font-bold mb-4 text-green-600 dark:text-green-400">📈 Cuentas por Cobrar</h3>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Total Pendiente</span>
+              <span className="text-2xl font-bold text-green-600 dark:text-green-400">
+                {formatCurrency(receivablesMetrics.totalOutstanding)}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Facturas Pendientes</span>
+              <span className="text-lg font-semibold">
+                {receivables.filter(r => r.status !== 'paid' && r.status !== 'cancelled').length}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Vencidas</span>
+              <span className="text-lg font-semibold text-red-600 dark:text-red-400">
+                {receivables.filter(r => {
+                  const today = new Date().toISOString().split('T')[0];
+                  return r.due_date < today && r.status !== 'paid' && r.status !== 'cancelled';
+                }).length}
+              </span>
+            </div>
+            <div className="pt-3 border-t border-gray-200 dark:border-slate-700">
+              <a 
+                href="/receivables"
+                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
+              >
+                Ver detalles →
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
+          <h3 className="text-xl font-bold mb-4 text-red-600 dark:text-red-400">📉 Cuentas por Pagar</h3>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Total Pendiente</span>
+              <span className="text-2xl font-bold text-red-600 dark:text-red-400">
+                {formatCurrency(payablesMetrics.totalOutstanding)}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Facturas Pendientes</span>
+              <span className="text-lg font-semibold">
+                {payables.filter(p => p.status !== 'paid' && p.status !== 'cancelled').length}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Vencidas</span>
+              <span className="text-lg font-semibold text-red-600 dark:text-red-400">
+                {payables.filter(p => {
+                  const today = new Date().toISOString().split('T')[0];
+                  return p.due_date < today && p.status !== 'paid' && p.status !== 'cancelled';
+                }).length}
+              </span>
+            </div>
+            <div className="pt-3 border-t border-gray-200 dark:border-slate-700">
+              <a 
+                href="/payables"
+                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
+              >
+                Ver detalles →
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Upcoming Payments */}
+      {credits.length > 0 && (
+        <UpcomingPayments credits={credits} onPaymentClick={(payment) => {
+          // Navigate to credits page or show payment dialog
+          window.location.href = '/credits';
+        }} />
+      )}
 
       {/* Financial Health Score */}
       <div className={`p-6 rounded-lg shadow-lg ${getHealthColor(healthIndicators.healthLevel)}`}>
