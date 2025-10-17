@@ -116,7 +116,7 @@ export default function ReconciliationManager() {
               onChange={(e) => setToleranceDays(parseInt(e.target.value))}
               min="1"
               max="30"
-              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
             />
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Diferencia máxima entre fechas
@@ -134,7 +134,7 @@ export default function ReconciliationManager() {
               min="0"
               max="10"
               step="0.1"
-              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
             />
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Diferencia máxima en monto
@@ -151,7 +151,7 @@ export default function ReconciliationManager() {
               onChange={(e) => setMinConfidence(parseInt(e.target.value))}
               min="50"
               max="100"
-              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
             />
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Filtrar por confianza

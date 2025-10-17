@@ -186,7 +186,7 @@ export default function InvoiceLinker({ transaction, onClose, onLinked }) {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Buscar por UUID o RFC..."
-                className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
               />
 
               {/* Invoice List */}
@@ -249,7 +249,7 @@ export default function InvoiceLinker({ transaction, onClose, onLinked }) {
                         value={linkAmount}
                         onChange={(e) => setLinkAmount(e.target.value)}
                         placeholder={transaction.amount.toString()}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                       />
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         Dejar vacío para vincular el monto completo de la transacción
@@ -264,7 +264,7 @@ export default function InvoiceLinker({ transaction, onClose, onLinked }) {
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
                         rows="2"
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                         placeholder="Agregar notas sobre esta vinculación..."
                       />
                     </div>

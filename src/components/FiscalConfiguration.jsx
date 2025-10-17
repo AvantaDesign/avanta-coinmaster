@@ -121,7 +121,7 @@ export default function FiscalConfiguration() {
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-            className="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
           >
             {[...new Set([selectedYear, ...availableYears.map(y => y.year)])].map(year => (
               <option key={year} value={year}>{year}</option>
@@ -183,7 +183,7 @@ export default function FiscalConfiguration() {
                   step="0.01"
                   min="0"
                   max="100"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                 />
                 <span className="absolute right-3 top-2 text-gray-500 dark:text-gray-400">%</span>
               </div>
@@ -205,7 +205,7 @@ export default function FiscalConfiguration() {
                   step="0.01"
                   min="0"
                   max="100"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                 />
                 <span className="absolute right-3 top-2 text-gray-500 dark:text-gray-400">%</span>
               </div>
@@ -225,7 +225,7 @@ export default function FiscalConfiguration() {
                 onChange={(e) => setFormData(prev => ({ ...prev, diot_threshold: parseFloat(e.target.value) }))}
                 step="1000"
                 min="0"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
               />
             ) : (
               <p className="text-xl font-semibold">{formatCurrency(formData.diot_threshold)}</p>

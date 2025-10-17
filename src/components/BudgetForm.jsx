@@ -156,7 +156,7 @@ export default function BudgetForm({ budget, onSubmit, onCancel }) {
           name="category_id"
           value={formData.category_id}
           onChange={handleChange}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
         >
           <option value="">Sin categoría específica (General)</option>
           {filteredCategories.map(category => (
@@ -185,7 +185,7 @@ export default function BudgetForm({ budget, onSubmit, onCancel }) {
             min="0"
             step="0.01"
             required
-            className="w-full pl-8 pr-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full pl-8 pr-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
             placeholder="0.00"
           />
         </div>
@@ -201,7 +201,7 @@ export default function BudgetForm({ budget, onSubmit, onCancel }) {
           value={formData.period}
           onChange={handleChange}
           required
-          className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
         >
           <option value="monthly">Mensual</option>
           <option value="quarterly">Trimestral</option>
@@ -221,7 +221,7 @@ export default function BudgetForm({ budget, onSubmit, onCancel }) {
             value={formData.start_date}
             onChange={handleChange}
             required
-            className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
           />
         </div>
         <div>
@@ -233,7 +233,7 @@ export default function BudgetForm({ budget, onSubmit, onCancel }) {
             name="end_date"
             value={formData.end_date}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
           />
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             Se calcula automáticamente según el período
@@ -251,7 +251,7 @@ export default function BudgetForm({ budget, onSubmit, onCancel }) {
           value={formData.notes}
           onChange={handleChange}
           rows="3"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
           placeholder="Agregar notas sobre este presupuesto..."
         />
       </div>
@@ -264,7 +264,7 @@ export default function BudgetForm({ budget, onSubmit, onCancel }) {
           id="is_active"
           checked={formData.is_active}
           onChange={handleChange}
-          className="w-4 h-4 text-blue-600 border-gray-300 dark:border-slate-600 rounded focus:ring-blue-500"
+          className="w-4 h-4 text-blue-600 border-gray-300 dark:border-slate-600 rounded focus:ring-blue-500 dark:focus:ring-blue-400"
         />
         <label htmlFor="is_active" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
           Presupuesto activo

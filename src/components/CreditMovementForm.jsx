@@ -113,7 +113,7 @@ export default function CreditMovementForm({ credit, onSubmit, onCancel }) {
             value={formData.description}
             onChange={(e) => handleChange('description', e.target.value)}
             placeholder="Ej. Pago mensual, Compra en tienda, Intereses del mes"
-            className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500"
             maxLength={500}
           />
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -136,7 +136,7 @@ export default function CreditMovementForm({ credit, onSubmit, onCancel }) {
               placeholder="0.00"
               step="0.01"
               min="0"
-              className="w-full pl-8 pr-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full pl-8 pr-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500"
             />
           </div>
           {formData.amount && (
@@ -165,7 +165,7 @@ export default function CreditMovementForm({ credit, onSubmit, onCancel }) {
             value={formData.date}
             onChange={(e) => handleChange('date', e.target.value)}
             max={new Date().toISOString().split('T')[0]}
-            className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500"
           />
         </div>
 
@@ -177,7 +177,7 @@ export default function CreditMovementForm({ credit, onSubmit, onCancel }) {
                 type="checkbox"
                 checked={formData.createTransaction}
                 onChange={(e) => handleChange('createTransaction', e.target.checked)}
-                className="mt-1 mr-3 h-4 w-4 text-blue-600 border-gray-300 dark:border-slate-600 rounded focus:ring-blue-500"
+                className="mt-1 mr-3 h-4 w-4 text-blue-600 border-gray-300 dark:border-slate-600 rounded focus:ring-blue-500 dark:focus:ring-blue-400"
               />
               <div className="flex-1">
                 <span className="font-medium text-gray-900 dark:text-gray-100">

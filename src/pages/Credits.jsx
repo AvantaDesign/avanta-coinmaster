@@ -190,7 +190,7 @@ export default function Credits() {
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
-                className="border border-gray-300 dark:border-slate-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="border border-gray-300 dark:border-slate-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500"
               >
                 <option value="all">Todos los tipos</option>
                 <option value="credit_card">Tarjetas de Crédito</option>
@@ -202,7 +202,7 @@ export default function Credits() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="border border-gray-300 dark:border-slate-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="border border-gray-300 dark:border-slate-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500"
               >
                 <option value="name">Ordenar por Nombre</option>
                 <option value="balance">Ordenar por Saldo</option>
@@ -406,7 +406,7 @@ function CreditFormModal({ credit, onSubmit, onCancel }) {
               value={formData.name}
               onChange={(e) => handleChange('name', e.target.value)}
               placeholder="Ej. BBVA Platino, Santander Auto, Hipoteca Infonavit"
-              className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500"
               maxLength={100}
             />
           </div>
@@ -453,7 +453,7 @@ function CreditFormModal({ credit, onSubmit, onCancel }) {
                 placeholder="0.00"
                 step="0.01"
                 min="0"
-                className="w-full pl-8 pr-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-8 pr-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500"
               />
             </div>
           </div>
@@ -473,7 +473,7 @@ function CreditFormModal({ credit, onSubmit, onCancel }) {
                 step="0.01"
                 min="0"
                 max="100"
-                className="w-full pr-10 pl-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pr-10 pl-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500"
               />
               <span className="absolute right-3 top-2 text-gray-500 dark:text-gray-400">%</span>
             </div>
@@ -492,7 +492,7 @@ function CreditFormModal({ credit, onSubmit, onCancel }) {
               placeholder="Día del mes (1-31)"
               min="1"
               max="31"
-              className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500"
             />
           </div>
 
@@ -509,7 +509,7 @@ function CreditFormModal({ credit, onSubmit, onCancel }) {
               placeholder="Día del mes (1-31)"
               min="1"
               max="31"
-              className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500"
             />
           </div>
 

@@ -249,7 +249,7 @@ export default function AdminDashboard() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                   placeholder="Tu nombre"
                 />
                 <button
@@ -310,7 +310,7 @@ export default function AdminDashboard() {
               onChange={(e) => setCurrentPassword(e.target.value)}
               className={`w-full px-3 py-2 border ${
                 passwordErrors.currentPassword ? 'border-red-300' : 'border-gray-300'
-              } rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              } rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400`}
               placeholder="Ingresa tu contraseña actual"
             />
             {passwordErrors.currentPassword && (
@@ -329,7 +329,7 @@ export default function AdminDashboard() {
               onChange={(e) => setNewPassword(e.target.value)}
               className={`w-full px-3 py-2 border ${
                 passwordErrors.newPassword ? 'border-red-300' : 'border-gray-300'
-              } rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              } rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400`}
               placeholder="Mínimo 8 caracteres, con mayúsculas, minúsculas y números"
             />
             {passwordErrors.newPassword && (
@@ -348,7 +348,7 @@ export default function AdminDashboard() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               className={`w-full px-3 py-2 border ${
                 passwordErrors.confirmPassword ? 'border-red-300' : 'border-gray-300'
-              } rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              } rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400`}
               placeholder="Confirma tu nueva contraseña"
             />
             {passwordErrors.confirmPassword && (
@@ -363,7 +363,7 @@ export default function AdminDashboard() {
               id="showPasswords"
               checked={showPasswords}
               onChange={(e) => setShowPasswords(e.target.checked)}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-slate-600 rounded"
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-400 border-gray-300 dark:border-slate-600 rounded"
             />
             <label htmlFor="showPasswords" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
               Mostrar contraseñas
@@ -375,7 +375,7 @@ export default function AdminDashboard() {
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 focus:ring-blue-500 dark:focus:ring-blue-400 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Cambiando...' : 'Cambiar Contraseña'}
             </button>

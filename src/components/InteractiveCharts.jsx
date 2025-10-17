@@ -170,7 +170,7 @@ function InteractiveLineChart({ data, hoveredIndex, onHover }) {
                 y1={y}
                 x2={width - padding}
                 y2={y}
-                stroke="#e5e7eb"
+                stroke="var(--color-chart-grid)"
                 strokeWidth="1"
               />
               <text
@@ -178,7 +178,7 @@ function InteractiveLineChart({ data, hoveredIndex, onHover }) {
                 y={y + 5}
                 textAnchor="end"
                 fontSize="12"
-                fill="#6b7280"
+                fill="var(--color-chart-text)"
               >
                 {formatCurrency(minValue + (range * percent) / 100)}
               </text>
@@ -196,7 +196,7 @@ function InteractiveLineChart({ data, hoveredIndex, onHover }) {
         />
 
         {/* Line */}
-        <path d={pathD} stroke="#3b82f6" strokeWidth="3" fill="none" />
+        <path d={pathD} stroke="var(--color-chart-line)" strokeWidth="3" fill="none" />
 
         {/* Points */}
         {points.map((point, index) => (
@@ -210,7 +210,7 @@ function InteractiveLineChart({ data, hoveredIndex, onHover }) {
               cx={point.x}
               cy={point.y}
               r={hoveredIndex === index ? 8 : 5}
-              fill="#3b82f6"
+              fill="var(--color-chart-line)"
               stroke="white"
               strokeWidth="2"
               className="transition-all duration-200"
@@ -221,7 +221,7 @@ function InteractiveLineChart({ data, hoveredIndex, onHover }) {
               y={height - padding + 20}
               textAnchor="middle"
               fontSize="10"
-              fill="#6b7280"
+              fill="var(--color-chart-text)"
             >
               {point.label}
             </text>
@@ -231,8 +231,8 @@ function InteractiveLineChart({ data, hoveredIndex, onHover }) {
         {/* Gradient definition */}
         <defs>
           <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.5" />
-            <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+            <stop offset="0%" stopColor="var(--color-chart-line)" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="var(--color-chart-line)" stopOpacity="0" />
           </linearGradient>
         </defs>
       </svg>

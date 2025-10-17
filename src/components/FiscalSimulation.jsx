@@ -84,7 +84,7 @@ export default function FiscalSimulation() {
                 onChange={(e) => setFormData(prev => ({ ...prev, year: parseInt(e.target.value) }))}
                 min="2020"
                 max="2030"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
               />
             </div>
 
@@ -100,7 +100,7 @@ export default function FiscalSimulation() {
                   onChange={(e) => setFormData(prev => ({ ...prev, projected_income: e.target.value }))}
                   min="0"
                   step="1000"
-                  className="w-full pl-8 pr-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-8 pr-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                   placeholder="0.00"
                 />
               </div>
@@ -118,7 +118,7 @@ export default function FiscalSimulation() {
                   onChange={(e) => setFormData(prev => ({ ...prev, projected_expenses: e.target.value }))}
                   min="0"
                   step="1000"
-                  className="w-full pl-8 pr-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-8 pr-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                   placeholder="0.00"
                 />
               </div>
@@ -131,7 +131,7 @@ export default function FiscalSimulation() {
               id="include_current"
               checked={formData.include_current_data}
               onChange={(e) => setFormData(prev => ({ ...prev, include_current_data: e.target.checked }))}
-              className="w-4 h-4 text-blue-600 border-gray-300 dark:border-slate-600 rounded focus:ring-blue-500"
+              className="w-4 h-4 text-blue-600 border-gray-300 dark:border-slate-600 rounded focus:ring-blue-500 dark:focus:ring-blue-400"
             />
             <label htmlFor="include_current" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
               Incluir datos actuales del año
