@@ -25,6 +25,9 @@ const AdvancedReports = lazy(() => import('./components/AdvancedReports'));
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 const RecurringFreelancersDashboard = lazy(() => import('./components/RecurringFreelancersDashboard'));
 const RecurringServicesDashboard = lazy(() => import('./components/RecurringServicesDashboard'));
+const CashFlowProjection = lazy(() => import('./components/CashFlowProjection'));
+const Debts = lazy(() => import('./components/Debts'));
+const Investments = lazy(() => import('./components/Investments'));
 
 // Loading fallback component
 function LoadingFallback() {
@@ -114,6 +117,16 @@ function NavigationBar() {
       items: [
         { name: 'Freelancers Recurrentes', icon: '👥', path: '/recurring-freelancers' },
         { name: 'Servicios Recurrentes', icon: '🔌', path: '/recurring-services' }
+      ]
+    },
+    {
+      name: 'Tesorería',
+      icon: '💼',
+      type: 'dropdown',
+      items: [
+        { name: 'Proyección de Flujo', icon: '💵', path: '/cash-flow-projection' },
+        { name: 'Deudas', icon: '💳', path: '/debts' },
+        { name: 'Inversiones', icon: '📈', path: '/investments' }
       ]
     },
     {
@@ -351,6 +364,9 @@ function AuthenticatedApp() {
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/recurring-freelancers" element={<RecurringFreelancersDashboard />} />
                 <Route path="/recurring-services" element={<RecurringServicesDashboard />} />
+                <Route path="/cash-flow-projection" element={<CashFlowProjection />} />
+                <Route path="/debts" element={<Debts />} />
+                <Route path="/investments" element={<Investments />} />
               </Routes>
             </Suspense>
           </div>
