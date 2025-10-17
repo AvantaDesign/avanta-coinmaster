@@ -15,7 +15,7 @@ export default function LoginForm() {
   const [validationErrors, setValidationErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated (after all hooks are declared)
   if (isAuthenticated) {
     console.log('LoginForm: User is authenticated, redirecting to home...');
     return <Navigate to="/" replace />;
