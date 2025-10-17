@@ -49,32 +49,32 @@ function Toast({ toast, onDismiss }) {
     switch (toast.type) {
       case NOTIFICATION_TYPES.SUCCESS:
         return {
-          bg: 'bg-green-50 border-green-500',
+          bg: 'bg-success-50 dark:bg-success-900/30 border-success-500',
           icon: '✓',
-          iconBg: 'bg-green-500',
-          text: 'text-green-800'
+          iconBg: 'bg-success-500 dark:bg-success-600',
+          text: 'text-success-800 dark:text-success-300'
         };
       case NOTIFICATION_TYPES.ERROR:
         return {
-          bg: 'bg-red-50 border-red-500',
+          bg: 'bg-danger-50 dark:bg-danger-900/30 border-danger-500',
           icon: '✕',
-          iconBg: 'bg-red-500',
-          text: 'text-red-800'
+          iconBg: 'bg-danger-500 dark:bg-danger-600',
+          text: 'text-danger-800 dark:text-danger-300'
         };
       case NOTIFICATION_TYPES.WARNING:
         return {
-          bg: 'bg-yellow-50 border-yellow-500',
+          bg: 'bg-warning-50 dark:bg-warning-900/30 border-warning-500',
           icon: '⚠',
-          iconBg: 'bg-yellow-500',
-          text: 'text-yellow-800'
+          iconBg: 'bg-warning-500 dark:bg-warning-600',
+          text: 'text-warning-800 dark:text-warning-300'
         };
       case NOTIFICATION_TYPES.INFO:
       default:
         return {
-          bg: 'bg-blue-50 border-blue-500',
+          bg: 'bg-info-50 dark:bg-info-900/30 border-info-500',
           icon: 'ℹ',
-          iconBg: 'bg-blue-500',
-          text: 'text-blue-800'
+          iconBg: 'bg-info-500 dark:bg-info-600',
+          text: 'text-info-800 dark:text-info-300'
         };
     }
   };
@@ -85,7 +85,7 @@ function Toast({ toast, onDismiss }) {
     <div
       className={`
         ${styles.bg} ${styles.text}
-        border-l-4 rounded-lg shadow-lg p-4 mb-2
+        border-l-4 rounded-lg shadow-lg dark:shadow-xl dark:shadow-black/20 p-4 mb-2
         flex items-start gap-3
         pointer-events-auto
         transition-all duration-300 ease-in-out
