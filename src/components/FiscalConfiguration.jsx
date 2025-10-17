@@ -17,8 +17,20 @@ export default function FiscalConfiguration() {
     iva_rate: 0.16,
     iva_retention_rate: 0.1067,
     diot_threshold: 50000,
-    isr_brackets: []
+    isr_brackets: [],
+    tax_regime: 'persona_fisica_actividad_empresarial' // Default regime
   });
+
+  // Tax regime options for Mexico
+  const taxRegimes = [
+    { value: 'persona_fisica_actividad_empresarial', label: 'Persona Física con Actividad Empresarial' },
+    { value: 'resico', label: 'Régimen Simplificado de Confianza (RESICO)' },
+    { value: 'servicios_profesionales', label: 'Servicios Profesionales (Honorarios)' },
+    { value: 'arrendamiento', label: 'Arrendamiento' },
+    { value: 'salarios', label: 'Sueldos y Salarios' },
+    { value: 'actividades_agricolas', label: 'Actividades Agrícolas, Ganaderas, Silvícolas y Pesqueras' },
+    { value: 'regimen_incorporacion_fiscal', label: 'Régimen de Incorporación Fiscal (RIF)' }
+  ];
 
   useEffect(() => {
     loadAvailableYears();
@@ -45,11 +57,13 @@ export default function FiscalConfiguration() {
       });
       const data = await response.json();
       setConfig(data.config);
+      const settings = data.config.settings || {};
       setFormData({
         iva_rate: data.config.iva_rate,
         iva_retention_rate: data.config.iva_retention_rate,
         diot_threshold: data.config.diot_threshold,
-        isr_brackets: data.config.isr_brackets
+        isr_brackets: data.config.isr_brackets,
+        tax_regime: settings.tax_regime || 'persona_fisica_actividad_empresarial'
       });
     } catch (error) {
       console.error('Error loading config:', error);
@@ -76,7 +90,13 @@ export default function FiscalConfiguration() {
         credentials: 'include',
         body: JSON.stringify({
           year: selectedYear,
-          ...formData
+          iva_rate: formData.iva_rate,
+          iva_retention_rate: formData.iva_retention_rate,
+          diot_threshold: formData.diot_threshold,
+          isr_brackets: formData.isr_brackets,
+          settings: {
+            tax_regime: formData.tax_regime
+          }
         })
       });
 
@@ -96,11 +116,13 @@ export default function FiscalConfiguration() {
     setEditing(false);
     setErrors([]);
     if (config) {
+      const settings = config.settings || {};
       setFormData({
         iva_rate: config.iva_rate,
         iva_retention_rate: config.iva_retention_rate,
         diot_threshold: config.diot_threshold,
-        isr_brackets: config.isr_brackets
+        isr_brackets: config.isr_brackets,
+        tax_regime: settings.tax_regime || 'persona_fisica_actividad_empresarial'
       });
     }
   };
@@ -165,6 +187,39 @@ export default function FiscalConfiguration() {
           </ul>
         </div>
       )}
+
+      {/* Tax Regime Selection */}
+      <div className="mb-8">
+        <h3 className="text-lg font-semibold mb-4">Régimen Fiscal</h3>
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 rounded-lg p-4 mb-4">
+          <p className="text-sm text-blue-900 dark:text-blue-300">
+            <strong>Importante:</strong> Selecciona tu régimen fiscal según tu situación tributaria en México. 
+            Esto afectará cómo se calculan tus impuestos (ISR e IVA).
+          </p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Régimen Fiscal Aplicable
+          </label>
+          {editing ? (
+            <select
+              value={formData.tax_regime}
+              onChange={(e) => setFormData(prev => ({ ...prev, tax_regime: e.target.value }))}
+              className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100"
+            >
+              {taxRegimes.map(regime => (
+                <option key={regime.value} value={regime.value}>
+                  {regime.label}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              {taxRegimes.find(r => r.value === formData.tax_regime)?.label || 'No especificado'}
+            </p>
+          )}
+        </div>
+      </div>
 
       {/* IVA Configuration */}
       <div className="mb-8">

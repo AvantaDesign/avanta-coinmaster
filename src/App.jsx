@@ -22,7 +22,6 @@ const InvoiceAutomation = lazy(() => import('./components/InvoiceAutomation'));
 const FinancialDashboard = lazy(() => import('./components/FinancialDashboard'));
 const AdvancedAnalytics = lazy(() => import('./components/AdvancedAnalytics'));
 const AdvancedReports = lazy(() => import('./components/AdvancedReports'));
-const CustomizableDashboard = lazy(() => import('./components/CustomizableDashboard'));
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 
 // Loading fallback component
@@ -121,8 +120,7 @@ function NavigationBar() {
       type: 'dropdown',
       items: [
         { name: 'Analytics', icon: '📈', path: '/analytics' },
-        { name: 'Reportes', icon: '📋', path: '/reports' },
-        { name: 'Dashboard Personalizado', icon: '🎛️', path: '/dashboard' }
+        { name: 'Reportes', icon: '📋', path: '/reports' }
       ]
     }
   ];
@@ -325,7 +323,7 @@ function AuthenticatedApp() {
           <div className="px-4 py-6 sm:px-0">
             <Suspense fallback={<LoadingFallback />}>
               <Routes>
-                <Route path="/" element={<Home />} />
+                <Route path="/" element={<FinancialDashboard />} />
                 <Route path="/transactions" element={<Transactions />} />
                 <Route path="/accounts" element={<Accounts />} />
                 <Route path="/categories" element={<Categories />} />
@@ -333,13 +331,12 @@ function AuthenticatedApp() {
                 <Route path="/budgets" element={<Budgets />} />
                 <Route path="/fiscal" element={<Fiscal />} />
                 <Route path="/invoices" element={<Invoices />} />
-                <Route path="/automation" element={<FinancialDashboard />} />
+                <Route path="/automation" element={<Home />} />
                 <Route path="/receivables" element={<AccountsReceivable />} />
                 <Route path="/payables" element={<AccountsPayable />} />
                 <Route path="/invoice-automation" element={<InvoiceAutomation />} />
                 <Route path="/analytics" element={<AdvancedAnalytics transactions={[]} financialData={{}} />} />
                 <Route path="/reports" element={<AdvancedReports data={{}} />} />
-                <Route path="/dashboard" element={<CustomizableDashboard dashboardData={{}} />} />
                 <Route path="/admin" element={<AdminDashboard />} />
               </Routes>
             </Suspense>

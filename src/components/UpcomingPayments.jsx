@@ -97,10 +97,16 @@ export default function UpcomingPayments({ credits = [], onPaymentClick }) {
               <div className="flex items-start justify-between">
                 {/* Credit Info */}
                 <div className="flex-1">
-                  <div className="flex items-center">
+                  <div className="flex items-center gap-2">
                     <h4 className="font-semibold text-gray-900 dark:text-gray-100">{payment.name}</h4>
+                    <span className="px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-xs font-bold rounded flex items-center gap-1">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      Recurrente
+                    </span>
                     {payment.daysUntil < 0 && (
-                      <span className="ml-2 px-2 py-0.5 bg-red-600 dark:bg-red-700 text-white text-xs font-bold rounded">
+                      <span className="px-2 py-0.5 bg-red-600 dark:bg-red-700 text-white text-xs font-bold rounded">
                         VENCIDO
                       </span>
                     )}
