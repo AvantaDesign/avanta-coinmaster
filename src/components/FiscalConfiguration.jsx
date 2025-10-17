@@ -107,21 +107,21 @@ export default function FiscalConfiguration() {
 
   if (loading) {
     return (
-      <div className="bg-white p-8 rounded-lg shadow-md">
+      <div className="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
         <div className="text-center">Cargando configuración fiscal...</div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white p-8 rounded-lg shadow-md">
+    <div className="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-md">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Configuración Fiscal</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Configuración Fiscal</h2>
         <div className="flex items-center space-x-4">
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500"
           >
             {[...new Set([selectedYear, ...availableYears.map(y => y.year)])].map(year => (
               <option key={year} value={year}>{year}</option>
@@ -130,7 +130,7 @@ export default function FiscalConfiguration() {
           {!editing ? (
             <button
               onClick={() => setEditing(true)}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="px-6 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600"
             >
               Editar Configuración
             </button>
@@ -138,14 +138,14 @@ export default function FiscalConfiguration() {
             <div className="space-x-2">
               <button
                 onClick={handleCancel}
-                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                className="px-6 py-2 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                className="px-6 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50"
               >
                 {saving ? 'Guardando...' : 'Guardar'}
               </button>
@@ -156,7 +156,7 @@ export default function FiscalConfiguration() {
 
       {/* Errors */}
       {errors.length > 0 && (
-        <div className="bg-red-50 border border-red-300 text-red-800 px-4 py-3 rounded mb-6">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-300 text-red-800 dark:text-red-300 px-4 py-3 rounded mb-6">
           <p className="font-semibold mb-2">Errores de validación:</p>
           <ul className="list-disc list-inside space-y-1">
             {errors.map((error, index) => (
@@ -171,7 +171,7 @@ export default function FiscalConfiguration() {
         <h3 className="text-lg font-semibold mb-4">Configuración de IVA</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Tasa de IVA
             </label>
             {editing ? (
@@ -183,9 +183,9 @@ export default function FiscalConfiguration() {
                   step="0.01"
                   min="0"
                   max="100"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
-                <span className="absolute right-3 top-2 text-gray-500">%</span>
+                <span className="absolute right-3 top-2 text-gray-500 dark:text-gray-400">%</span>
               </div>
             ) : (
               <p className="text-xl font-semibold">{(formData.iva_rate * 100).toFixed(2)}%</p>
@@ -193,7 +193,7 @@ export default function FiscalConfiguration() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Tasa de Retención
             </label>
             {editing ? (
@@ -205,9 +205,9 @@ export default function FiscalConfiguration() {
                   step="0.01"
                   min="0"
                   max="100"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
-                <span className="absolute right-3 top-2 text-gray-500">%</span>
+                <span className="absolute right-3 top-2 text-gray-500 dark:text-gray-400">%</span>
               </div>
             ) : (
               <p className="text-xl font-semibold">{(formData.iva_retention_rate * 100).toFixed(2)}%</p>
@@ -215,7 +215,7 @@ export default function FiscalConfiguration() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Umbral DIOT
             </label>
             {editing ? (
@@ -225,7 +225,7 @@ export default function FiscalConfiguration() {
                 onChange={(e) => setFormData(prev => ({ ...prev, diot_threshold: parseFloat(e.target.value) }))}
                 step="1000"
                 min="0"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             ) : (
               <p className="text-xl font-semibold">{formatCurrency(formData.diot_threshold)}</p>
@@ -238,24 +238,24 @@ export default function FiscalConfiguration() {
       <div>
         <h3 className="text-lg font-semibold mb-4">Tablas de ISR {selectedYear}</h3>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+            <thead className="bg-gray-50 dark:bg-slate-800">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                   Límite Inferior
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                   Límite Superior
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                   Cuota Fija
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                   Tasa (%)
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-slate-900 divide-y divide-gray-200 dark:divide-slate-700">
               {formData.isr_brackets.map((bracket, index) => (
                 <tr key={index} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -276,7 +276,7 @@ export default function FiscalConfiguration() {
           </table>
         </div>
 
-        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 rounded-lg">
           <p className="text-sm text-blue-900">
             <strong>Nota:</strong> Las tablas de ISR deben actualizarse cada año según las publicaciones oficiales del SAT. 
             La configuración actual se aplica para cálculos de impuestos provisionales y simulaciones fiscales.

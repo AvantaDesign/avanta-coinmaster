@@ -161,7 +161,7 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
 
   if (!transactions || transactions.length === 0) {
     return (
-      <div className="bg-white p-6 rounded-lg shadow-md text-center text-gray-500">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md text-center text-gray-500 dark:text-gray-400">
         No hay transacciones
       </div>
     );
@@ -178,10 +178,10 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
   });
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="bg-white dark:bg-slate-900 rounded-lg shadow-md overflow-hidden">
       {/* Bulk Actions Bar */}
       {selectedIds.length > 0 && (
-        <div className="bg-blue-50 px-4 py-3 border-b border-blue-200 flex items-center justify-between">
+        <div className="bg-blue-50 dark:bg-blue-900/20 px-4 py-3 border-b border-blue-200 flex items-center justify-between">
           <span className="text-sm font-medium text-blue-900">
             {selectedIds.length} transacción(es) seleccionada(s)
           </span>
@@ -194,19 +194,19 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
             </button>
             <button
               onClick={() => handleBulkCategoryChange('avanta')}
-              className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+              className="px-3 py-1 bg-blue-600 dark:bg-blue-700 text-white text-sm rounded hover:bg-blue-700 dark:hover:bg-blue-600"
             >
               → Avanta
             </button>
             <button
               onClick={handleBulkDelete}
-              className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700"
+              className="px-3 py-1 bg-red-600 dark:bg-red-700 text-white text-sm rounded hover:bg-red-700"
             >
               Eliminar
             </button>
             <button
               onClick={() => setSelectedIds([])}
-              className="px-3 py-1 bg-gray-300 text-gray-700 text-sm rounded hover:bg-gray-400"
+              className="px-3 py-1 bg-gray-300 text-gray-700 dark:text-gray-300 text-sm rounded hover:bg-gray-400"
             >
               Cancelar
             </button>
@@ -222,42 +222,42 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
           style={{ maxHeight: '600px' }}
         >
           <table className="w-full">
-            <thead className="bg-gray-50 sticky top-0 z-10">
+            <thead className="bg-gray-50 dark:bg-slate-800 sticky top-0 z-10">
               <tr>
                 <th className="px-4 py-3 text-center">
                   <input
                     type="checkbox"
                     checked={selectedIds.length === transactions.length}
                     onChange={handleSelectAll}
-                    className="rounded border-gray-300"
+                    className="rounded border-gray-300 dark:border-slate-600"
                   />
                 </th>
                 <th 
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('date')}
                 >
                   Fecha <SortIcon column="date" />
                 </th>
                 <th 
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('description')}
                 >
                   Descripción <SortIcon column="description" />
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Clasificación</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Tipo</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Categoría</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Clasificación</th>
                 <th 
-                  className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+                  className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('amount')}
                 >
                   Monto <SortIcon column="amount" />
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Deducible</th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Deducible</th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
               {rowVirtualizer.getVirtualItems().map((virtualRow) => {
                 const transaction = sortedTransactions[virtualRow.index];
                 return (
@@ -270,7 +270,7 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
                     type="checkbox"
                     checked={selectedIds.includes(transaction.id)}
                     onChange={() => handleSelectOne(transaction.id)}
-                    className="rounded border-gray-300"
+                    className="rounded border-gray-300 dark:border-slate-600"
                   />
                 </td>
                 
@@ -338,7 +338,7 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
                         type="checkbox"
                         checked={editForm.is_deductible === 1}
                         onChange={(e) => setEditForm({ ...editForm, is_deductible: e.target.checked ? 1 : 0 })}
-                        className="rounded border-gray-300"
+                        className="rounded border-gray-300 dark:border-slate-600"
                       />
                     </td>
                     <td className="px-4 py-3 text-sm text-center">
@@ -351,7 +351,7 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
                         </button>
                         <button
                           onClick={cancelEdit}
-                          className="text-gray-600 hover:text-gray-900 px-2"
+                          className="text-gray-600 dark:text-gray-400 hover:text-gray-900 px-2"
                         >
                           ✕
                         </button>
@@ -366,8 +366,8 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
                     <td className="px-4 py-3 text-sm">
                       <span className={`px-2 py-1 rounded-full text-xs ${
                         transaction.type === 'ingreso' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' 
+                          : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
                       }`}>
                         {transaction.type}
                       </span>
@@ -375,7 +375,7 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
                     <td className="px-4 py-3 text-sm">
                       <span className={`px-2 py-1 rounded-full text-xs ${
                         transaction.category === 'avanta' 
-                          ? 'bg-blue-100 text-blue-800' 
+                          ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300' 
                           : 'bg-gray-100 text-gray-800'
                       }`}>
                         {transaction.category}
@@ -384,9 +384,9 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
                     <td className="px-4 py-3 text-sm">
                       <span className={`px-2 py-1 rounded-full text-xs ${
                         transaction.transaction_type === 'business' 
-                          ? 'bg-purple-100 text-purple-800' 
+                          ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300' 
                           : transaction.transaction_type === 'transfer'
-                          ? 'bg-yellow-100 text-yellow-800'
+                          ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
                           : 'bg-gray-100 text-gray-800'
                       }`}>
                         {transaction.transaction_type === 'business' ? '💼 Negocio' : 
@@ -445,7 +445,7 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
               // Mobile Edit Mode
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs font-medium text-gray-600">Fecha</label>
+                  <label className="text-xs font-medium text-gray-600 dark:text-gray-400">Fecha</label>
                   <input
                     type="date"
                     value={editForm.date}
@@ -454,7 +454,7 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-600">Descripción</label>
+                  <label className="text-xs font-medium text-gray-600 dark:text-gray-400">Descripción</label>
                   <input
                     type="text"
                     value={editForm.description}
@@ -464,7 +464,7 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-xs font-medium text-gray-600">Tipo</label>
+                    <label className="text-xs font-medium text-gray-600 dark:text-gray-400">Tipo</label>
                     <select
                       value={editForm.type}
                       onChange={(e) => setEditForm({ ...editForm, type: e.target.value })}
@@ -475,7 +475,7 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-gray-600">Categoría</label>
+                    <label className="text-xs font-medium text-gray-600 dark:text-gray-400">Categoría</label>
                     <select
                       value={editForm.category}
                       onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
@@ -488,7 +488,7 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-xs font-medium text-gray-600">Monto</label>
+                    <label className="text-xs font-medium text-gray-600 dark:text-gray-400">Monto</label>
                     <input
                       type="number"
                       step="0.01"
@@ -503,7 +503,7 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
                         type="checkbox"
                         checked={editForm.is_deductible === 1}
                         onChange={(e) => setEditForm({ ...editForm, is_deductible: e.target.checked ? 1 : 0 })}
-                        className="rounded border-gray-300 mr-2"
+                        className="rounded border-gray-300 dark:border-slate-600 mr-2"
                       />
                       Deducible
                     </label>
@@ -512,13 +512,13 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
                 <div className="flex gap-2 mt-3">
                   <button
                     onClick={saveEdit}
-                    className="flex-1 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                    className="flex-1 bg-green-600 dark:bg-green-700 text-white px-4 py-2 rounded hover:bg-green-700"
                   >
                     Guardar
                   </button>
                   <button
                     onClick={cancelEdit}
-                    className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
+                    className="flex-1 bg-gray-300 text-gray-700 dark:text-gray-300 px-4 py-2 rounded hover:bg-gray-400"
                   >
                     Cancelar
                   </button>
@@ -533,11 +533,11 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
                       type="checkbox"
                       checked={selectedIds.includes(transaction.id)}
                       onChange={() => handleSelectOne(transaction.id)}
-                      className="rounded border-gray-300"
+                      className="rounded border-gray-300 dark:border-slate-600"
                     />
                     <div>
-                      <div className="font-medium text-gray-900">{transaction.description}</div>
-                      <div className="text-xs text-gray-500">{formatDate(transaction.date)}</div>
+                      <div className="font-medium text-gray-900 dark:text-gray-100">{transaction.description}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">{formatDate(transaction.date)}</div>
                     </div>
                   </div>
                   <div className={`text-lg font-bold ${
@@ -550,23 +550,23 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
                 <div className="flex items-center gap-2 mb-2 flex-wrap">
                   <span className={`px-2 py-0.5 rounded-full text-xs ${
                     transaction.type === 'ingreso' 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-red-100 text-red-800'
+                      ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' 
+                      : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
                   }`}>
                     {transaction.type}
                   </span>
                   <span className={`px-2 py-0.5 rounded-full text-xs ${
                     transaction.category === 'avanta' 
-                      ? 'bg-blue-100 text-blue-800' 
+                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300' 
                       : 'bg-gray-100 text-gray-800'
                   }`}>
                     {transaction.category}
                   </span>
                   <span className={`px-2 py-0.5 rounded-full text-xs ${
                     transaction.transaction_type === 'business' 
-                      ? 'bg-purple-100 text-purple-800' 
+                      ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300' 
                       : transaction.transaction_type === 'transfer'
-                      ? 'bg-yellow-100 text-yellow-800'
+                      ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
                       : 'bg-gray-100 text-gray-800'
                   }`}>
                     {transaction.transaction_type === 'business' ? '💼 Negocio' : 
@@ -574,7 +574,7 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
                      '👤 Personal'}
                   </span>
                   {transaction.is_deductible && (
-                    <span className="px-2 py-0.5 rounded-full text-xs bg-purple-100 text-purple-800">
+                    <span className="px-2 py-0.5 rounded-full text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300">
                       Deducible
                     </span>
                   )}
@@ -593,13 +593,13 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
                 <div className="flex gap-2 mt-2">
                   <button
                     onClick={() => startEdit(transaction)}
-                    className="flex-1 bg-blue-50 text-blue-700 px-3 py-1 rounded text-sm hover:bg-blue-100"
+                    className="flex-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 px-3 py-1 rounded text-sm hover:bg-blue-100 dark:bg-blue-900/30"
                   >
                     ✏️ Editar
                   </button>
                   <button
                     onClick={() => handleDelete(transaction.id)}
-                    className="flex-1 bg-red-50 text-red-700 px-3 py-1 rounded text-sm hover:bg-red-100"
+                    className="flex-1 bg-red-50 dark:bg-red-900/20 text-red-700 px-3 py-1 rounded text-sm hover:bg-red-100 dark:bg-red-900/30"
                   >
                     🗑️ Eliminar
                   </button>

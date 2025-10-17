@@ -319,7 +319,7 @@ function AuthenticatedApp() {
     <>
       <AnalyticsTracker />
       <ToastContainer />
-      <div className="min-h-screen bg-gray-100">
+      <div className="min-h-screen bg-gray-100 dark:bg-slate-900">
         <NavigationBar />
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
@@ -346,9 +346,9 @@ function AuthenticatedApp() {
           </div>
         </main>
 
-        <footer className="bg-white border-t mt-12">
+        <footer className="bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 mt-12">
           <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-            <p className="text-center text-gray-500 text-sm">
+            <p className="text-center text-gray-500 dark:text-gray-400 text-sm">
               © 2025 Avanta Design - Mateo Reyes González - San Andrés Cholula, Puebla
             </p>
           </div>

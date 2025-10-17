@@ -199,19 +199,19 @@ export default function ExportDialog({ transactions, filters, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-slate-900 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-6 border-b sticky top-0 bg-white">
+        <div className="p-6 border-b sticky top-0 bg-white dark:bg-slate-900">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold">Exportar Transacciones</h2>
             <button
               onClick={() => onClose(false)}
-              className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+              className="text-gray-500 dark:text-gray-400 hover:text-gray-700 text-2xl leading-none"
             >
               ×
             </button>
           </div>
-          <p className="text-sm text-gray-600 mt-2">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
             Exportando {transactions.length} transacción(es)
           </p>
         </div>
@@ -220,7 +220,7 @@ export default function ExportDialog({ transactions, filters, onClose }) {
         <div className="p-6 space-y-6">
           {/* Format selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Formato de exportación
             </label>
             <div className="grid grid-cols-2 gap-3">
@@ -234,7 +234,7 @@ export default function ExportDialog({ transactions, filters, onClose }) {
               >
                 <div className="text-2xl mb-1">📄</div>
                 <div className="font-medium">CSV</div>
-                <div className="text-xs text-gray-500">Compatible con Excel, Google Sheets</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Compatible con Excel, Google Sheets</div>
               </button>
               <button
                 onClick={() => setFormat('excel')}
@@ -246,7 +246,7 @@ export default function ExportDialog({ transactions, filters, onClose }) {
               >
                 <div className="text-2xl mb-1">📊</div>
                 <div className="font-medium">Excel</div>
-                <div className="text-xs text-gray-500">Archivo .xlsx con formato</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Archivo .xlsx con formato</div>
               </button>
             </div>
           </div>
@@ -258,9 +258,9 @@ export default function ExportDialog({ transactions, filters, onClose }) {
                 type="checkbox"
                 checked={includeMetadata}
                 onChange={(e) => setIncludeMetadata(e.target.checked)}
-                className="rounded border-gray-300"
+                className="rounded border-gray-300 dark:border-slate-600"
               />
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Incluir metadatos (fecha de exportación, filtros aplicados)
               </span>
             </label>
@@ -269,19 +269,19 @@ export default function ExportDialog({ transactions, filters, onClose }) {
           {/* Field selection */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Campos a exportar ({selectedCount} seleccionados)
               </label>
               <div className="flex gap-2">
                 <button
                   onClick={handleSelectDefault}
-                  className="text-xs text-blue-600 hover:text-blue-800"
+                  className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-300"
                 >
                   Por defecto
                 </button>
                 <button
                   onClick={handleSelectAll}
-                  className="text-xs text-blue-600 hover:text-blue-800"
+                  className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-300"
                 >
                   Seleccionar todos
                 </button>
@@ -294,19 +294,19 @@ export default function ExportDialog({ transactions, filters, onClose }) {
                     type="checkbox"
                     checked={selectedFields[field.key]}
                     onChange={() => handleFieldToggle(field.key)}
-                    className="rounded border-gray-300"
+                    className="rounded border-gray-300 dark:border-slate-600"
                   />
-                  <span className="text-sm text-gray-700">{field.label}</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">{field.label}</span>
                 </label>
               ))}
             </div>
           </div>
 
           {/* Preview info */}
-          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 rounded-lg">
             <div className="flex items-start gap-2">
               <span className="text-blue-600 text-lg">ℹ️</span>
-              <div className="text-sm text-blue-800">
+              <div className="text-sm text-blue-800 dark:text-blue-300">
                 <strong>Archivo a generar:</strong> {generateFilename()}
                 <br />
                 <strong>Registros:</strong> {transactions.length}
@@ -318,18 +318,18 @@ export default function ExportDialog({ transactions, filters, onClose }) {
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t bg-gray-50 flex gap-3 justify-end">
+        <div className="p-6 border-t bg-gray-50 dark:bg-slate-800 flex gap-3 justify-end">
           <button
             onClick={() => onClose(false)}
             disabled={exporting}
-            className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50"
+            className="px-6 py-2 border border-gray-300 dark:border-slate-600 rounded-md hover:bg-gray-100 disabled:opacity-50"
           >
             Cancelar
           </button>
           <button
             onClick={handleExport}
             disabled={exporting || selectedCount === 0}
-            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-6 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {exporting ? (
               <>

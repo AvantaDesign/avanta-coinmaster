@@ -177,7 +177,7 @@ export default function CSVImport({ onSuccess, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-slate-900 rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         {/* Show mapper if in custom mode */}
         {showMapper ? (
           <div className="p-6">
@@ -192,12 +192,12 @@ export default function CSVImport({ onSuccess, onClose }) {
           </div>
         ) : (
           <>
-            <div className="p-6 border-b sticky top-0 bg-white z-10">
+            <div className="p-6 border-b sticky top-0 bg-white dark:bg-slate-900 z-10">
               <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold">Importar CSV de Banco</h2>
                 <button
                   onClick={onClose}
-                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                  className="text-gray-500 dark:text-gray-400 hover:text-gray-700 text-2xl"
                 >
                   ✕
                 </button>
@@ -231,11 +231,11 @@ export default function CSVImport({ onSuccess, onClose }) {
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 transition"
+                className="border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 transition"
               >
                 <div className="text-4xl mb-2">📄</div>
                 <p className="text-lg font-medium mb-1">Arrastra tu archivo CSV aquí</p>
-                <p className="text-sm text-gray-600">o haz clic para seleccionar</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">o haz clic para seleccionar</p>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -248,17 +248,17 @@ export default function CSVImport({ onSuccess, onClose }) {
 
             {/* Selected File */}
             {file && !parseResult && (
-              <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">📄 {file.name}</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       {(file.size / 1024).toFixed(2)} KB
                     </p>
                   </div>
                   <button
                     onClick={() => setFile(null)}
-                    className="text-red-600 hover:text-red-800"
+                    className="text-red-600 hover:text-red-800 dark:text-red-300"
                   >
                     Eliminar
                   </button>
@@ -266,7 +266,7 @@ export default function CSVImport({ onSuccess, onClose }) {
                 <button
                   onClick={parseFile}
                   disabled={loading}
-                  className="mt-4 w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+                  className="mt-4 w-full bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 disabled:bg-gray-400"
                 >
                   {loading ? 'Analizando...' : 'Analizar CSV'}
                 </button>
@@ -276,7 +276,7 @@ export default function CSVImport({ onSuccess, onClose }) {
 
           {/* Error Display */}
           {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 text-red-700 px-4 py-3 rounded">
               <p className="font-semibold">❌ Error</p>
               <p className="text-sm whitespace-pre-line">{error}</p>
             </div>
@@ -290,25 +290,25 @@ export default function CSVImport({ onSuccess, onClose }) {
               </h3>
 
               {/* Summary */}
-              <div className="bg-blue-50 p-4 rounded-lg mb-4">
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mb-4">
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
                     <p className="text-2xl font-bold text-blue-600">
                       {parseResult.validation.totalCount}
                     </p>
-                    <p className="text-sm text-gray-600">Total</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Total</p>
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-green-600">
                       {parseResult.validation.validCount}
                     </p>
-                    <p className="text-sm text-gray-600">Válidas</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Válidas</p>
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-red-600">
                       {parseResult.validation.invalidCount}
                     </p>
-                    <p className="text-sm text-gray-600">Con Errores</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Con Errores</p>
                   </div>
                 </div>
               </div>
@@ -316,7 +316,7 @@ export default function CSVImport({ onSuccess, onClose }) {
               {/* Transactions Table */}
               <div className="overflow-x-auto border rounded-lg max-h-96 overflow-y-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-50 sticky top-0">
+                  <thead className="bg-gray-50 dark:bg-slate-800 sticky top-0">
                     <tr>
                       <th className="px-3 py-2 text-left">#</th>
                       <th className="px-3 py-2 text-left">Fecha</th>
@@ -396,7 +396,7 @@ export default function CSVImport({ onSuccess, onClose }) {
                 <button
                   onClick={importTransactions}
                   disabled={!parseResult.validation.allValid || importing}
-                  className="flex-1 bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 disabled:bg-gray-400"
+                  className="flex-1 bg-green-600 dark:bg-green-700 text-white px-6 py-2 rounded-md hover:bg-green-700 disabled:bg-gray-400"
                 >
                   {importing
                     ? `Importando... ${importProgress.current}/${importProgress.total}`
@@ -408,15 +408,15 @@ export default function CSVImport({ onSuccess, onClose }) {
 
           {/* Help Section */}
           {!parseResult && (
-            <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-lg">
               <h4 className="font-semibold mb-2">💡 Formatos Soportados:</h4>
-              <ul className="text-sm space-y-1 text-gray-700">
+              <ul className="text-sm space-y-1 text-gray-700 dark:text-gray-300">
                 <li>• <strong>BBVA:</strong> Fecha, Descripción, Cargo, Abono, Saldo</li>
                 <li>• <strong>Azteca:</strong> Fecha, Concepto, Retiro, Depósito, Saldo</li>
                 <li>• <strong>Genérico:</strong> Cualquier CSV con columnas de fecha, descripción y monto</li>
               </ul>
-              <p className="text-sm text-gray-600 mt-2">
-                Los archivos de ejemplo están en la carpeta <code className="bg-gray-200 px-1 rounded">samples/</code>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                Los archivos de ejemplo están en la carpeta <code className="bg-gray-200 dark:bg-slate-700 px-1 rounded">samples/</code>
               </p>
             </div>
           )}

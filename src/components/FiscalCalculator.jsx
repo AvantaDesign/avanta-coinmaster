@@ -116,7 +116,7 @@ export default function FiscalCalculator() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
         <h2 className="text-2xl font-bold mb-4">Calculadora Fiscal</h2>
         
         {/* Period Selection */}
@@ -187,7 +187,7 @@ export default function FiscalCalculator() {
             <button
               onClick={loadFiscalData}
               disabled={loading}
-              className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
+              className="w-full bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50"
             >
               {loading ? 'Calculando...' : 'Calcular'}
             </button>
@@ -197,26 +197,26 @@ export default function FiscalCalculator() {
         {/* Summary Statistics */}
         {!loading && fiscalData && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-green-50 p-3 rounded-lg">
-              <div className="text-xs text-gray-600">Ingresos</div>
+            <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
+              <div className="text-xs text-gray-600 dark:text-gray-400">Ingresos</div>
               <div className="text-lg font-bold text-green-700">
                 {formatCurrency(fiscalData.businessIncome)}
               </div>
             </div>
-            <div className="bg-red-50 p-3 rounded-lg">
-              <div className="text-xs text-gray-600">Gastos</div>
+            <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
+              <div className="text-xs text-gray-600 dark:text-gray-400">Gastos</div>
               <div className="text-lg font-bold text-red-700">
                 {formatCurrency(fiscalData.businessExpenses)}
               </div>
             </div>
-            <div className="bg-blue-50 p-3 rounded-lg">
-              <div className="text-xs text-gray-600">Deducibles</div>
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+              <div className="text-xs text-gray-600 dark:text-gray-400">Deducibles</div>
               <div className="text-lg font-bold text-blue-700">
                 {formatCurrency(fiscalData.deductibleExpenses)}
               </div>
             </div>
             <div className="bg-purple-50 p-3 rounded-lg">
-              <div className="text-xs text-gray-600">Utilidad</div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">Utilidad</div>
               <div className="text-lg font-bold text-purple-700">
                 {formatCurrency(fiscalData.utilidad)}
               </div>
@@ -232,18 +232,18 @@ export default function FiscalCalculator() {
 
       {/* Loading State */}
       {loading && (
-        <div className="bg-white p-6 rounded-lg shadow-md text-center">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md text-center">
           <div className="animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-1/4 mx-auto mb-4"></div>
-            <div className="h-8 bg-gray-200 rounded w-1/2 mx-auto"></div>
+            <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-1/4 mx-auto mb-4"></div>
+            <div className="h-8 bg-gray-200 dark:bg-slate-700 rounded w-1/2 mx-auto"></div>
           </div>
         </div>
       )}
 
       {/* Transaction Count */}
       {!loading && fiscalData && transactions.length > 0 && (
-        <div className="bg-white p-4 rounded-lg shadow-md">
-          <div className="flex items-center justify-between text-sm text-gray-600">
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-lg shadow-md">
+          <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
             <span>Transacciones analizadas: {transactions.length}</span>
             <span>
               {fiscalData.deductiblePercentage !== undefined && 

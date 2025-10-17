@@ -114,18 +114,18 @@ export default function InvoiceLinker({ transaction, onClose, onLinked }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200">
+      <div className="bg-white dark:bg-slate-900 rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b border-gray-200 dark:border-slate-700">
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-2xl font-bold">Vincular Facturas (CFDIs)</h2>
-              <p className="text-gray-600 mt-1">
+              <p className="text-gray-600 dark:text-gray-400 mt-1">
                 Transacción: {transaction.description} - {formatCurrency(transaction.amount)}
               </p>
             </div>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 text-2xl"
+              className="text-gray-500 dark:text-gray-400 hover:text-gray-700 text-2xl"
             >
               ✕
             </button>
@@ -133,11 +133,11 @@ export default function InvoiceLinker({ transaction, onClose, onLinked }) {
 
           {/* Summary */}
           <div className="mt-4 grid grid-cols-3 gap-4">
-            <div className="bg-blue-50 p-3 rounded-lg">
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
               <p className="text-sm text-blue-600">Monto Transacción</p>
               <p className="text-lg font-bold text-blue-900">{formatCurrency(transaction.amount)}</p>
             </div>
-            <div className="bg-green-50 p-3 rounded-lg">
+            <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
               <p className="text-sm text-green-600">Total Vinculado</p>
               <p className="text-lg font-bold text-green-900">{formatCurrency(totalLinked)}</p>
             </div>
@@ -152,7 +152,7 @@ export default function InvoiceLinker({ transaction, onClose, onLinked }) {
 
         <div className="p-6">
           {/* Tabs */}
-          <div className="border-b border-gray-200 mb-6">
+          <div className="border-b border-gray-200 dark:border-slate-700 mb-6">
             <nav className="flex space-x-4">
               <button
                 onClick={() => setActiveTab('available')}
@@ -186,14 +186,14 @@ export default function InvoiceLinker({ transaction, onClose, onLinked }) {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Buscar por UUID o RFC..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
 
               {/* Invoice List */}
               {loading ? (
                 <div className="text-center py-8">Cargando facturas...</div>
               ) : filteredInvoices.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                   No hay facturas disponibles para vincular
                 </div>
               ) : (
@@ -210,20 +210,20 @@ export default function InvoiceLinker({ transaction, onClose, onLinked }) {
                     >
                       <div className="flex justify-between items-start mb-2">
                         <div className="flex-1">
-                          <p className="font-semibold text-gray-900">UUID: {invoice.uuid}</p>
-                          <p className="text-sm text-gray-600">
+                          <p className="font-semibold text-gray-900 dark:text-gray-100">UUID: {invoice.uuid}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
                             Emisor: {invoice.rfc_emisor} → Receptor: {invoice.rfc_receptor}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-lg font-bold text-gray-900">
+                          <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
                             {formatCurrency(invoice.total)}
                           </p>
-                          <p className="text-sm text-gray-600">{formatDate(invoice.date)}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{formatDate(invoice.date)}</p>
                         </div>
                       </div>
                       <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-600">
+                        <span className="text-gray-600 dark:text-gray-400">
                           Subtotal: {formatCurrency(invoice.subtotal)} + IVA: {formatCurrency(invoice.iva)}
                         </span>
                         {selectedInvoice?.id === invoice.id && (
@@ -241,7 +241,7 @@ export default function InvoiceLinker({ transaction, onClose, onLinked }) {
                   <h3 className="font-semibold mb-4">Detalles de Vinculación</h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Monto a vincular (opcional)
                       </label>
                       <input
@@ -249,29 +249,29 @@ export default function InvoiceLinker({ transaction, onClose, onLinked }) {
                         value={linkAmount}
                         onChange={(e) => setLinkAmount(e.target.value)}
                         placeholder={transaction.amount.toString()}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500"
                       />
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         Dejar vacío para vincular el monto completo de la transacción
                       </p>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Notas (opcional)
                       </label>
                       <textarea
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
                         rows="2"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500"
                         placeholder="Agregar notas sobre esta vinculación..."
                       />
                     </div>
 
                     <button
                       onClick={handleLink}
-                      className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                      className="w-full px-6 py-3 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600"
                     >
                       Vincular Factura
                     </button>
@@ -285,39 +285,39 @@ export default function InvoiceLinker({ transaction, onClose, onLinked }) {
           {activeTab === 'linked' && (
             <div>
               {linkedInvoices.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                   No hay facturas vinculadas a esta transacción
                 </div>
               ) : (
                 <div className="space-y-3">
                   {linkedInvoices.map((invoice) => (
-                    <div key={invoice.link_id} className="border border-gray-200 rounded-lg p-4">
+                    <div key={invoice.link_id} className="border border-gray-200 dark:border-slate-700 rounded-lg p-4">
                       <div className="flex justify-between items-start mb-2">
                         <div className="flex-1">
-                          <p className="font-semibold text-gray-900">UUID: {invoice.uuid}</p>
-                          <p className="text-sm text-gray-600">
+                          <p className="font-semibold text-gray-900 dark:text-gray-100">UUID: {invoice.uuid}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
                             Emisor: {invoice.rfc_emisor} → Receptor: {invoice.rfc_receptor}
                           </p>
                           {invoice.link_notes && (
-                            <p className="text-sm text-gray-500 mt-1">
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                               <strong>Notas:</strong> {invoice.link_notes}
                             </p>
                           )}
                         </div>
                         <div className="text-right">
-                          <p className="text-lg font-bold text-gray-900">
+                          <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
                             {formatCurrency(invoice.link_amount || invoice.total)}
                           </p>
-                          <p className="text-sm text-gray-600">{formatDate(invoice.date)}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{formatDate(invoice.date)}</p>
                         </div>
                       </div>
                       <div className="flex justify-between items-center pt-3 border-t">
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
                           Vinculado: {formatDate(invoice.link_created_at)}
                         </span>
                         <button
                           onClick={() => handleUnlink(invoice.link_id)}
-                          className="text-red-600 hover:text-red-800 text-sm font-semibold"
+                          className="text-red-600 hover:text-red-800 dark:text-red-300 text-sm font-semibold"
                         >
                           Desvincular
                         </button>
@@ -330,10 +330,10 @@ export default function InvoiceLinker({ transaction, onClose, onLinked }) {
           )}
         </div>
 
-        <div className="p-6 border-t border-gray-200 flex justify-end">
+        <div className="p-6 border-t border-gray-200 dark:border-slate-700 flex justify-end">
           <button
             onClick={onClose}
-            className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+            className="px-6 py-2 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300"
           >
             Cerrar
           </button>

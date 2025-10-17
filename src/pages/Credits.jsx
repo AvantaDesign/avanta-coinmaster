@@ -144,53 +144,53 @@ export default function Credits() {
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-slate-900 rounded-lg shadow p-6">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-gray-600">Saldo Total</h3>
+              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">Saldo Total</h3>
               <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
               </svg>
             </div>
-            <p className="text-3xl font-bold text-gray-900">{formatCurrency(totalBalance)}</p>
-            <p className="text-sm text-gray-500 mt-1">{credits.length} crédito{credits.length !== 1 ? 's' : ''} activo{credits.length !== 1 ? 's' : ''}</p>
+            <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(totalBalance)}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{credits.length} crédito{credits.length !== 1 ? 's' : ''} activo{credits.length !== 1 ? 's' : ''}</p>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-slate-900 rounded-lg shadow p-6">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-gray-600">Crédito Disponible</h3>
+              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">Crédito Disponible</h3>
               <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <p className="text-3xl font-bold text-gray-900">{formatCurrency(totalAvailable)}</p>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(totalAvailable)}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               de {formatCurrency(totalLimit)} límite total
             </p>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-slate-900 rounded-lg shadow p-6">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-gray-600">Utilización</h3>
+              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">Utilización</h3>
               <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             </div>
-            <p className="text-3xl font-bold text-gray-900">
+            <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
               {totalLimit > 0 ? ((totalBalance / totalLimit) * 100).toFixed(1) : 0}%
             </p>
-            <p className="text-sm text-gray-500 mt-1">del crédito total</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">del crédito total</p>
           </div>
         </div>
 
         {/* Toolbar */}
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
+        <div className="bg-white dark:bg-slate-900 rounded-lg shadow p-4 mb-6">
           <div className="flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0">
             <div className="flex items-center space-x-3">
               {/* Filter by type */}
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
-                className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="border border-gray-300 dark:border-slate-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="all">Todos los tipos</option>
                 <option value="credit_card">Tarjetas de Crédito</option>
@@ -202,7 +202,7 @@ export default function Credits() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="border border-gray-300 dark:border-slate-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="name">Ordenar por Nombre</option>
                 <option value="balance">Ordenar por Saldo</option>
@@ -216,7 +216,7 @@ export default function Credits() {
                 setSelectedCredit(null);
                 setShowCreateForm(true);
               }}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+              className="px-6 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center"
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -228,12 +228,12 @@ export default function Credits() {
 
         {/* Credits Grid */}
         {filteredCredits.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-12 text-center">
+          <div className="bg-white dark:bg-slate-900 rounded-lg shadow p-12 text-center">
             <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
             </svg>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No tienes créditos registrados</h3>
-            <p className="text-gray-600 mb-6">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">No tienes créditos registrados</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
               {filterType === 'all' 
                 ? 'Comienza agregando tu primera tarjeta de crédito, préstamo o hipoteca'
                 : 'No tienes créditos de este tipo registrados'}
@@ -241,7 +241,7 @@ export default function Credits() {
             {filterType === 'all' && (
               <button
                 onClick={() => setShowCreateForm(true)}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-6 py-3 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
               >
                 Agregar Primer Crédito
               </button>
@@ -374,10 +374,10 @@ function CreditFormModal({ credit, onSubmit, onCancel }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-slate-900 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-xl font-semibold text-gray-900">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
             {credit ? 'Editar Crédito' : 'Agregar Nuevo Crédito'}
           </h3>
         </div>
@@ -386,7 +386,7 @@ function CreditFormModal({ credit, onSubmit, onCancel }) {
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Errors */}
           {errors.length > 0 && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 rounded-lg p-4">
               <ul className="list-disc list-inside text-sm text-red-700 space-y-1">
                 {errors.map((error, idx) => (
                   <li key={idx}>{error}</li>
@@ -397,7 +397,7 @@ function CreditFormModal({ credit, onSubmit, onCancel }) {
 
           {/* Name */}
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Nombre del Crédito *
             </label>
             <input
@@ -406,14 +406,14 @@ function CreditFormModal({ credit, onSubmit, onCancel }) {
               value={formData.name}
               onChange={(e) => handleChange('name', e.target.value)}
               placeholder="Ej. BBVA Platino, Santander Auto, Hipoteca Infonavit"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               maxLength={100}
             />
           </div>
 
           {/* Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Tipo de Crédito *
             </label>
             <div className="grid grid-cols-3 gap-3">
@@ -440,11 +440,11 @@ function CreditFormModal({ credit, onSubmit, onCancel }) {
 
           {/* Credit Limit */}
           <div>
-            <label htmlFor="credit_limit" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="credit_limit" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Límite de Crédito {formData.type === 'credit_card' ? '*' : '(Opcional)'}
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-2 text-gray-500">$</span>
+              <span className="absolute left-3 top-2 text-gray-500 dark:text-gray-400">$</span>
               <input
                 type="number"
                 id="credit_limit"
@@ -453,14 +453,14 @@ function CreditFormModal({ credit, onSubmit, onCancel }) {
                 placeholder="0.00"
                 step="0.01"
                 min="0"
-                className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-8 pr-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
           </div>
 
           {/* Interest Rate */}
           <div>
-            <label htmlFor="interest_rate" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="interest_rate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Tasa de Interés Anual (Opcional)
             </label>
             <div className="relative">
@@ -473,15 +473,15 @@ function CreditFormModal({ credit, onSubmit, onCancel }) {
                 step="0.01"
                 min="0"
                 max="100"
-                className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pr-10 pl-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
-              <span className="absolute right-3 top-2 text-gray-500">%</span>
+              <span className="absolute right-3 top-2 text-gray-500 dark:text-gray-400">%</span>
             </div>
           </div>
 
           {/* Statement Day */}
           <div>
-            <label htmlFor="statement_day" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="statement_day" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Día de Corte (Opcional)
             </label>
             <input
@@ -492,13 +492,13 @@ function CreditFormModal({ credit, onSubmit, onCancel }) {
               placeholder="Día del mes (1-31)"
               min="1"
               max="31"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
           {/* Payment Due Day */}
           <div>
-            <label htmlFor="payment_due_day" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="payment_due_day" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Día de Pago (Opcional)
             </label>
             <input
@@ -509,7 +509,7 @@ function CreditFormModal({ credit, onSubmit, onCancel }) {
               placeholder="Día del mes (1-31)"
               min="1"
               max="31"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
@@ -519,14 +519,14 @@ function CreditFormModal({ credit, onSubmit, onCancel }) {
               type="button"
               onClick={onCancel}
               disabled={isSubmitting}
-              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+              className="px-6 py-2 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+              className="px-6 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors disabled:opacity-50"
             >
               {isSubmitting ? 'Guardando...' : credit ? 'Actualizar' : 'Crear Crédito'}
             </button>

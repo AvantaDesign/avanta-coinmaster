@@ -43,19 +43,19 @@ function BudgetCard({ budget, onEdit, onDelete }) {
           <div className="flex-1">
             <div className="flex items-center mb-2">
               <span className="text-2xl mr-2">{statusIcon}</span>
-              <h3 className="text-lg font-bold text-gray-900">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                 {budget.category_name || 'General'}
               </h3>
             </div>
             <div className="flex items-center space-x-3 text-sm">
               <span className={`px-2 py-1 rounded-full ${
                 budget.classification === 'business' 
-                  ? 'bg-blue-100 text-blue-800' 
-                  : 'bg-purple-100 text-purple-800'
+                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300' 
+                  : 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300'
               }`}>
                 {getClassificationLabel(budget.classification)}
               </span>
-              <span className="text-gray-600">
+              <span className="text-gray-600 dark:text-gray-400">
                 {formatBudgetPeriod(budget)}
               </span>
             </div>
@@ -64,7 +64,7 @@ function BudgetCard({ budget, onEdit, onDelete }) {
           <div className="flex space-x-2">
             <button
               onClick={onEdit}
-              className="text-blue-600 hover:text-blue-800 p-2"
+              className="text-blue-600 hover:text-blue-800 dark:text-blue-300 p-2"
               title="Editar"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,7 +73,7 @@ function BudgetCard({ budget, onEdit, onDelete }) {
             </button>
             <button
               onClick={onDelete}
-              className="text-red-600 hover:text-red-800 p-2"
+              className="text-red-600 hover:text-red-800 dark:text-red-300 p-2"
               title="Eliminar"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,19 +86,19 @@ function BudgetCard({ budget, onEdit, onDelete }) {
         {/* Amounts */}
         <div className="space-y-3 mb-4">
           <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600">Presupuestado:</span>
-            <span className="text-lg font-semibold text-gray-900">
+            <span className="text-sm text-gray-600 dark:text-gray-400">Presupuestado:</span>
+            <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               {formatCurrency(budget.amount)}
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600">Gastado:</span>
-            <span className="text-lg font-semibold text-gray-900">
+            <span className="text-sm text-gray-600 dark:text-gray-400">Gastado:</span>
+            <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               {formatCurrency(budget.actual)}
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600">Restante:</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">Restante:</span>
             <span className={`text-lg font-semibold ${
               budget.remaining >= 0 ? 'text-green-600' : 'text-red-600'
             }`}>
@@ -110,7 +110,7 @@ function BudgetCard({ budget, onEdit, onDelete }) {
         {/* Progress Bar */}
         <div className="mb-4">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-gray-700">Uso del presupuesto</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Uso del presupuesto</span>
             <span className={`text-sm font-bold ${
               percentUsed >= 100 ? 'text-red-600' :
               percentUsed >= 90 ? 'text-orange-600' :
@@ -120,7 +120,7 @@ function BudgetCard({ budget, onEdit, onDelete }) {
               {percentUsed.toFixed(1)}%
             </span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+          <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
             <div
               className={`h-3 rounded-full transition-all duration-300 ${getProgressBarColor(statusColor)}`}
               style={{ width: `${Math.min(percentUsed, 100)}%` }}
@@ -130,7 +130,7 @@ function BudgetCard({ budget, onEdit, onDelete }) {
 
         {/* Status Message */}
         {status === 'exceeded' && (
-          <div className="bg-red-100 border border-red-300 text-red-800 px-3 py-2 rounded text-sm">
+          <div className="bg-red-100 dark:bg-red-900/30 border border-red-300 text-red-800 dark:text-red-300 px-3 py-2 rounded text-sm">
             ⚠️ Presupuesto excedido por {formatCurrency(Math.abs(budget.remaining))}
           </div>
         )}
@@ -140,26 +140,26 @@ function BudgetCard({ budget, onEdit, onDelete }) {
           </div>
         )}
         {status === 'caution' && (
-          <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 px-3 py-2 rounded text-sm">
+          <div className="bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-300 text-yellow-800 dark:text-yellow-300 px-3 py-2 rounded text-sm">
             ℹ️ Monitorear el gasto en esta categoría
           </div>
         )}
         {status === 'good' && (
-          <div className="bg-green-100 border border-green-300 text-green-800 px-3 py-2 rounded text-sm">
+          <div className="bg-green-100 dark:bg-green-900/30 border border-green-300 text-green-800 dark:text-green-300 px-3 py-2 rounded text-sm">
             ✓ Presupuesto bajo control
           </div>
         )}
       </div>
 
       {/* Footer with Transaction Count */}
-      <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
+      <div className="bg-gray-50 dark:bg-slate-800 px-6 py-3 border-t border-gray-200 dark:border-slate-700">
         <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-600">
+          <span className="text-gray-600 dark:text-gray-400">
             {budget.transaction_count || 0} transacciones
           </span>
           {budget.notes && (
             <button
-              className="text-blue-600 hover:text-blue-800"
+              className="text-blue-600 hover:text-blue-800 dark:text-blue-300"
               title={budget.notes}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

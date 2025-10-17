@@ -28,9 +28,9 @@ export default function CreditCard({ credit, onEdit, onDelete, onAddMovement, on
   // Get card gradient based on type
   const getCardGradient = (type) => {
     const gradients = {
-      credit_card: 'from-blue-500 to-blue-700',
-      loan: 'from-green-500 to-green-700',
-      mortgage: 'from-purple-500 to-purple-700'
+      credit_card: 'from-blue-500 dark:from-blue-600 to-blue-700',
+      loan: 'from-green-500 dark:from-green-600 to-green-700',
+      mortgage: 'from-purple-500 dark:from-purple-600 to-purple-700'
     };
     return gradients[type] || 'from-gray-500 to-gray-700';
   };
@@ -41,8 +41,8 @@ export default function CreditCard({ credit, onEdit, onDelete, onAddMovement, on
       <div className={`bg-gradient-to-br ${getCardGradient(credit.type)} rounded-xl shadow-lg p-6 text-white relative overflow-hidden`}>
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute -right-10 -top-10 w-40 h-40 bg-white rounded-full"></div>
-          <div className="absolute -left-10 -bottom-10 w-32 h-32 bg-white rounded-full"></div>
+          <div className="absolute -right-10 -top-10 w-40 h-40 bg-white dark:bg-slate-900 rounded-full"></div>
+          <div className="absolute -left-10 -bottom-10 w-32 h-32 bg-white dark:bg-slate-900 rounded-full"></div>
         </div>
         
         {/* Card Content */}
@@ -92,7 +92,7 @@ export default function CreditCard({ credit, onEdit, onDelete, onAddMovement, on
               </div>
               <div className="w-full bg-white/20 rounded-full h-2">
                 <div
-                  className="bg-white rounded-full h-2 transition-all duration-500"
+                  className="bg-white dark:bg-slate-900 rounded-full h-2 transition-all duration-500"
                   style={{ width: `${Math.min(utilization, 100)}%` }}
                 ></div>
               </div>
@@ -127,7 +127,7 @@ export default function CreditCard({ credit, onEdit, onDelete, onAddMovement, on
 
       {/* Action Menu */}
       {showActions && (
-        <div className="absolute right-0 top-16 z-20 bg-white rounded-lg shadow-xl border border-gray-200 py-2 w-48">
+        <div className="absolute right-0 top-16 z-20 bg-white dark:bg-slate-900 rounded-lg shadow-xl border border-gray-200 dark:border-slate-700 py-2 w-48">
           <button
             onClick={() => {
               setShowActions(false);
@@ -135,7 +135,7 @@ export default function CreditCard({ credit, onEdit, onDelete, onAddMovement, on
             }}
             className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center"
           >
-            <svg className="w-5 h-5 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 mr-2 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
@@ -185,7 +185,7 @@ export default function CreditCard({ credit, onEdit, onDelete, onAddMovement, on
       {/* Warning Badge */}
       {daysUntilPayment !== null && daysUntilPayment <= 3 && (
         <div className="absolute -top-2 -right-2 z-10">
-          <div className={`px-3 py-1 rounded-full text-xs font-bold text-white ${daysUntilPayment < 0 ? 'bg-red-600' : 'bg-orange-500'}`}>
+          <div className={`px-3 py-1 rounded-full text-xs font-bold text-white ${daysUntilPayment < 0 ? 'bg-red-600 dark:bg-red-700' : 'bg-orange-500'}`}>
             {daysUntilPayment < 0 ? '¡Vencido!' : `${daysUntilPayment} días`}
           </div>
         </div>

@@ -116,13 +116,13 @@ export default function CustomizableDashboard({ dashboardData = {} }) {
             <>
               <button
                 onClick={resetToDefault}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+                className="px-4 py-2 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300"
               >
                 🔄 Restaurar
               </button>
               <button
                 onClick={saveAndExit}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-600"
               >
                 💾 Guardar
               </button>
@@ -146,7 +146,7 @@ export default function CustomizableDashboard({ dashboardData = {} }) {
 
       {/* Customization Panel */}
       {isCustomizing && (
-        <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6">
+        <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 rounded-lg p-6">
           <h3 className="text-lg font-bold mb-4">➕ Agregar Widgets</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
             {AVAILABLE_WIDGETS.map(widget => (
@@ -157,7 +157,7 @@ export default function CustomizableDashboard({ dashboardData = {} }) {
                 className={`p-3 rounded-lg text-center transition-colors ${
                   activeWidgets.includes(widget.id)
                     ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                    : 'bg-white hover:bg-blue-100 border-2 border-blue-300'
+                    : 'bg-white hover:bg-blue-100 dark:bg-blue-900/30 border-2 border-blue-300'
                 }`}
               >
                 <div className="text-2xl mb-1">{widget.icon}</div>
@@ -182,7 +182,7 @@ export default function CustomizableDashboard({ dashboardData = {} }) {
                   <button
                     onClick={() => moveWidget(widgetId, 'up')}
                     disabled={index === 0}
-                    className="w-8 h-8 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-8 h-8 bg-blue-600 dark:bg-blue-700 text-white rounded-full hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Mover arriba"
                   >
                     ↑
@@ -190,14 +190,14 @@ export default function CustomizableDashboard({ dashboardData = {} }) {
                   <button
                     onClick={() => moveWidget(widgetId, 'down')}
                     disabled={index === activeWidgets.length - 1}
-                    className="w-8 h-8 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-8 h-8 bg-blue-600 dark:bg-blue-700 text-white rounded-full hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Mover abajo"
                   >
                     ↓
                   </button>
                   <button
                     onClick={() => removeWidget(widgetId)}
-                    className="w-8 h-8 bg-red-600 text-white rounded-full hover:bg-red-700"
+                    className="w-8 h-8 bg-red-600 dark:bg-red-700 text-white rounded-full hover:bg-red-700"
                     title="Eliminar"
                   >
                     ✕
@@ -220,17 +220,17 @@ export default function CustomizableDashboard({ dashboardData = {} }) {
 
       {/* Empty State */}
       {activeWidgets.length === 0 && (
-        <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
+        <div className="bg-gray-50 dark:bg-slate-800 border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-lg p-12 text-center">
           <div className="text-6xl mb-4">📊</div>
-          <h3 className="text-xl font-bold text-gray-600 mb-2">
+          <h3 className="text-xl font-bold text-gray-600 dark:text-gray-400 mb-2">
             Dashboard vacío
           </h3>
-          <p className="text-gray-500 mb-4">
+          <p className="text-gray-500 dark:text-gray-400 mb-4">
             Agrega widgets para personalizar tu dashboard
           </p>
           <button
             onClick={() => setIsCustomizing(true)}
-            className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="px-6 py-3 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-600"
           >
             ➕ Agregar Widgets
           </button>
@@ -292,19 +292,19 @@ function BalanceWidget({ data }) {
   return (
     <div className="grid grid-cols-3 gap-4">
       <div className="text-center">
-        <div className="text-sm text-gray-600 mb-1">Balance</div>
+        <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Balance</div>
         <div className={`text-2xl font-bold ${balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
           {formatCurrency(balance)}
         </div>
       </div>
       <div className="text-center">
-        <div className="text-sm text-gray-600 mb-1">Ingresos</div>
+        <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Ingresos</div>
         <div className="text-2xl font-bold text-green-600">
           {formatCurrency(income)}
         </div>
       </div>
       <div className="text-center">
-        <div className="text-sm text-gray-600 mb-1">Gastos</div>
+        <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Gastos</div>
         <div className="text-2xl font-bold text-red-600">
           {formatCurrency(expenses)}
         </div>
@@ -323,7 +323,7 @@ function IncomeExpenseWidget({ data }) {
   })) || [];
 
   if (chartData.length === 0) {
-    return <div className="text-gray-500 text-center py-4">No hay datos</div>;
+    return <div className="text-gray-500 dark:text-gray-400 text-center py-4">No hay datos</div>;
   }
 
   return <InteractiveCharts data={chartData} type="comparison" />;
@@ -336,7 +336,7 @@ function CategoryBreakdownWidget({ data }) {
   })) || [];
 
   if (chartData.length === 0) {
-    return <div className="text-gray-500 text-center py-4">No hay datos</div>;
+    return <div className="text-gray-500 dark:text-gray-400 text-center py-4">No hay datos</div>;
   }
 
   return <InteractiveCharts data={chartData} type="donut" />;
@@ -346,7 +346,7 @@ function RecentTransactionsWidget({ data }) {
   const transactions = data?.recentTransactions?.slice(0, 5) || [];
 
   if (transactions.length === 0) {
-    return <div className="text-gray-500 text-center py-4">No hay transacciones</div>;
+    return <div className="text-gray-500 dark:text-gray-400 text-center py-4">No hay transacciones</div>;
   }
 
   return (
@@ -355,7 +355,7 @@ function RecentTransactionsWidget({ data }) {
         <div key={i} className="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
           <div className="flex-1 min-w-0">
             <div className="text-sm font-medium truncate">{t.description}</div>
-            <div className="text-xs text-gray-500">{t.date}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">{t.date}</div>
           </div>
           <div className={`text-sm font-bold ${t.amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {formatCurrency(t.amount)}
@@ -375,7 +375,7 @@ function HealthScoreWidget({ data }) {
     <div className="text-center">
       <div className="text-6xl font-bold mb-2" style={{ color: color }}>{score}</div>
       <div className="text-xl font-bold mb-2">{rating}</div>
-      <div className="w-full bg-gray-200 rounded-full h-3">
+      <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-3">
         <div
           className={`h-3 rounded-full bg-${color}-500`}
           style={{ width: `${score}%` }}
@@ -392,7 +392,7 @@ function CashFlowWidget({ data }) {
   })) || [];
 
   if (chartData.length === 0) {
-    return <div className="text-gray-500 text-center py-4">No hay pronóstico</div>;
+    return <div className="text-gray-500 dark:text-gray-400 text-center py-4">No hay pronóstico</div>;
   }
 
   return <InteractiveCharts data={chartData} type="line" />;
@@ -402,7 +402,7 @@ function TopCategoriesWidget({ data }) {
   const top = data?.topCategories?.slice(0, 5) || [];
 
   if (top.length === 0) {
-    return <div className="text-gray-500 text-center py-4">No hay datos</div>;
+    return <div className="text-gray-500 dark:text-gray-400 text-center py-4">No hay datos</div>;
   }
 
   return (
@@ -424,7 +424,7 @@ function MonthlyTrendWidget({ data }) {
   })) || [];
 
   if (chartData.length === 0) {
-    return <div className="text-gray-500 text-center py-4">No hay datos</div>;
+    return <div className="text-gray-500 dark:text-gray-400 text-center py-4">No hay datos</div>;
   }
 
   return <InteractiveCharts data={chartData} type="line" />;
@@ -459,13 +459,13 @@ function AlertsWidget({ data }) {
 function QuickActionsWidget() {
   return (
     <div className="grid grid-cols-2 gap-2">
-      <a href="/transactions" className="p-3 bg-blue-50 hover:bg-blue-100 rounded text-center text-sm">
+      <a href="/transactions" className="p-3 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:bg-blue-900/30 rounded text-center text-sm">
         ➕ Nueva Transacción
       </a>
-      <a href="/invoices" className="p-3 bg-purple-50 hover:bg-purple-100 rounded text-center text-sm">
+      <a href="/invoices" className="p-3 bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/30 rounded text-center text-sm">
         📄 Subir Factura
       </a>
-      <a href="/fiscal" className="p-3 bg-green-50 hover:bg-green-100 rounded text-center text-sm">
+      <a href="/fiscal" className="p-3 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:bg-green-900/30 rounded text-center text-sm">
         💰 Ver Impuestos
       </a>
       <a href="/receivables" className="p-3 bg-orange-50 hover:bg-orange-100 rounded text-center text-sm">

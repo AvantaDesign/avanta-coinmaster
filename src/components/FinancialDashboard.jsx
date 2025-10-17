@@ -83,7 +83,7 @@ export default function FinancialDashboard() {
         <h1 className="text-3xl font-bold">Dashboard de Automatización</h1>
         <button
           onClick={loadData}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+          className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600"
         >
           🔄 Actualizar
         </button>
@@ -126,30 +126,30 @@ export default function FinancialDashboard() {
 
       {/* Key Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="text-sm text-gray-600">Cuentas por Cobrar</div>
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
+          <div className="text-sm text-gray-600 dark:text-gray-400">Cuentas por Cobrar</div>
           <div className="text-2xl font-bold text-green-600">{formatCurrency(receivablesMetrics.totalOutstanding)}</div>
-          <div className="text-xs text-gray-500 mt-1">{receivables.filter(r => r.status !== 'paid' && r.status !== 'cancelled').length} pendientes</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{receivables.filter(r => r.status !== 'paid' && r.status !== 'cancelled').length} pendientes</div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="text-sm text-gray-600">Cuentas por Pagar</div>
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
+          <div className="text-sm text-gray-600 dark:text-gray-400">Cuentas por Pagar</div>
           <div className="text-2xl font-bold text-red-600">{formatCurrency(payablesMetrics.totalOutstanding)}</div>
-          <div className="text-xs text-gray-500 mt-1">{payables.filter(p => p.status !== 'paid' && p.status !== 'cancelled').length} pendientes</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{payables.filter(p => p.status !== 'paid' && p.status !== 'cancelled').length} pendientes</div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="text-sm text-gray-600">DSO (Días)</div>
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
+          <div className="text-sm text-gray-600 dark:text-gray-400">DSO (Días)</div>
           <div className="text-2xl font-bold text-blue-600">{healthIndicators.dso}</div>
-          <div className="text-xs text-gray-500 mt-1">Días promedio de cobro</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Días promedio de cobro</div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="text-sm text-gray-600">DPO (Días)</div>
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
+          <div className="text-sm text-gray-600 dark:text-gray-400">DPO (Días)</div>
           <div className="text-2xl font-bold text-purple-600">{healthIndicators.dpo}</div>
-          <div className="text-xs text-gray-500 mt-1">Días promedio de pago</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Días promedio de pago</div>
         </div>
       </div>
 
       {/* Cash Flow Forecast */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Pronóstico de Flujo de Efectivo</h2>
           <select
@@ -164,7 +164,7 @@ export default function FinancialDashboard() {
         </div>
         
         {healthIndicators.hasCashCrunch && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-3 mb-4 rounded">
+          <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-3 mb-4 rounded">
             <div className="flex items-center">
               <span className="text-xl mr-2">⚠️</span>
               <div>
@@ -179,20 +179,20 @@ export default function FinancialDashboard() {
         )}
 
         {cashFlowForecast.length === 0 ? (
-          <div className="text-center text-gray-500 py-8">No hay movimientos pronosticados</div>
+          <div className="text-center text-gray-500 dark:text-gray-400 py-8">No hay movimientos pronosticados</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 dark:bg-slate-800">
                 <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Fecha</th>
-                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500">Entradas</th>
-                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500">Salidas</th>
-                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500">Flujo Neto</th>
-                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500">Balance Acumulado</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Fecha</th>
+                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400">Entradas</th>
+                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400">Salidas</th>
+                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400">Flujo Neto</th>
+                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400">Balance Acumulado</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
                 {cashFlowForecast.slice(0, 15).map((item, idx) => (
                   <tr key={idx} className={item.runningBalance < 0 ? 'bg-red-50' : ''}>
                     <td className="px-4 py-2 text-sm">{item.formattedDate}</td>
@@ -217,44 +217,44 @@ export default function FinancialDashboard() {
       </div>
 
       {/* Automation Status */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
         <h2 className="text-xl font-bold mb-4">Estado de Automatización</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="text-center p-4 bg-blue-50 rounded-lg">
+          <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
             <div className="text-3xl font-bold text-blue-600">{automationMetrics.activeRules}</div>
-            <div className="text-sm text-gray-600 mt-1">Reglas Activas</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Reglas Activas</div>
           </div>
-          <div className="text-center p-4 bg-green-50 rounded-lg">
+          <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
             <div className="text-3xl font-bold text-green-600">{automationMetrics.recurringInvoiceCount}</div>
-            <div className="text-sm text-gray-600 mt-1">Facturas Recurrentes</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Facturas Recurrentes</div>
           </div>
           <div className="text-center p-4 bg-purple-50 rounded-lg">
             <div className="text-3xl font-bold text-purple-600">{automationMetrics.paymentReminderCount}</div>
-            <div className="text-sm text-gray-600 mt-1">Recordatorios</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Recordatorios</div>
           </div>
           <div className="text-center p-4 bg-orange-50 rounded-lg">
             <div className="text-3xl font-bold text-orange-600">{automationMetrics.rulesToRunToday}</div>
-            <div className="text-sm text-gray-600 mt-1">Por Ejecutar Hoy</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Por Ejecutar Hoy</div>
           </div>
         </div>
       </div>
 
       {/* Additional Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="text-sm text-gray-600">Ciclo de Conversión de Efectivo</div>
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
+          <div className="text-sm text-gray-600 dark:text-gray-400">Ciclo de Conversión de Efectivo</div>
           <div className="text-3xl font-bold text-blue-600">{healthIndicators.cashConversionCycle}</div>
-          <div className="text-xs text-gray-500 mt-1">días (DSO - DPO)</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">días (DSO - DPO)</div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="text-sm text-gray-600">Ratio Rápido</div>
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
+          <div className="text-sm text-gray-600 dark:text-gray-400">Ratio Rápido</div>
           <div className="text-3xl font-bold text-purple-600">{healthIndicators.quickRatio.toFixed(2)}</div>
-          <div className="text-xs text-gray-500 mt-1">Cuentas por Cobrar / Pagar</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Cuentas por Cobrar / Pagar</div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="text-sm text-gray-600">Tasa de Cobranza</div>
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
+          <div className="text-sm text-gray-600 dark:text-gray-400">Tasa de Cobranza</div>
           <div className="text-3xl font-bold text-green-600">{receivablesMetrics.collectionRate.toFixed(1)}%</div>
-          <div className="text-xs text-gray-500 mt-1">Efectividad de cobro</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Efectividad de cobro</div>
         </div>
       </div>
     </div>
