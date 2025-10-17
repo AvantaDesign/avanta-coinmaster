@@ -45,7 +45,7 @@ const useCreditStore = create(
        * Get auth token
        */
       getToken: () => {
-        return localStorage.getItem('authToken');
+        return localStorage.getItem('avanta_auth_token');
       },
 
       /**
