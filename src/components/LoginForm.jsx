@@ -16,10 +16,11 @@ export default function LoginForm() {
   const [validationErrors, setValidationErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
 
-  // Handle redirect after authentication state changes
+  // Redirect to home if already authenticated
+  // This handles the case when user visits /login while already logged in
   useEffect(() => {
     if (isAuthenticated) {
-      console.log('LoginForm: User is authenticated, redirecting to home...');
+      console.log('LoginForm: User already authenticated, redirecting to home...');
       navigate('/', { replace: true });
     }
   }, [isAuthenticated, navigate]);
@@ -60,11 +61,12 @@ export default function LoginForm() {
 
     try {
       console.log('LoginForm: Starting login...');
-      const result = await login(email, password);
-      console.log('LoginForm: Login successful, result:', result);
+      await login(email, password);
+      console.log('LoginForm: Login successful, navigating to home...');
       
-      // Don't redirect immediately - let AuthProvider handle it
-      // The AuthProvider will detect the authentication change and redirect
+      // Navigate after successful login
+      // The AuthProvider state will be updated and isAuthenticated will become true
+      navigate('/', { replace: true });
     } catch (err) {
       console.error('LoginForm: Login failed:', err);
       setError(err.message || 'Login failed');
@@ -78,10 +80,11 @@ export default function LoginForm() {
     try {
       setError('');
       console.log('LoginForm: Starting Google login...');
-      const result = await loginGoogle(response.credential);
-      console.log('LoginForm: Google login successful, result:', result);
+      await loginGoogle(response.credential);
+      console.log('LoginForm: Google login successful, navigating to home...');
       
-      // Don't redirect immediately - let AuthProvider handle it
+      // Navigate after successful Google login
+      navigate('/', { replace: true });
     } catch (err) {
       console.error('LoginForm: Google login failed:', err);
       setError(err.message || 'Google login failed');

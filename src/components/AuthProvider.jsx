@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import {
   isAuthenticated,
   getUserInfo,
@@ -44,16 +45,21 @@ export function AuthProvider({ children }) {
   const checkAuth = async () => {
     try {
       setLoading(true);
+      console.log('AuthProvider: Checking authentication...');
       
       if (isAuthenticated()) {
+        console.log('AuthProvider: User is authenticated, fetching user info...');
         const userInfo = getUserInfo();
         const formattedUser = getFormattedUserInfo();
-        setUser(formattedUser || userInfo);
+        const finalUser = formattedUser || userInfo;
+        console.log('AuthProvider: Setting user state:', finalUser);
+        setUser(finalUser);
       } else {
+        console.log('AuthProvider: No valid authentication found');
         setUser(null);
       }
     } catch (err) {
-      console.error('Auth check error:', err);
+      console.error('AuthProvider: Auth check error:', err);
       setError(err.message);
       setUser(null);
     } finally {
@@ -68,18 +74,31 @@ export function AuthProvider({ children }) {
     try {
       setLoading(true);
       setError(null);
+      console.log('AuthProvider: Starting login for:', email);
 
       const response = await authLogin(email, password);
+      console.log('AuthProvider: Login response received:', response);
       
-      // Update user state
+      // Immediately update user state with response data
       if (response.user) {
+        console.log('AuthProvider: Setting user from login response');
         const formattedUser = getFormattedUserInfo();
-        setUser(formattedUser || response.user);
+        const finalUser = formattedUser || response.user;
+        setUser(finalUser);
+        console.log('AuthProvider: User state updated:', finalUser);
+      } else {
+        console.warn('AuthProvider: No user in login response, checking stored info');
+        // Fallback: check if user info was stored
+        const storedUser = getUserInfo();
+        if (storedUser) {
+          const formattedUser = getFormattedUserInfo();
+          setUser(formattedUser || storedUser);
+        }
       }
 
       return response;
     } catch (err) {
-      console.error('Login error:', err);
+      console.error('AuthProvider: Login error:', err);
       setError(err.message);
       throw err;
     } finally {
@@ -94,18 +113,31 @@ export function AuthProvider({ children }) {
     try {
       setLoading(true);
       setError(null);
+      console.log('AuthProvider: Starting Google login');
 
       const response = await loginWithGoogle(credential);
+      console.log('AuthProvider: Google login response received');
       
-      // Update user state
+      // Immediately update user state with response data
       if (response.user) {
+        console.log('AuthProvider: Setting user from Google login response');
         const formattedUser = getFormattedUserInfo();
-        setUser(formattedUser || response.user);
+        const finalUser = formattedUser || response.user;
+        setUser(finalUser);
+        console.log('AuthProvider: User state updated:', finalUser);
+      } else {
+        console.warn('AuthProvider: No user in Google login response, checking stored info');
+        // Fallback: check if user info was stored
+        const storedUser = getUserInfo();
+        if (storedUser) {
+          const formattedUser = getFormattedUserInfo();
+          setUser(formattedUser || storedUser);
+        }
       }
 
       return response;
     } catch (err) {
-      console.error('Google login error:', err);
+      console.error('AuthProvider: Google login error:', err);
       setError(err.message);
       throw err;
     } finally {
@@ -117,7 +149,9 @@ export function AuthProvider({ children }) {
    * Logout user
    */
   const logout = () => {
+    console.log('AuthProvider: Logging out user');
     setUser(null);
+    setError(null);
     authLogout();
   };
 
@@ -172,6 +206,7 @@ export function useAuth() {
 export function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
 
+  // Show loading state while checking authentication
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -183,10 +218,9 @@ export function ProtectedRoute({ children }) {
     );
   }
 
+  // Use React Router Navigate instead of window.location to preserve state
   if (!isAuthenticated) {
-    // Redirect to login
-    window.location.href = '/login';
-    return null;
+    return <Navigate to="/login" replace />;
   }
 
   return children;

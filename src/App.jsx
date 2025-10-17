@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { useEffect, lazy, Suspense } from 'react';
 import { AuthProvider, useAuth, ProtectedRoute } from './components/AuthProvider';
 import LoginForm from './components/LoginForm';
@@ -50,6 +50,12 @@ function AnalyticsTracker() {
 // Navigation bar component with user info
 function NavigationBar() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
   
   return (
     <nav className="bg-white shadow-lg">
@@ -153,7 +159,7 @@ function NavigationBar() {
                   <span className="text-sm text-gray-700 font-medium">{user.name || user.email}</span>
                 </div>
                 <button
-                  onClick={logout}
+                  onClick={handleLogout}
                   className="text-sm text-gray-600 hover:text-gray-900 px-3 py-1 rounded border border-gray-300 hover:border-gray-400"
                 >
                   Cerrar Sesión
