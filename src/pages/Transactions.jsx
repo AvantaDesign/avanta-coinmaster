@@ -73,34 +73,34 @@ export default function Transactions() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Transacciones</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Transacciones</h1>
         <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => handleFilterChange('transactionType', 'all')}
-            className={`px-4 py-2 rounded-md ${
+            className={`px-4 py-2 rounded-md transition-colors ${
               filters.transactionType === 'all'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                ? 'bg-primary-600 dark:bg-primary-700 text-white'
+                : 'bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-slate-600'
             }`}
           >
             Todas
           </button>
           <button
             onClick={() => handleFilterChange('transactionType', 'business')}
-            className={`px-4 py-2 rounded-md ${
+            className={`px-4 py-2 rounded-md transition-colors ${
               filters.transactionType === 'business'
-                ? 'bg-purple-600 text-white'
-                : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                ? 'bg-info-600 dark:bg-info-700 text-white'
+                : 'bg-info-100 dark:bg-info-900/30 text-info-700 dark:text-info-400 hover:bg-info-200 dark:hover:bg-info-900/50'
             }`}
           >
             💼 Negocio
           </button>
           <button
             onClick={() => handleFilterChange('transactionType', 'personal')}
-            className={`px-4 py-2 rounded-md ${
+            className={`px-4 py-2 rounded-md transition-colors ${
               filters.transactionType === 'personal'
-                ? 'bg-green-600 text-white'
-                : 'bg-green-100 text-green-700 hover:bg-green-200'
+                ? 'bg-success-600 dark:bg-success-700 text-white'
+                : 'bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400 hover:bg-success-200 dark:hover:bg-success-900/50'
             }`}
           >
             👤 Personal
@@ -109,13 +109,13 @@ export default function Transactions() {
       </div>
 
       {/* Advanced Filters */}
-      <div className="bg-white p-4 rounded-lg shadow-md space-y-4">
+      <div className="bg-white dark:bg-slate-900 p-4 rounded-lg shadow-default border border-gray-200 dark:border-slate-700 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Filtros</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Filtros</h2>
           {hasActiveFilters && (
             <button
               onClick={clearFilters}
-              className="text-sm text-blue-600 hover:text-blue-800"
+              className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 transition-colors"
             >
               Limpiar filtros
             </button>
@@ -125,7 +125,7 @@ export default function Transactions() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
           {/* Search */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Buscar
             </label>
             <input
@@ -133,19 +133,19 @@ export default function Transactions() {
               placeholder="Descripción..."
               value={filters.searchTerm}
               onChange={(e) => handleFilterChange('searchTerm', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input-field w-full"
             />
           </div>
 
           {/* Type Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Tipo
             </label>
             <select
               value={filters.type}
               onChange={(e) => handleFilterChange('type', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input-field w-full"
             >
               <option value="all">Todos</option>
               <option value="ingreso">Ingreso</option>
@@ -155,13 +155,13 @@ export default function Transactions() {
 
           {/* Transaction Type Filter - NEW */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Clasificación
             </label>
             <select
               value={filters.transactionType}
               onChange={(e) => handleFilterChange('transactionType', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input-field w-full"
             >
               <option value="all">Todas</option>
               <option value="business">💼 Negocio</option>
@@ -172,13 +172,13 @@ export default function Transactions() {
 
           {/* Account Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Cuenta
             </label>
             <select
               value={filters.account}
               onChange={(e) => handleFilterChange('account', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input-field w-full"
             >
               <option value="all">Todas</option>
               {accounts.map((account) => (
@@ -191,27 +191,27 @@ export default function Transactions() {
 
           {/* Date From */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Desde
             </label>
             <input
               type="date"
               value={filters.dateFrom}
               onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input-field w-full"
             />
           </div>
 
           {/* Date To */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Hasta
             </label>
             <input
               type="date"
               value={filters.dateTo}
               onChange={(e) => handleFilterChange('dateTo', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input-field w-full"
             />
           </div>
         </div>
@@ -220,25 +220,25 @@ export default function Transactions() {
       {/* Statistics Panel */}
       {statistics && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white p-4 rounded-lg shadow-md">
-            <div className="text-sm text-gray-600">Total Transacciones</div>
-            <div className="text-2xl font-bold">{statistics.total_transactions}</div>
+          <div className="bg-white dark:bg-slate-900 p-4 rounded-lg shadow-default border border-gray-200 dark:border-slate-700">
+            <div className="text-sm text-gray-600 dark:text-gray-400">Total Transacciones</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">{statistics.total_transactions}</div>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow-md">
-            <div className="text-sm text-gray-600">Ingresos</div>
-            <div className="text-2xl font-bold text-green-600">
+          <div className="bg-white dark:bg-slate-900 p-4 rounded-lg shadow-default border border-gray-200 dark:border-slate-700">
+            <div className="text-sm text-gray-600 dark:text-gray-400">Ingresos</div>
+            <div className="text-2xl font-bold text-success-600 dark:text-success-400">
               {formatCurrency(statistics.total_income)}
             </div>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow-md">
-            <div className="text-sm text-gray-600">Gastos</div>
-            <div className="text-2xl font-bold text-red-600">
+          <div className="bg-white dark:bg-slate-900 p-4 rounded-lg shadow-default border border-gray-200 dark:border-slate-700">
+            <div className="text-sm text-gray-600 dark:text-gray-400">Gastos</div>
+            <div className="text-2xl font-bold text-danger-600 dark:text-danger-400">
               {formatCurrency(statistics.total_expenses)}
             </div>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow-md">
-            <div className="text-sm text-gray-600">Neto</div>
-            <div className={`text-2xl font-bold ${statistics.net >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <div className="bg-white dark:bg-slate-900 p-4 rounded-lg shadow-default border border-gray-200 dark:border-slate-700">
+            <div className="text-sm text-gray-600 dark:text-gray-400">Neto</div>
+            <div className={`text-2xl font-bold transition-colors ${statistics.net >= 0 ? 'text-success-600 dark:text-success-400' : 'text-danger-600 dark:text-danger-400'}`}>
               {formatCurrency(statistics.net)}
             </div>
           </div>
@@ -249,14 +249,14 @@ export default function Transactions() {
       <div className="flex gap-2 flex-wrap">
         <button
           onClick={() => setShowCSVImport(true)}
-          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 flex items-center gap-2"
+          className="bg-success-600 dark:bg-success-700 text-white px-4 py-2 rounded-md hover:bg-success-700 dark:hover:bg-success-600 flex items-center gap-2 transition-colors"
         >
           📥 Importar CSV
         </button>
         <button
           onClick={handleExportCSV}
           disabled={transactions.length === 0}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400 flex items-center gap-2"
+          className="bg-primary-600 dark:bg-primary-700 text-white px-4 py-2 rounded-md hover:bg-primary-700 dark:hover:bg-primary-600 disabled:bg-gray-400 dark:disabled:bg-gray-600 flex items-center gap-2 transition-colors"
         >
           📤 Exportar
         </button>
@@ -283,12 +283,12 @@ export default function Transactions() {
 
       {loading && (
         <div className="text-center py-8">
-          <div className="text-xl">Cargando transacciones...</div>
+          <div className="text-xl text-gray-900 dark:text-white">Cargando transacciones...</div>
         </div>
       )}
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        <div className="bg-danger-100 dark:bg-danger-900/20 border border-danger-400 dark:border-danger-800 text-danger-700 dark:text-danger-400 px-4 py-3 rounded transition-colors">
           Error: {error}
         </div>
       )}

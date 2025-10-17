@@ -134,8 +134,8 @@ export default function Budgets() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl">Cargando presupuestos...</div>
+      <div className="flex items-center justify-center min-h-screen bg-white dark:bg-slate-950">
+        <div className="text-xl text-gray-900 dark:text-white">Cargando presupuestos...</div>
       </div>
     );
   }
@@ -145,8 +145,8 @@ export default function Budgets() {
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Presupuestos</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Presupuestos</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
             Administra tus presupuestos mensuales, trimestrales y anuales
           </p>
         </div>
@@ -155,7 +155,7 @@ export default function Budgets() {
             setEditingBudget(null);
             setShowForm(true);
           }}
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="px-6 py-3 bg-primary-600 dark:bg-primary-700 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors"
         >
           + Nuevo Presupuesto
         </button>
@@ -167,10 +167,10 @@ export default function Budgets() {
           {alerts.map((alert, index) => (
             <div
               key={index}
-              className={`p-4 rounded-lg border-l-4 ${
-                alert.type === 'critical' ? 'bg-red-50 border-red-500 text-red-900' :
-                alert.type === 'warning' ? 'bg-orange-50 border-orange-500 text-orange-900' :
-                'bg-blue-50 border-blue-500 text-blue-900'
+              className={`p-4 rounded-lg border-l-4 transition-colors ${
+                alert.type === 'critical' ? 'bg-danger-50 dark:bg-danger-900/20 border-danger-500 dark:border-danger-400 text-danger-900 dark:text-danger-300' :
+                alert.type === 'warning' ? 'bg-warning-50 dark:bg-warning-900/20 border-warning-500 dark:border-warning-400 text-warning-900 dark:text-warning-300' :
+                'bg-info-50 dark:bg-info-900/20 border-info-500 dark:border-info-400 text-info-900 dark:text-info-300'
               }`}
             >
               <div className="flex items-start">
@@ -189,36 +189,36 @@ export default function Budgets() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <p className="text-sm text-gray-600 mb-2">Total Presupuestado</p>
-          <p className="text-2xl font-bold text-gray-900">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-default border border-gray-200 dark:border-slate-700">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Total Presupuestado</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">
             {formatCurrency(totals.budgeted)}
           </p>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <p className="text-sm text-gray-600 mb-2">Total Gastado</p>
-          <p className="text-2xl font-bold text-gray-900">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-default border border-gray-200 dark:border-slate-700">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Total Gastado</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">
             {formatCurrency(totals.actual)}
           </p>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <p className="text-sm text-gray-600 mb-2">Total Restante</p>
-          <p className={`text-2xl font-bold ${totals.remaining >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-default border border-gray-200 dark:border-slate-700">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Total Restante</p>
+          <p className={`text-2xl font-bold transition-colors ${totals.remaining >= 0 ? 'text-success-600 dark:text-success-400' : 'text-danger-600 dark:text-danger-400'}`}>
             {formatCurrency(totals.remaining)}
           </p>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <p className="text-sm text-gray-600 mb-2">Uso Promedio</p>
-          <p className="text-2xl font-bold text-gray-900">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-default border border-gray-200 dark:border-slate-700">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Uso Promedio</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">
             {totalPercent.toFixed(1)}%
           </p>
-          <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+          <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2 mt-2">
             <div
-              className={`h-2 rounded-full ${
-                totalPercent >= 100 ? 'bg-red-500' :
-                totalPercent >= 90 ? 'bg-orange-500' :
-                totalPercent >= 75 ? 'bg-yellow-500' :
-                'bg-green-500'
+              className={`h-2 rounded-full transition-colors ${
+                totalPercent >= 100 ? 'bg-danger-500 dark:bg-danger-600' :
+                totalPercent >= 90 ? 'bg-warning-500 dark:bg-warning-600' :
+                totalPercent >= 75 ? 'bg-warning-500 dark:bg-warning-600' :
+                'bg-success-500 dark:bg-success-600'
               }`}
               style={{ width: `${Math.min(totalPercent, 100)}%` }}
             />
@@ -227,39 +227,39 @@ export default function Budgets() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white p-6 rounded-lg shadow-md mb-8">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-default border border-gray-200 dark:border-slate-700 mb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Clasificación
             </label>
             <div className="flex space-x-2">
               <button
                 onClick={() => setFilter('all')}
-                className={`px-4 py-2 rounded-lg ${
+                className={`px-4 py-2 rounded-lg transition-colors ${
                   filter === 'all'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    ? 'bg-primary-600 dark:bg-primary-700 text-white'
+                    : 'bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-slate-600'
                 }`}
               >
                 Todos
               </button>
               <button
                 onClick={() => setFilter('business')}
-                className={`px-4 py-2 rounded-lg ${
+                className={`px-4 py-2 rounded-lg transition-colors ${
                   filter === 'business'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    ? 'bg-info-600 dark:bg-info-700 text-white'
+                    : 'bg-info-100 dark:bg-info-900/30 text-info-700 dark:text-info-400 hover:bg-info-200 dark:hover:bg-info-900/50'
                 }`}
               >
                 Negocio
               </button>
               <button
                 onClick={() => setFilter('personal')}
-                className={`px-4 py-2 rounded-lg ${
+                className={`px-4 py-2 rounded-lg transition-colors ${
                   filter === 'personal'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    ? 'bg-success-600 dark:bg-success-700 text-white'
+                    : 'bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400 hover:bg-success-200 dark:hover:bg-success-900/50'
                 }`}
               >
                 Personal
@@ -268,13 +268,13 @@ export default function Budgets() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Período
             </label>
             <select
               value={periodFilter}
               onChange={(e) => setPeriodFilter(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="input-field w-full"
             >
               <option value="monthly">Mensual</option>
               <option value="quarterly">Trimestral</option>
@@ -286,11 +286,11 @@ export default function Budgets() {
 
       {/* Budget Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-black dark:bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-elevation border border-gray-200 dark:border-slate-700">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                   {editingBudget ? 'Editar Presupuesto' : 'Nuevo Presupuesto'}
                 </h2>
                 <button
@@ -298,7 +298,7 @@ export default function Budgets() {
                     setShowForm(false);
                     setEditingBudget(null);
                   }}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
                 >
                   ✕
                 </button>

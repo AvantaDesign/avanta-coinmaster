@@ -12,68 +12,68 @@ export default function Fiscal() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Vista Fiscal</h1>
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Vista Fiscal</h1>
 
       {/* Tabs */}
-      <div className="bg-white rounded-lg shadow-md">
-        <div className="border-b">
+      <div className="bg-white dark:bg-slate-900 rounded-lg shadow-default border border-gray-200 dark:border-slate-700">
+        <div className="border-b border-gray-200 dark:border-slate-700">
           <div className="flex overflow-x-auto">
             <button
               onClick={() => setActiveTab('calculator')}
-              className={`px-6 py-3 font-medium whitespace-nowrap ${
+              className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${
                 activeTab === 'calculator'
-                  ? 'border-b-2 border-blue-600 text-blue-600'
-                  : 'text-gray-600 hover:text-gray-800'
+                  ? 'border-b-2 border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300'
               }`}
             >
               Calculadora Fiscal
             </button>
             <button
               onClick={() => setActiveTab('reports')}
-              className={`px-6 py-3 font-medium whitespace-nowrap ${
+              className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${
                 activeTab === 'reports'
-                  ? 'border-b-2 border-blue-600 text-blue-600'
-                  : 'text-gray-600 hover:text-gray-800'
+                  ? 'border-b-2 border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300'
               }`}
             >
               Reportes
             </button>
             <button
               onClick={() => setActiveTab('reconciliation')}
-              className={`px-6 py-3 font-medium whitespace-nowrap ${
+              className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${
                 activeTab === 'reconciliation'
-                  ? 'border-b-2 border-blue-600 text-blue-600'
-                  : 'text-gray-600 hover:text-gray-800'
+                  ? 'border-b-2 border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300'
               }`}
             >
               Conciliación
             </button>
             <button
               onClick={() => setActiveTab('simulation')}
-              className={`px-6 py-3 font-medium whitespace-nowrap ${
+              className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${
                 activeTab === 'simulation'
-                  ? 'border-b-2 border-blue-600 text-blue-600'
-                  : 'text-gray-600 hover:text-gray-800'
+                  ? 'border-b-2 border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300'
               }`}
             >
               Simulador
             </button>
             <button
               onClick={() => setActiveTab('configuration')}
-              className={`px-6 py-3 font-medium whitespace-nowrap ${
+              className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${
                 activeTab === 'configuration'
-                  ? 'border-b-2 border-blue-600 text-blue-600'
-                  : 'text-gray-600 hover:text-gray-800'
+                  ? 'border-b-2 border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300'
               }`}
             >
               Configuración
             </button>
             <button
               onClick={() => setActiveTab('simple')}
-              className={`px-6 py-3 font-medium whitespace-nowrap ${
+              className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${
                 activeTab === 'simple'
-                  ? 'border-b-2 border-blue-600 text-blue-600'
-                  : 'text-gray-600 hover:text-gray-800'
+                  ? 'border-b-2 border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300'
               }`}
             >
               Vista Simple

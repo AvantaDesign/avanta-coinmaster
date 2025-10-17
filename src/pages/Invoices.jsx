@@ -82,17 +82,17 @@ export default function Invoices() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Facturas CFDI</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Facturas CFDI</h1>
         <div className="flex gap-2">
           <button
             onClick={() => setShowCFDIImport(true)}
-            className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 flex items-center gap-2"
+            className="bg-success-600 dark:bg-success-700 text-white px-4 py-2 rounded-md hover:bg-success-700 dark:hover:bg-success-600 flex items-center gap-2 transition-colors"
           >
             📥 Importar XML
           </button>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+            className="bg-primary-600 dark:bg-primary-700 text-white px-4 py-2 rounded-md hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors"
           >
             {showForm ? 'Cancelar' : 'Agregar Manual'}
           </button>
