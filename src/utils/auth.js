@@ -12,29 +12,27 @@ const USER_KEY = 'avanta_user_info';
  * @param {string} token - JWT token
  */
 export function setAuthToken(token) {
-  console.log('setAuthToken called with:', token ? token.substring(0, 50) + '...' : 'null');
+  console.log('auth.js: setAuthToken called, has token:', !!token);
   
   if (!token) {
-    console.log('Removing token from localStorage');
+    console.log('auth.js: Removing token from localStorage');
     localStorage.removeItem(TOKEN_KEY);
     return;
   }
   
   try {
     localStorage.setItem(TOKEN_KEY, token);
-    console.log('Token stored in localStorage successfully');
+    console.log('auth.js: Token stored in localStorage successfully');
     
     // Verify it was stored
     const stored = localStorage.getItem(TOKEN_KEY);
-    console.log('Verification - token exists:', !!stored);
-    console.log('Verification - token matches:', stored === token);
+    if (!stored || stored !== token) {
+      console.error('auth.js: Token storage verification failed!');
+      throw new Error('Failed to store token in localStorage');
+    }
   } catch (error) {
-    console.error('Error storing token:', error);
-    localStorage.setItem('auth_debug', JSON.stringify({
-      timestamp: new Date().toISOString(),
-      issue: 'Error storing token',
-      error: error.message
-    }));
+    console.error('auth.js: Error storing token:', error);
+    throw error;
   }
 }
 
@@ -113,35 +111,19 @@ export function decodeToken(token) {
 export function isTokenExpired(token) {
   const decoded = decodeToken(token);
   if (!decoded || !decoded.exp) {
-    console.log('Token decode failed or no exp field');
-    localStorage.setItem('auth_debug', JSON.stringify({
-      timestamp: new Date().toISOString(),
-      issue: 'Token decode failed',
-      token: token.substring(0, 50) + '...',
-      decoded: decoded,
-      action: 'Token validation'
-    }));
+    console.warn('auth.js: Token decode failed or no exp field');
     return true;
   }
   
   const currentTime = Math.floor(Date.now() / 1000);
   const isExpired = decoded.exp < currentTime;
+  const timeUntilExpiry = decoded.exp - currentTime;
   
-  console.log('Token exp:', decoded.exp);
-  console.log('Current time:', currentTime);
-  console.log('Time until expiry:', decoded.exp - currentTime);
-  console.log('Is expired:', isExpired);
-  
-  // Store detailed debug info
-  localStorage.setItem('auth_debug', JSON.stringify({
-    timestamp: new Date().toISOString(),
-    tokenExp: decoded.exp,
-    currentTime: currentTime,
-    timeUntilExpiry: decoded.exp - currentTime,
-    isExpired: isExpired,
-    token: token.substring(0, 50) + '...',
-    action: 'Token expiration check'
-  }));
+  if (isExpired) {
+    console.log('auth.js: Token is expired');
+  } else {
+    console.log('auth.js: Token valid, expires in', timeUntilExpiry, 'seconds');
+  }
   
   return isExpired;
 }
@@ -153,35 +135,18 @@ export function isTokenExpired(token) {
 export function isAuthenticated() {
   const token = getAuthToken();
   if (!token) {
-    console.log('No token found');
-    // Store in localStorage for debugging
-    localStorage.setItem('auth_debug', JSON.stringify({
-      timestamp: new Date().toISOString(),
-      issue: 'No token found',
-      action: 'isAuthenticated check'
-    }));
+    console.log('auth.js: No token found in storage');
     return false;
   }
   
-  const isExpired = isTokenExpired(token);
-  console.log('Token expired:', isExpired);
-  
-  if (isExpired) {
-    console.log('Token is expired, removing it');
-    // Store debug info before removing token
-    localStorage.setItem('auth_debug', JSON.stringify({
-      timestamp: new Date().toISOString(),
-      issue: 'Token expired',
-      token: token.substring(0, 50) + '...',
-      action: 'Token removal'
-    }));
+  const expired = isTokenExpired(token);
+  if (expired) {
+    console.log('auth.js: Token is expired, removing it');
     removeAuthToken();
     return false;
   }
   
-  console.log('User is authenticated');
-  // Clear any previous debug info on successful auth
-  localStorage.removeItem('auth_debug');
+  console.log('auth.js: User is authenticated with valid token');
   return true;
 }
 
@@ -204,7 +169,7 @@ export function getUserId() {
  * @returns {Promise<object>} Authentication response
  */
 export async function login(email, password) {
-  console.log('Starting login process...');
+  console.log('auth.js: Starting login process...');
   
   const response = await fetch('/api/auth/login', {
     method: 'POST',
@@ -214,46 +179,52 @@ export async function login(email, password) {
     body: JSON.stringify({ email, password }),
   });
   
-  console.log('Login response status:', response.status);
+  console.log('auth.js: Login response status:', response.status);
   
   if (!response.ok) {
     const error = await response.json();
-    console.error('Login failed:', error);
+    console.error('auth.js: Login failed:', error);
     throw new Error(error.message || 'Login failed');
   }
   
   const data = await response.json();
-  console.log('Login response data:', data);
+  console.log('auth.js: Login response received, has token:', !!data.token, 'has user:', !!data.user);
   
   // Store token and user info
   if (data.token) {
-    console.log('Storing token:', data.token.substring(0, 50) + '...');
+    console.log('auth.js: Storing authentication token');
     setAuthToken(data.token);
     
-    // Verify token was stored
+    // Verify token was stored successfully
     const storedToken = getAuthToken();
-    console.log('Token stored successfully:', !!storedToken);
-    
-    // Store debug info
-    localStorage.setItem('auth_debug', JSON.stringify({
-      timestamp: new Date().toISOString(),
-      action: 'Login successful',
-      tokenStored: !!storedToken,
-      tokenLength: storedToken ? storedToken.length : 0
-    }));
+    if (!storedToken || storedToken !== data.token) {
+      console.error('auth.js: Token storage verification failed!');
+      throw new Error('Failed to store authentication token');
+    }
+    console.log('auth.js: Token stored and verified successfully');
   } else {
-    console.error('No token in response');
-    localStorage.setItem('auth_debug', JSON.stringify({
-      timestamp: new Date().toISOString(),
-      issue: 'No token in login response',
-      response: data
-    }));
+    console.error('auth.js: No token in response');
+    throw new Error('No authentication token received from server');
   }
   
   if (data.user) {
-    console.log('Storing user info:', data.user);
+    console.log('auth.js: Storing user info:', data.user.email);
     setUserInfo(data.user);
+    
+    // Verify user info was stored
+    const storedUser = getUserInfo();
+    if (!storedUser) {
+      console.error('auth.js: User info storage verification failed!');
+    } else {
+      console.log('auth.js: User info stored and verified successfully');
+    }
+  } else {
+    console.warn('auth.js: No user info in response');
   }
+  
+  // Final verification that user is authenticated
+  const authCheck = isAuthenticated();
+  console.log('auth.js: Post-login authentication check:', authCheck);
   
   return data;
 }
