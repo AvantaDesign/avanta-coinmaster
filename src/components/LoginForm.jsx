@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './AuthProvider';
 import { isValidEmail, validatePassword } from '../utils/auth';
-import { Navigate } from 'react-router-dom';
 
 /**
  * LoginForm component
@@ -15,11 +14,13 @@ export default function LoginForm() {
   const [validationErrors, setValidationErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
 
-  // Redirect if already authenticated (after all hooks are declared)
-  if (isAuthenticated) {
-    console.log('LoginForm: User is authenticated, redirecting to home...');
-    return <Navigate to="/" replace />;
-  }
+  // Handle redirect after authentication state changes
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log('LoginForm: User is authenticated, redirecting to home...');
+      window.location.href = '/';
+    }
+  }, [isAuthenticated]);
 
   /**
    * Validate form fields
