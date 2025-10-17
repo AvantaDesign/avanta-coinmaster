@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from './AuthProvider';
 import { showSuccess, showError } from '../utils/notifications';
 import { authFetch } from '../utils/auth';
+import ToastNotification from './ToastNotification';
 
 /**
  * AdminDashboard component
@@ -394,6 +395,9 @@ export default function AdminDashboard() {
           <li>• Tu información está aislada de otros usuarios</li>
         </ul>
       </div>
+      
+      {/* Toast Notifications */}
+      <ToastNotification />
     </div>
   );
 }

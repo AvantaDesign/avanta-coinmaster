@@ -328,6 +328,8 @@ export function getAuthHeaders() {
  */
 export async function authFetch(url, options = {}) {
   const token = getAuthToken();
+  console.log('authFetch: token exists:', !!token);
+  console.log('authFetch: token length:', token ? token.length : 0);
   
   // Check if token is expired and try to refresh
   if (token && isTokenExpired(token)) {
@@ -345,10 +347,14 @@ export async function authFetch(url, options = {}) {
     ...getAuthHeaders(),
   };
   
+  console.log('authFetch: headers:', headers);
+  
   const response = await fetch(url, {
     ...options,
     headers,
   });
+  
+  console.log('authFetch: response status:', response.status);
   
   // If unauthorized, logout
   if (response.status === 401) {

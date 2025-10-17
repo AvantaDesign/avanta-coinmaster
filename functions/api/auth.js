@@ -135,13 +135,19 @@ async function verifyJWT(token, secret) {
  */
 export async function getUserIdFromToken(request, env) {
   const authHeader = request.headers.get('Authorization');
+  console.log('getUserIdFromToken: authHeader:', authHeader);
+  
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    console.log('getUserIdFromToken: No valid auth header');
     return null;
   }
   
   const token = authHeader.substring(7);
+  console.log('getUserIdFromToken: token length:', token.length);
+  
   const secret = env.JWT_SECRET || 'avanta-coinmaster-secret-key-change-in-production';
   const payload = await verifyJWT(token, secret);
+  console.log('getUserIdFromToken: payload:', payload);
   
   return payload?.sub || payload?.user_id || null;
 }

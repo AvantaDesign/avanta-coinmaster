@@ -77,8 +77,14 @@ export async function onRequestPost(context) {
   const { request, env } = context;
   
   try {
+    console.log('Change password endpoint called');
+    console.log('Request headers:', Object.fromEntries(request.headers.entries()));
+    
     const userId = await getUserIdFromToken(request, env);
+    console.log('Extracted userId:', userId);
+    
     if (!userId) {
+      console.log('No userId found, returning 401');
       return new Response(JSON.stringify({
         error: 'Unauthorized',
         code: 'AUTH_REQUIRED'
