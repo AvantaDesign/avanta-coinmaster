@@ -23,6 +23,8 @@ const FinancialDashboard = lazy(() => import('./components/FinancialDashboard'))
 const AdvancedAnalytics = lazy(() => import('./components/AdvancedAnalytics'));
 const AdvancedReports = lazy(() => import('./components/AdvancedReports'));
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
+const RecurringFreelancersDashboard = lazy(() => import('./components/RecurringFreelancersDashboard'));
+const RecurringServicesDashboard = lazy(() => import('./components/RecurringServicesDashboard'));
 
 // Loading fallback component
 function LoadingFallback() {
@@ -103,6 +105,15 @@ function NavigationBar() {
         { name: 'Facturas', icon: '📑', path: '/invoices' },
         { name: 'Cuentas por Cobrar', icon: '📈', path: '/receivables' },
         { name: 'Cuentas por Pagar', icon: '📉', path: '/payables' }
+      ]
+    },
+    {
+      name: 'Operaciones',
+      icon: '🔄',
+      type: 'dropdown',
+      items: [
+        { name: 'Freelancers Recurrentes', icon: '👥', path: '/recurring-freelancers' },
+        { name: 'Servicios Recurrentes', icon: '🔌', path: '/recurring-services' }
       ]
     },
     {
@@ -338,6 +349,8 @@ function AuthenticatedApp() {
                 <Route path="/analytics" element={<AdvancedAnalytics transactions={[]} financialData={{}} />} />
                 <Route path="/reports" element={<AdvancedReports data={{}} />} />
                 <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/recurring-freelancers" element={<RecurringFreelancersDashboard />} />
+                <Route path="/recurring-services" element={<RecurringServicesDashboard />} />
               </Routes>
             </Suspense>
           </div>

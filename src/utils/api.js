@@ -430,3 +430,95 @@ export async function createCreditMovement(creditId, data) {
   if (!response.ok) throw new Error('Failed to create credit movement');
   return response.json();
 }
+
+// Recurring Freelancers API
+export async function fetchRecurringFreelancers(params = {}) {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/recurring-freelancers${queryString ? '?' + queryString : ''}`;
+  const response = await authFetch(url, {
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to fetch recurring freelancers');
+  return response.json();
+}
+
+export async function createRecurringFreelancer(data) {
+  const response = await authFetch(`${API_BASE}/recurring-freelancers`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error('Failed to create recurring freelancer');
+  return response.json();
+}
+
+export async function updateRecurringFreelancer(id, data) {
+  const response = await authFetch(`${API_BASE}/recurring-freelancers`, {
+    method: 'PUT',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify({ id, ...data })
+  });
+  if (!response.ok) throw new Error('Failed to update recurring freelancer');
+  return response.json();
+}
+
+export async function deleteRecurringFreelancer(id) {
+  const response = await authFetch(`${API_BASE}/recurring-freelancers?id=${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to delete recurring freelancer');
+  return response.json();
+}
+
+// Recurring Services API
+export async function fetchRecurringServices(params = {}) {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/recurring-services${queryString ? '?' + queryString : ''}`;
+  const response = await authFetch(url, {
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to fetch recurring services');
+  return response.json();
+}
+
+export async function createRecurringService(data) {
+  const response = await authFetch(`${API_BASE}/recurring-services`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error('Failed to create recurring service');
+  return response.json();
+}
+
+export async function updateRecurringService(id, data) {
+  const response = await authFetch(`${API_BASE}/recurring-services`, {
+    method: 'PUT',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify({ id, ...data })
+  });
+  if (!response.ok) throw new Error('Failed to update recurring service');
+  return response.json();
+}
+
+export async function deleteRecurringService(id) {
+  const response = await authFetch(`${API_BASE}/recurring-services?id=${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to delete recurring service');
+  return response.json();
+}
