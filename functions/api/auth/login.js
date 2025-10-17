@@ -1,5 +1,8 @@
 // Authentication API - Handle user login, token validation, and session management
 // Supports multiple authentication methods: email/password, Google OAuth
+// SECURITY: Uses Web Crypto API for password hashing and jose library for JWT
+
+import { SignJWT, jwtVerify } from 'jose';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -84,36 +87,45 @@ async function verifyPassword(password, storedHash) {
 }
 
 /**
- * Simple JWT encoding (for demo purposes)
- * In production, use a proper JWT library with signature verification
+ * Generate JWT token using jose library
+ * @param {object} payload - Token payload
+ * @param {string} secret - JWT secret
+ * @returns {Promise<string>} - Signed JWT token
  */
-function encodeJWT(payload, secret) {
-  const header = { alg: 'HS256', typ: 'JWT' };
-  const encodedHeader = btoa(JSON.stringify(header));
-  const encodedPayload = btoa(JSON.stringify(payload));
-  const signature = btoa(`${encodedHeader}.${encodedPayload}.${secret}`);
-  return `${encodedHeader}.${encodedPayload}.${signature}`;
+async function generateJWT(payload, secret) {
+  const encoder = new TextEncoder();
+  const secretKey = encoder.encode(secret);
+  
+  const jwt = await new SignJWT(payload)
+    .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
+    .setIssuedAt()
+    .setIssuer('avanta-coinmaster')
+    .setAudience('avanta-coinmaster-api')
+    .setExpirationTime('24h')
+    .sign(secretKey);
+  
+  return jwt;
 }
 
 /**
- * Decode and validate JWT token
+ * Verify JWT token using jose library
+ * @param {string} token - JWT token
+ * @param {string} secret - JWT secret
+ * @returns {Promise<object|null>} - Decoded payload or null if invalid
  */
-function decodeJWT(token, secret) {
+async function verifyJWT(token, secret) {
   try {
-    const parts = token.split('.');
-    if (parts.length !== 3) return null;
+    const encoder = new TextEncoder();
+    const secretKey = encoder.encode(secret);
     
-    const [encodedHeader, encodedPayload, signature] = parts;
-    const payload = JSON.parse(atob(encodedPayload));
-    
-    // Check if token is expired
-    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
-      return null;
-    }
+    const { payload } = await jwtVerify(token, secretKey, {
+      issuer: 'avanta-coinmaster',
+      audience: 'avanta-coinmaster-api',
+    });
     
     return payload;
   } catch (error) {
-    console.error('Error decoding JWT:', error);
+    console.error('Error verifying JWT:', error);
     return null;
   }
 }
@@ -129,7 +141,7 @@ export async function getUserIdFromToken(request, env) {
   
   const token = authHeader.substring(7);
   const secret = env.JWT_SECRET || 'avanta-coinmaster-secret-key-change-in-production';
-  const payload = decodeJWT(token, secret);
+  const payload = await verifyJWT(token, secret);
   
   return payload?.sub || payload?.user_id || null;
 }
@@ -137,8 +149,8 @@ export async function getUserIdFromToken(request, env) {
 /**
  * Validate authentication token
  */
-export function validateAuthToken(request, env) {
-  const userId = getUserIdFromToken(request, env);
+export async function validateAuthToken(request, env) {
+  const userId = await getUserIdFromToken(request, env);
   if (!userId) {
     return new Response(JSON.stringify({
       error: 'Unauthorized',
@@ -232,11 +244,9 @@ async function handleLogin(request, env) {
       email: user.email,
       name: user.name,
       role: user.role || 'user',
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // 24 hours
     };
     
-    const token = encodeJWT(payload, secret);
+    const token = await generateJWT(payload, secret);
     
     // Update last login
     await env.DB.prepare(
@@ -344,11 +354,9 @@ async function handleGoogleLogin(request, env) {
       email: user.email,
       name: user.name,
       picture: user.avatar_url,
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // 24 hours
     };
     
-    const token = encodeJWT(tokenPayload, secret);
+    const token = await generateJWT(tokenPayload, secret);
     
     return new Response(JSON.stringify({
       success: true,
@@ -427,11 +435,9 @@ async function handleRefreshToken(request, env) {
       email: user.email,
       name: user.name,
       role: user.role || 'user',
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // 24 hours
     };
     
-    const token = encodeJWT(payload, secret);
+    const token = await generateJWT(payload, secret);
     
     return new Response(JSON.stringify({
       success: true,
