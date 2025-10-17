@@ -274,6 +274,60 @@ export function groupByCategory(payables) {
 }
 
 /**
+ * Calculate aging report for payables
+ * @param {Array} payables - Array of payable objects
+ * @returns {Object} Aging report with buckets
+ */
+export function calculateAgingReport(payables) {
+  const today = new Date();
+  const aging = {
+    current: { count: 0, total: 0, items: [] },
+    days_1_30: { count: 0, total: 0, items: [] },
+    days_31_60: { count: 0, total: 0, items: [] },
+    days_61_90: { count: 0, total: 0, items: [] },
+    days_90_plus: { count: 0, total: 0, items: [] }
+  };
+
+  payables.forEach(payable => {
+    if (payable.status === 'paid' || payable.status === 'cancelled') {
+      return;
+    }
+
+    const dueDate = new Date(payable.due_date);
+    const daysOverdue = Math.floor((today - dueDate) / (1000 * 60 * 60 * 24));
+    const outstanding = payable.amount - (payable.amount_paid || 0);
+
+    let bucket;
+    if (daysOverdue <= 0) {
+      bucket = 'current';
+    } else if (daysOverdue <= 30) {
+      bucket = 'days_1_30';
+    } else if (daysOverdue <= 60) {
+      bucket = 'days_31_60';
+    } else if (daysOverdue <= 90) {
+      bucket = 'days_61_90';
+    } else {
+      bucket = 'days_90_plus';
+    }
+
+    aging[bucket].count++;
+    aging[bucket].total += outstanding;
+    aging[bucket].items.push({
+      ...payable,
+      outstanding,
+      daysOverdue
+    });
+  });
+
+  aging.totalCount = payables.filter(p => p.status !== 'paid' && p.status !== 'cancelled').length;
+  aging.totalOutstanding = Object.values(aging).reduce((sum, bucket) => {
+    return typeof bucket === 'object' && bucket.total ? sum + bucket.total : sum;
+  }, 0);
+
+  return aging;
+}
+
+/**
  * Format payment history for display
  * @param {Array} payments - Array of payment objects
  * @returns {Array} Formatted payment history

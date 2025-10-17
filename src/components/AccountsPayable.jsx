@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { fetchPayables, createPayable, updatePayable, deletePayable } from '../utils/api';
-import { calculatePaymentSchedule, getVendorSummary, calculatePaymentMetrics, getUrgentPayables } from '../utils/payables';
+import { calculatePaymentSchedule, getVendorSummary, calculatePaymentMetrics, getUrgentPayables, calculateAgingReport } from '../utils/payables';
 import { formatCurrency, formatDate } from '../utils/calculations';
 
 export default function AccountsPayable() {
@@ -8,7 +8,7 @@ export default function AccountsPayable() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [view, setView] = useState('list'); // list, schedule, vendors, metrics
+  const [view, setView] = useState('list'); // list, schedule, vendors, metrics, aging
   const [filterStatus, setFilterStatus] = useState('all');
   const [formData, setFormData] = useState({
     vendor_name: '',
@@ -111,6 +111,44 @@ export default function AccountsPayable() {
   const vendors = getVendorSummary(payables);
   const metrics = calculatePaymentMetrics(payables);
   const urgent = getUrgentPayables(payables);
+  const agingReport = calculateAgingReport(payables);
+
+  const exportAgingReport = () => {
+    const reportData = {
+      generatedAt: new Date().toISOString(),
+      summary: {
+        totalOutstanding: agingReport.totalOutstanding,
+        totalCount: agingReport.totalCount
+      },
+      aging: {
+        current: agingReport.current,
+        days_1_30: agingReport.days_1_30,
+        days_31_60: agingReport.days_31_60,
+        days_61_90: agingReport.days_61_90,
+        days_90_plus: agingReport.days_90_plus
+      },
+      payables: payables.map(p => ({
+        vendor: p.vendor_name,
+        bill: p.bill_number,
+        date: p.bill_date,
+        dueDate: p.due_date,
+        amount: p.amount,
+        paid: p.amount_paid || 0,
+        outstanding: p.amount - (p.amount_paid || 0),
+        status: p.status,
+        daysOverdue: Math.floor((new Date() - new Date(p.due_date)) / (1000 * 60 * 60 * 24))
+      }))
+    };
+
+    const dataStr = JSON.stringify(reportData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ap-aging-report-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -166,6 +204,12 @@ export default function AccountsPayable() {
             className={`px-4 py-2 font-medium ${view === 'list' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'}`}
           >
             Lista
+          </button>
+          <button
+            onClick={() => setView('aging')}
+            className={`px-4 py-2 font-medium ${view === 'aging' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'}`}
+          >
+            Antigüedad
           </button>
           <button
             onClick={() => setView('schedule')}
@@ -574,6 +618,147 @@ export default function AccountsPayable() {
             <div className="text-2xl font-bold text-blue-600">{metrics.onTimePaymentRate.toFixed(1)}%</div>
             <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Porcentaje de facturas pagadas antes o en la fecha de vencimiento
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Aging Report View */}
+      {view === 'aging' && (
+        <div className="space-y-4">
+          <div className="flex justify-between items-center bg-white dark:bg-slate-900 p-4 rounded-lg shadow-md">
+            <h2 className="text-xl font-bold">Reporte de Antigüedad de Cuentas por Pagar</h2>
+            <button
+              onClick={exportAgingReport}
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2"
+            >
+              📥 Exportar Reporte
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border-2 border-green-200 dark:border-green-800 hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm text-green-700 dark:text-green-400 font-medium">Al Corriente</div>
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              </div>
+              <div className="text-2xl font-bold text-green-900 dark:text-green-200">{formatCurrency(agingReport.current.total)}</div>
+              <div className="text-xs text-green-600 dark:text-green-400">{agingReport.current.count} facturas</div>
+              <div className="mt-2 bg-green-200 dark:bg-green-800 rounded-full h-2">
+                <div 
+                  className="bg-green-600 h-2 rounded-full" 
+                  style={{ width: `${(agingReport.current.total / agingReport.totalOutstanding * 100) || 0}%` }}
+                ></div>
+              </div>
+            </div>
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border-2 border-blue-200 dark:border-blue-800 hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm text-blue-700 dark:text-blue-400 font-medium">1-30 días</div>
+                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+              </div>
+              <div className="text-2xl font-bold text-blue-900 dark:text-blue-200">{formatCurrency(agingReport.days_1_30.total)}</div>
+              <div className="text-xs text-blue-600 dark:text-blue-400">{agingReport.days_1_30.count} facturas</div>
+              <div className="mt-2 bg-blue-200 dark:bg-blue-800 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full" 
+                  style={{ width: `${(agingReport.days_1_30.total / agingReport.totalOutstanding * 100) || 0}%` }}
+                ></div>
+              </div>
+            </div>
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border-2 border-yellow-200 dark:border-yellow-800 hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm text-yellow-700 dark:text-yellow-400 font-medium">31-60 días</div>
+                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+              </div>
+              <div className="text-2xl font-bold text-yellow-900 dark:text-yellow-200">{formatCurrency(agingReport.days_31_60.total)}</div>
+              <div className="text-xs text-yellow-600 dark:text-yellow-400">{agingReport.days_31_60.count} facturas</div>
+              <div className="mt-2 bg-yellow-200 dark:bg-yellow-800 rounded-full h-2">
+                <div 
+                  className="bg-yellow-600 h-2 rounded-full" 
+                  style={{ width: `${(agingReport.days_31_60.total / agingReport.totalOutstanding * 100) || 0}%` }}
+                ></div>
+              </div>
+            </div>
+            <div className="bg-orange-50 p-4 rounded-lg border-2 border-orange-200 hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm text-orange-700 font-medium">61-90 días</div>
+                <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+              </div>
+              <div className="text-2xl font-bold text-orange-900">{formatCurrency(agingReport.days_61_90.total)}</div>
+              <div className="text-xs text-orange-600">{agingReport.days_61_90.count} facturas</div>
+              <div className="mt-2 bg-orange-200 rounded-full h-2">
+                <div 
+                  className="bg-orange-600 h-2 rounded-full" 
+                  style={{ width: `${(agingReport.days_61_90.total / agingReport.totalOutstanding * 100) || 0}%` }}
+                ></div>
+              </div>
+            </div>
+            <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border-2 border-red-200 dark:border-red-800 hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm text-red-700 dark:text-red-400 font-medium">+90 días</div>
+                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+              </div>
+              <div className="text-2xl font-bold text-red-900 dark:text-red-200">{formatCurrency(agingReport.days_90_plus.total)}</div>
+              <div className="text-xs text-red-600 dark:text-red-400">{agingReport.days_90_plus.count} facturas</div>
+              <div className="mt-2 bg-red-200 dark:bg-red-800 rounded-full h-2">
+                <div 
+                  className="bg-red-600 h-2 rounded-full" 
+                  style={{ width: `${(agingReport.days_90_plus.total / agingReport.totalOutstanding * 100) || 0}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold">Total Pendiente de Pago</h3>
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                Generado: {new Date().toLocaleDateString()}
+              </div>
+            </div>
+            <div className="text-3xl font-bold text-blue-900 dark:text-blue-200">{formatCurrency(agingReport.totalOutstanding)}</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400">{agingReport.totalCount} facturas pendientes</div>
+            
+            {/* Visual distribution chart */}
+            <div className="mt-4">
+              <div className="text-sm font-medium mb-2">Distribución por Antigüedad</div>
+              <div className="flex h-6 rounded-lg overflow-hidden">
+                {agingReport.current.total > 0 && (
+                  <div 
+                    className="bg-green-500 hover:bg-green-600 transition-colors cursor-pointer" 
+                    style={{ width: `${(agingReport.current.total / agingReport.totalOutstanding * 100)}%` }}
+                    title={`Al corriente: ${formatCurrency(agingReport.current.total)}`}
+                  ></div>
+                )}
+                {agingReport.days_1_30.total > 0 && (
+                  <div 
+                    className="bg-blue-500 hover:bg-blue-600 transition-colors cursor-pointer" 
+                    style={{ width: `${(agingReport.days_1_30.total / agingReport.totalOutstanding * 100)}%` }}
+                    title={`1-30 días: ${formatCurrency(agingReport.days_1_30.total)}`}
+                  ></div>
+                )}
+                {agingReport.days_31_60.total > 0 && (
+                  <div 
+                    className="bg-yellow-500 hover:bg-yellow-600 transition-colors cursor-pointer" 
+                    style={{ width: `${(agingReport.days_31_60.total / agingReport.totalOutstanding * 100)}%` }}
+                    title={`31-60 días: ${formatCurrency(agingReport.days_31_60.total)}`}
+                  ></div>
+                )}
+                {agingReport.days_61_90.total > 0 && (
+                  <div 
+                    className="bg-orange-500 hover:bg-orange-600 transition-colors cursor-pointer" 
+                    style={{ width: `${(agingReport.days_61_90.total / agingReport.totalOutstanding * 100)}%` }}
+                    title={`61-90 días: ${formatCurrency(agingReport.days_61_90.total)}`}
+                  ></div>
+                )}
+                {agingReport.days_90_plus.total > 0 && (
+                  <div 
+                    className="bg-red-500 hover:bg-red-600 transition-colors cursor-pointer" 
+                    style={{ width: `${(agingReport.days_90_plus.total / agingReport.totalOutstanding * 100)}%` }}
+                    title={`+90 días: ${formatCurrency(agingReport.days_90_plus.total)}`}
+                  ></div>
+                )}
+              </div>
             </div>
           </div>
         </div>
