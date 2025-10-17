@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './AuthProvider';
 import { isValidEmail, validatePassword } from '../utils/auth';
+import { useNavigate } from 'react-router-dom';
 
 /**
  * LoginForm component
@@ -8,6 +9,7 @@ import { isValidEmail, validatePassword } from '../utils/auth';
  */
 export default function LoginForm() {
   const { login, loginGoogle, loading, error: authError, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -18,9 +20,9 @@ export default function LoginForm() {
   useEffect(() => {
     if (isAuthenticated) {
       console.log('LoginForm: User is authenticated, redirecting to home...');
-      window.location.href = '/';
+      navigate('/', { replace: true });
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, navigate]);
 
   /**
    * Validate form fields
