@@ -112,7 +112,7 @@ export default function LoginForm() {
   };
 
   // Initialize Google Sign-In on component mount
-  useState(() => {
+  useEffect(() => {
     // Load Google Sign-In script
     const script = document.createElement('script');
     script.src = 'https://accounts.google.com/gsi/client';
