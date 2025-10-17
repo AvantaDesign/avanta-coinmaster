@@ -107,9 +107,15 @@ export function getUserEmail() {
  */
 export function hasRole(role) {
   const user = getCurrentUser();
-  if (!user || !user.roles) return false;
+  if (!user) return false;
   
-  return user.roles.includes(role);
+  // Check if roles array exists (for backward compatibility)
+  if (user.roles && Array.isArray(user.roles)) {
+    return user.roles.includes(role);
+  }
+  
+  // Check single role field (new standard)
+  return user.role === role;
 }
 
 /**

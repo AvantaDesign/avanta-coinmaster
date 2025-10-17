@@ -23,7 +23,9 @@
 
 **Login Credentials:**
 - **Email:** `m@avantadesign.com`
-- **Password:** `rSco6#F*q9nY0N`
+- **Password:** `AvantaAdmin2025!`
+
+**⚠️ IMPORTANT**: This password was recently reset for account recovery. Change it immediately after login via "Mi Cuenta" (My Account) section. See [Admin Dashboard Documentation](docs/ADMIN_DASHBOARD.md) for complete details.
 
 ## 🏗️ **Architecture**
 
@@ -40,8 +42,10 @@ Authentication: JWT + Google OAuth
 
 ### 🔐 **Security & Authentication**
 - Multi-tenant architecture with user isolation
-- JWT-based authentication
+- JWT-based authentication with role-based access control
 - Google OAuth integration
+- Secure password hashing (SHA-256 + unique salt)
+- Admin dashboard for account management
 - Secure data access controls
 
 ### 💼 **Business vs Personal Classification**

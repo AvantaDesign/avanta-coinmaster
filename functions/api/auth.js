@@ -222,20 +222,21 @@ async function handleRegister(request, env) {
     // Hash password
     const hashedPassword = await hashPassword(password);
     
-    // Create user
+    // Create user with default role
     const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     await env.DB.prepare(`
-      INSERT INTO users (id, email, name, password, is_active)
-      VALUES (?, ?, ?, ?, 1)
+      INSERT INTO users (id, email, name, password, role, is_active)
+      VALUES (?, ?, ?, ?, 'user', 1)
     `).bind(userId, email, name || email.split('@')[0], hashedPassword).run();
     
-    // Generate JWT token
+    // Generate JWT token with role
     const secret = env.JWT_SECRET || 'avanta-finance-secret-key-change-in-production';
     const payload = {
       sub: userId,
       user_id: userId,
       email: email,
       name: name || email.split('@')[0],
+      role: 'user',
     };
     
     const token = await generateJWT(payload, secret);
@@ -247,6 +248,7 @@ async function handleRegister(request, env) {
         id: userId,
         email: email,
         name: name || email.split('@')[0],
+        role: 'user',
       }
     }), {
       headers: corsHeaders
@@ -294,7 +296,7 @@ async function handleLogin(request, env) {
       });
     }
     
-    // Check if user exists
+    // Check if user exists - include role for authorization
     const user = await env.DB.prepare(
       'SELECT * FROM users WHERE email = ? AND is_active = 1'
     ).bind(email).first();
@@ -337,13 +339,14 @@ async function handleLogin(request, env) {
       });
     }
     
-    // Generate JWT token
+    // Generate JWT token with role information
     const secret = env.JWT_SECRET || 'avanta-finance-secret-key-change-in-production';
     const payload = {
       sub: user.id,
       user_id: user.id,
       email: user.email,
       name: user.name,
+      role: user.role || 'user',
     };
     
     const token = await generateJWT(payload, secret);
@@ -360,6 +363,7 @@ async function handleLogin(request, env) {
         id: user.id,
         email: user.email,
         name: user.name,
+        role: user.role || 'user',
         created_at: user.created_at,
       }
     }), {
@@ -527,13 +531,14 @@ async function handleRefreshToken(request, env) {
       });
     }
     
-    // Generate new JWT token
+    // Generate new JWT token with role
     const secret = env.JWT_SECRET || 'avanta-finance-secret-key-change-in-production';
     const payload = {
       sub: user.id,
       user_id: user.id,
       email: user.email,
       name: user.name,
+      role: user.role || 'user',
     };
     
     const token = await generateJWT(payload, secret);
@@ -586,7 +591,7 @@ async function handleGetCurrentUser(request, env) {
     }
     
     const user = await env.DB.prepare(
-      'SELECT id, email, name, avatar_url, created_at FROM users WHERE id = ? AND is_active = 1'
+      'SELECT id, email, name, avatar_url, role, created_at FROM users WHERE id = ? AND is_active = 1'
     ).bind(userId).first();
     
     if (!user) {

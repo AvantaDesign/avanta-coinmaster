@@ -22,6 +22,7 @@ const FinancialDashboard = lazy(() => import('./components/FinancialDashboard'))
 const AdvancedAnalytics = lazy(() => import('./components/AdvancedAnalytics'));
 const AdvancedReports = lazy(() => import('./components/AdvancedReports'));
 const CustomizableDashboard = lazy(() => import('./components/CustomizableDashboard'));
+const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 
 // Loading fallback component
 function LoadingFallback() {
@@ -125,6 +126,12 @@ function NavigationBar() {
               >
                 Reportes
               </Link>
+              <Link
+                to="/admin"
+                className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
+              >
+                Mi Cuenta
+              </Link>
             </div>
           </div>
           <div className="flex items-center space-x-4">
@@ -187,6 +194,7 @@ function AuthenticatedApp() {
                 <Route path="/analytics" element={<AdvancedAnalytics transactions={[]} financialData={{}} />} />
                 <Route path="/reports" element={<AdvancedReports data={{}} />} />
                 <Route path="/dashboard" element={<CustomizableDashboard dashboardData={{}} />} />
+                <Route path="/admin" element={<AdminDashboard />} />
               </Routes>
             </Suspense>
           </div>
