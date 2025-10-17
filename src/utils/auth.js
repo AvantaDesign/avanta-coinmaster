@@ -263,10 +263,13 @@ export async function loginWithGoogle(credential) {
 
 /**
  * Logout user
+ * Note: This only clears the auth data. Navigation should be handled by the component.
  */
 export function logout() {
+  console.log('auth.js: Clearing authentication data');
   removeAuthToken();
-  window.location.href = '/login';
+  // Don't use window.location.href here - let React Router handle navigation
+  // The AuthProvider will handle redirecting to login
 }
 
 /**
