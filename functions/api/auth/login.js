@@ -231,6 +231,7 @@ async function handleLogin(request, env) {
       user_id: user.id,
       email: user.email,
       name: user.name,
+      role: user.role || 'user',
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // 24 hours
     };
@@ -425,6 +426,7 @@ async function handleRefreshToken(request, env) {
       user_id: user.id,
       email: user.email,
       name: user.name,
+      role: user.role || 'user',
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // 24 hours
     };
