@@ -522,3 +522,143 @@ export async function deleteRecurringService(id) {
   if (!response.ok) throw new Error('Failed to delete recurring service');
   return response.json();
 }
+
+// Cash Flow Projection API
+export async function fetchCashFlowProjection(params = {}) {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/cash-flow-projection${queryString ? '?' + queryString : ''}`;
+  const response = await authFetch(url, {
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to fetch cash flow projection');
+  return response.json();
+}
+
+// Debts API
+export async function fetchDebts(params = {}) {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/debts${queryString ? '?' + queryString : ''}`;
+  const response = await authFetch(url, {
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to fetch debts');
+  return response.json();
+}
+
+export async function fetchDebt(id, includeAmortization = false) {
+  const params = { id };
+  if (includeAmortization) {
+    params.amortization = 'true';
+  }
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/debts?${queryString}`;
+  const response = await authFetch(url, {
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to fetch debt');
+  return response.json();
+}
+
+export async function createDebt(data) {
+  const response = await authFetch(`${API_BASE}/debts`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error('Failed to create debt');
+  return response.json();
+}
+
+export async function updateDebt(id, data) {
+  const response = await authFetch(`${API_BASE}/debts`, {
+    method: 'PUT',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify({ id, ...data })
+  });
+  if (!response.ok) throw new Error('Failed to update debt');
+  return response.json();
+}
+
+export async function deleteDebt(id) {
+  const response = await authFetch(`${API_BASE}/debts?id=${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to delete debt');
+  return response.json();
+}
+
+// Investments API
+export async function fetchInvestments(params = {}) {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/investments${queryString ? '?' + queryString : ''}`;
+  const response = await authFetch(url, {
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to fetch investments');
+  return response.json();
+}
+
+export async function fetchInvestment(id, includeTransactions = false) {
+  const params = { id };
+  if (includeTransactions) {
+    params.transactions = 'true';
+  }
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/investments?${queryString}`;
+  const response = await authFetch(url, {
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to fetch investment');
+  return response.json();
+}
+
+export async function fetchPortfolioSummary() {
+  const url = `${API_BASE}/investments?portfolio=true`;
+  const response = await authFetch(url, {
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to fetch portfolio summary');
+  return response.json();
+}
+
+export async function createInvestment(data) {
+  const response = await authFetch(`${API_BASE}/investments`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error('Failed to create investment');
+  return response.json();
+}
+
+export async function updateInvestment(id, data) {
+  const response = await authFetch(`${API_BASE}/investments`, {
+    method: 'PUT',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify({ id, ...data })
+  });
+  if (!response.ok) throw new Error('Failed to update investment');
+  return response.json();
+}
+
+export async function deleteInvestment(id) {
+  const response = await authFetch(`${API_BASE}/investments?id=${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to delete investment');
+  return response.json();
+}

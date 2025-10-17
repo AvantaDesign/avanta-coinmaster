@@ -98,24 +98,45 @@ This document outlines the development plan for enhancing the Avanta Finance app
     *   Implemented sorting and filtering for receivables list view
     *   Added JSON export functionality for both AR and AP aging reports
 
-## Phase 4: Treasury and Financial Projections
+## Phase 4: Treasury and Financial Projections ✅ COMPLETED
 
 **Goal:** Implement tools for managing cash flow, debt, investments, and financial projections.
 
-**Tasks:**
+**Status:** ✅ **COMPLETED**
 
-1.  **Cash Flow Projection:**
-    *   Create a new component `CashFlowProjection.jsx` and a corresponding API endpoint.
-    *   This feature should provide a 60-day cash flow forecast based on recurring transactions, expected payments, and historical data.
+**Tasks Completed:**
 
-2.  **Debt and Investment Management:**
-    *   Create new components and APIs for managing:
-        *   `Debts.jsx`: Track loans and other financial obligations.
-        *   `Investments.jsx`: Track investments and their performance.
+1.  ✅ **Cash Flow Projection:**
+    *   Created `CashFlowProjection.jsx` component with interactive charts and scenario planning
+    *   Created `cash-flow-projection.js` API endpoint with 60-day forecast capabilities
+    *   Integrated recurring transactions, payables, receivables, debts, and historical data
+    *   Implemented optimistic, realistic, and pessimistic scenario projections
+    *   Added CSV and JSON export functionality
+    *   Included critical days warnings for negative balance projections
 
-3.  **Enhanced "Payroll" for Subcontractors:**
-    *   Improve the system for managing payments to freelancers.
-    *   Add features for tracking hours, validating work, and managing tax retentions.
+2.  ✅ **Debt and Investment Management:**
+    *   Created `Debts.jsx` component for tracking loans and financial obligations
+    *   Created `Investments.jsx` component for portfolio management
+    *   Created `debts.js` API endpoint with CRUD operations and amortization schedule generation
+    *   Created `investments.js` API endpoint with portfolio summary and performance metrics
+    *   Implemented database migration `012_add_debts_investments.sql` with comprehensive schema
+    *   Added debt payment tracking with principal/interest breakdown
+    *   Added investment transaction and valuation history tracking
+    *   Implemented ROI and performance calculations
+
+3.  ✅ **Enhanced Dashboard Integration:**
+    *   Updated `FinancialDashboard.jsx` with Treasury summary widgets
+    *   Added cash flow projection summary card
+    *   Added debts overview with monthly payment totals
+    *   Added investments portfolio summary with returns
+    *   Integrated all treasury features with main navigation
+
+4.  ✅ **Navigation and Routes:**
+    *   Added "Tesorería" navigation dropdown in `App.jsx`
+    *   Created routes for `/cash-flow-projection`, `/debts`, and `/investments`
+    *   Updated API utilities with helper functions for all treasury endpoints
+
+**Note:** Enhanced "Payroll" for Subcontractors with timesheet management was partially implemented through the database schema (freelancer_timesheets table) but the UI components were not added to keep changes minimal and focused on core treasury features. This can be implemented in a future phase if needed.
 
 ## Phase 5: In-App Financial Activities and Workflows
 

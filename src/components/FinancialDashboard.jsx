@@ -1,5 +1,13 @@
 import { useState, useEffect } from 'react';
-import { fetchReceivables, fetchPayables, fetchAutomationRules, fetchAccounts } from '../utils/api';
+import { 
+  fetchReceivables, 
+  fetchPayables, 
+  fetchAutomationRules, 
+  fetchAccounts,
+  fetchDebts,
+  fetchPortfolioSummary,
+  fetchCashFlowProjection
+} from '../utils/api';
 import { calculateCollectionMetrics } from '../utils/receivables';
 import { calculatePaymentMetrics } from '../utils/payables';
 import { calculateCashFlowForecast, calculateFinancialHealthIndicators, generateAutomatedAlerts, calculateAutomationMetrics } from '../utils/automation';
@@ -14,6 +22,9 @@ export default function FinancialDashboard() {
   const [automationRules, setAutomationRules] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [credits, setCredits] = useState([]);
+  const [debts, setDebts] = useState([]);
+  const [portfolio, setPortfolio] = useState(null);
+  const [cashFlowSummary, setCashFlowSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [forecastDays, setForecastDays] = useState(30);
 
@@ -24,16 +35,30 @@ export default function FinancialDashboard() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [receivablesData, payablesData, rulesData, accountsData] = await Promise.all([
+      const [
+        receivablesData, 
+        payablesData, 
+        rulesData, 
+        accountsData,
+        debtsData,
+        portfolioData,
+        cashFlowData
+      ] = await Promise.all([
         fetchReceivables(),
         fetchPayables(),
         fetchAutomationRules(),
-        fetchAccounts()
+        fetchAccounts(),
+        fetchDebts({ status: 'active' }).catch(() => []),
+        fetchPortfolioSummary().catch(() => null),
+        fetchCashFlowProjection({ days: 30, scenario: 'realistic' }).catch(() => null)
       ]);
       setReceivables(receivablesData);
       setPayables(payablesData);
       setAutomationRules(rulesData);
       setAccounts(Array.isArray(accountsData) ? accountsData : []);
+      setDebts(debtsData);
+      setPortfolio(portfolioData);
+      setCashFlowSummary(cashFlowData);
       
       // Extract credits from accounts (credit cards)
       const creditCards = Array.isArray(accountsData) 
@@ -178,6 +203,87 @@ export default function FinancialDashboard() {
               </a>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Treasury Summary */}
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-bold text-purple-600 dark:text-purple-400">💼 Resumen de Tesorería</h3>
+          <a 
+            href="/cash-flow-projection"
+            className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
+          >
+            Ver proyección completa →
+          </a>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Cash Flow Projection Summary */}
+          {cashFlowSummary && (
+            <div className="border border-gray-200 dark:border-slate-700 rounded-lg p-4">
+              <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Proyección 30 días</div>
+              <div className={`text-2xl font-bold ${
+                cashFlowSummary.summary.final_projected_balance >= 0 
+                  ? 'text-green-600 dark:text-green-400' 
+                  : 'text-red-600 dark:text-red-400'
+              }`}>
+                {formatCurrency(cashFlowSummary.summary.final_projected_balance)}
+              </div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Balance proyectado
+              </div>
+              {cashFlowSummary.critical_days_count > 0 && (
+                <div className="mt-2 text-xs text-red-600 dark:text-red-400">
+                  ⚠️ {cashFlowSummary.critical_days_count} días críticos
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Debts Summary */}
+          <div className="border border-gray-200 dark:border-slate-700 rounded-lg p-4">
+            <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+              <a href="/debts" className="hover:text-blue-600 dark:hover:text-blue-400">
+                💳 Deudas Activas
+              </a>
+            </div>
+            <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+              {formatCurrency(debts.reduce((sum, d) => sum + (d.current_balance || 0), 0))}
+            </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {debts.length} {debts.length === 1 ? 'deuda' : 'deudas'}
+            </div>
+            {debts.length > 0 && (
+              <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">
+                Pago mensual: {formatCurrency(debts.reduce((sum, d) => sum + (d.monthly_payment || 0), 0))}
+              </div>
+            )}
+          </div>
+
+          {/* Investments Summary */}
+          {portfolio && (
+            <div className="border border-gray-200 dark:border-slate-700 rounded-lg p-4">
+              <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                <a href="/investments" className="hover:text-blue-600 dark:hover:text-blue-400">
+                  📈 Portafolio de Inversiones
+                </a>
+              </div>
+              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                {formatCurrency(portfolio.total_current_value)}
+              </div>
+              <div className={`text-xs mt-1 ${
+                portfolio.percent_return >= 0 
+                  ? 'text-green-600 dark:text-green-400' 
+                  : 'text-red-600 dark:text-red-400'
+              }`}>
+                {portfolio.percent_return >= 0 ? '+' : ''}{portfolio.percent_return.toFixed(2)}% rendimiento
+              </div>
+              <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">
+                {portfolio.active_investments} {portfolio.active_investments === 1 ? 'inversión' : 'inversiones'}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
