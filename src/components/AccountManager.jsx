@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { fetchAccounts, createAccount, updateAccount, deleteAccount } from '../utils/api';
 import { formatCurrency } from '../utils/calculations';
+import Icon from './icons/IconLibrary';
 
 export default function AccountManager() {
   const [accounts, setAccounts] = useState([]);
@@ -243,15 +244,17 @@ export default function AccountManager() {
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
                       onClick={() => handleEdit(account)}
-                      className="text-blue-600 hover:text-blue-900 mr-3"
+                      className="text-blue-600 hover:text-blue-900 mr-3 inline-flex items-center gap-1"
                     >
-                      ✏️ Editar
+                      <Icon name="pencil" size="sm" />
+                      Editar
                     </button>
                     <button
                       onClick={() => handleDelete(account.id)}
-                      className="text-red-600 hover:text-red-900"
+                      className="text-red-600 hover:text-red-900 inline-flex items-center gap-1"
                     >
-                      🗑️ Eliminar
+                      <Icon name="trash" size="sm" />
+                      Eliminar
                     </button>
                   </td>
                 </tr>

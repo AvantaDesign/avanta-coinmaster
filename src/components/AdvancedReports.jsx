@@ -10,6 +10,7 @@ import {
   createBackup
 } from '../utils/export';
 import { showSuccess, showError } from '../utils/notifications';
+import Icon from './icons/IconLibrary';
 
 /**
  * Advanced Reports Component
@@ -26,70 +27,70 @@ const REPORT_TEMPLATES = [
   {
     id: 'monthly-summary',
     name: 'Resumen Mensual',
-    icon: '📅',
+    icon: 'calendar',
     description: 'Resumen completo de ingresos, gastos y utilidad del mes',
     category: 'financial'
   },
   {
     id: 'fiscal-report',
     name: 'Reporte Fiscal',
-    icon: '💰',
+    icon: 'currency',
     description: 'Cálculo de ISR, IVA y otros impuestos',
     category: 'fiscal'
   },
   {
     id: 'cash-flow',
     name: 'Flujo de Caja',
-    icon: '💵',
+    icon: 'banknotes',
     description: 'Análisis detallado de entradas y salidas de efectivo',
     category: 'financial'
   },
   {
     id: 'profitability',
     name: 'Análisis de Rentabilidad',
-    icon: '📊',
+    icon: 'chart',
     description: 'Rentabilidad por categoría, producto o servicio',
     category: 'analytics'
   },
   {
     id: 'ar-aging',
     name: 'Antigüedad de Cuentas por Cobrar',
-    icon: '📈',
+    icon: 'trending-up',
     description: 'Reporte de antigüedad de facturas por cobrar',
     category: 'ar-ap'
   },
   {
     id: 'ap-aging',
     name: 'Antigüedad de Cuentas por Pagar',
-    icon: '📉',
+    icon: 'trending-down',
     description: 'Reporte de antigüedad de facturas por pagar',
     category: 'ar-ap'
   },
   {
     id: 'transactions-detail',
     name: 'Detalle de Transacciones',
-    icon: '📝',
+    icon: 'document',
     description: 'Listado completo de transacciones con filtros',
     category: 'transactions'
   },
   {
     id: 'category-analysis',
     name: 'Análisis por Categoría',
-    icon: '🏷️',
+    icon: 'tag',
     description: 'Desglose detallado por categoría de gasto/ingreso',
     category: 'analytics'
   },
   {
     id: 'account-reconciliation',
     name: 'Conciliación Bancaria',
-    icon: '🏦',
+    icon: 'bank',
     description: 'Reporte de conciliación de cuentas bancarias',
     category: 'reconciliation'
   },
   {
     id: 'budget-variance',
     name: 'Variaciones vs Presupuesto',
-    icon: '🎯',
+    icon: 'chart-pie',
     description: 'Comparación de gastos reales vs presupuestados',
     category: 'analytics'
   }
@@ -186,7 +187,10 @@ export default function AdvancedReports({ data = {} }) {
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 dark:from-purple-700 to-blue-600 dark:to-blue-700 p-6 rounded-lg shadow-lg text-white">
-        <h2 className="text-2xl font-bold mb-2">📊 Reportes Avanzados</h2>
+        <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
+          <Icon name="chart" size="lg" className="text-white" />
+          Reportes Avanzados
+        </h2>
         <p className="text-purple-100">
           Genera reportes personalizados y exporta en múltiples formatos
         </p>
@@ -208,7 +212,7 @@ export default function AdvancedReports({ data = {} }) {
               }`}
             >
               <div className="flex items-start gap-3">
-                <span className="text-3xl">{template.icon}</span>
+                <Icon name={template.icon} size="xl" className="text-blue-600 dark:text-blue-400" />
                 <div className="flex-1 min-w-0">
                   <h4 className="font-bold text-sm mb-1">{template.name}</h4>
                   <p className="text-xs text-gray-600 dark:text-gray-400">{template.description}</p>
@@ -222,7 +226,10 @@ export default function AdvancedReports({ data = {} }) {
       {/* Report Configuration */}
       {selectedTemplate && (
         <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
-          <h3 className="text-xl font-bold mb-4">⚙️ Configurar Reporte</h3>
+          <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+            <Icon name="settings" size="md" className="text-gray-700 dark:text-gray-300" />
+            Configurar Reporte
+          </h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Date Range */}

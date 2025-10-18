@@ -17,6 +17,7 @@ import { formatCurrency } from '../utils/calculations';
 import AccountBreakdown from './AccountBreakdown';
 import BudgetSummaryWidget from './BudgetSummaryWidget';
 import UpcomingPayments from './UpcomingPayments';
+import Icon from './icons/IconLibrary';
 
 export default function FinancialDashboard() {
   const [receivables, setReceivables] = useState([]);
@@ -113,10 +114,10 @@ export default function FinancialDashboard() {
 
   const getAlertIcon = (type) => {
     switch (type) {
-      case 'critical': return '🚨';
-      case 'warning': return '⚠️';
-      case 'info': return 'ℹ️';
-      default: return '📌';
+      case 'critical': return <Icon name="error" size="md" className="text-red-600" />;
+      case 'warning': return <Icon name="warning" size="md" className="text-warning-600" />;
+      case 'info': return <Icon name="info" size="md" className="text-info-600" />;
+      default: return <Icon name="bell" size="md" className="text-gray-600" />;
     }
   };
 
@@ -138,13 +139,15 @@ export default function FinancialDashboard() {
             href="/quick-actions"
             className="bg-purple-600 dark:bg-purple-700 text-white px-4 py-2 rounded-md hover:bg-purple-700 dark:hover:bg-purple-600 flex items-center gap-2"
           >
-            ⚡ Acciones Rápidas
+            <Icon name="plus" size="sm" />
+            Acciones Rápidas
           </a>
           <button
             onClick={loadData}
-            className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600"
+            className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 flex items-center gap-2"
           >
-            🔄 Actualizar
+            <Icon name="refresh" size="sm" />
+            Actualizar
           </button>
         </div>
       </div>
@@ -160,7 +163,10 @@ export default function FinancialDashboard() {
         {/* Notifications Widget */}
         <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-bold text-blue-600 dark:text-blue-400">🔔 Notificaciones</h3>
+            <h3 className="text-xl font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2">
+              <Icon name="bell" size="md" />
+              Notificaciones
+            </h3>
             <a 
               href="/notifications"
               className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
@@ -179,14 +185,14 @@ export default function FinancialDashboard() {
               
               {notifications.slice(0, 3).map((notif, idx) => (
                 <div key={idx} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-lg">
-                  <span className="text-xl">
-                    {notif.type === 'payment_reminder' && '💰'}
-                    {notif.type === 'tax_deadline' && '📋'}
-                    {notif.type === 'financial_task' && '✅'}
-                    {notif.type === 'system_alert' && '⚠️'}
-                    {notif.type === 'low_cash_flow' && '📉'}
-                    {notif.type === 'budget_overrun' && '💸'}
-                  </span>
+                  <div className="mt-0.5">
+                    {notif.type === 'payment_reminder' && <Icon name="currency" size="md" className="text-green-600" />}
+                    {notif.type === 'tax_deadline' && <Icon name="document" size="md" className="text-blue-600" />}
+                    {notif.type === 'financial_task' && <Icon name="check-circle" size="md" className="text-success-600" />}
+                    {notif.type === 'system_alert' && <Icon name="warning" size="md" className="text-warning-600" />}
+                    {notif.type === 'low_cash_flow' && <Icon name="trending-down" size="md" className="text-red-600" />}
+                    {notif.type === 'budget_overrun' && <Icon name="error" size="md" className="text-danger-600" />}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                       {notif.title}
@@ -200,7 +206,7 @@ export default function FinancialDashboard() {
             </div>
           ) : (
             <div className="text-center py-6">
-              <div className="text-4xl mb-2">✅</div>
+              <Icon name="check-circle" size="2xl" className="text-success-600 mx-auto mb-2" />
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 No tienes notificaciones pendientes
               </p>
@@ -211,7 +217,10 @@ export default function FinancialDashboard() {
         {/* Tasks Summary Widget */}
         <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-bold text-green-600 dark:text-green-400">📋 Tareas Pendientes</h3>
+            <h3 className="text-xl font-bold text-green-600 dark:text-green-400 flex items-center gap-2">
+              <Icon name="document" size="md" />
+              Tareas Pendientes
+            </h3>
             <a 
               href="/financial-tasks"
               className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
@@ -226,19 +235,20 @@ export default function FinancialDashboard() {
                 const pending = stat.total - stat.completed;
                 const percentage = stat.total > 0 ? Math.round((stat.completed / stat.total) * 100) : 0;
                 const frequencyLabels = {
-                  daily: { label: 'Diarias', icon: '📅' },
-                  weekly: { label: 'Semanales', icon: '📆' },
-                  monthly: { label: 'Mensuales', icon: '📊' },
-                  quarterly: { label: 'Trimestrales', icon: '📈' },
-                  annual: { label: 'Anuales', icon: '📋' }
+                  daily: { label: 'Diarias', icon: 'calendar' },
+                  weekly: { label: 'Semanales', icon: 'calendar' },
+                  monthly: { label: 'Mensuales', icon: 'chart' },
+                  quarterly: { label: 'Trimestrales', icon: 'trending-up' },
+                  annual: { label: 'Anuales', icon: 'document' }
                 };
-                const freqInfo = frequencyLabels[stat.frequency] || { label: stat.frequency, icon: '📌' };
+                const freqInfo = frequencyLabels[stat.frequency] || { label: stat.frequency, icon: 'clock' };
                 
                 return (
                   <div key={idx} className="p-3 bg-gray-50 dark:bg-slate-800 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {freqInfo.icon} {freqInfo.label}
+                      <span className="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1.5">
+                        <Icon name={freqInfo.icon} size="sm" className="text-gray-600" />
+                        {freqInfo.label}
                       </span>
                       <span className="text-xs text-gray-600 dark:text-gray-400">
                         {stat.completed}/{stat.total} ({percentage}%)
@@ -293,7 +303,10 @@ export default function FinancialDashboard() {
       {/* AP/AR Summary */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
-          <h3 className="text-xl font-bold mb-4 text-green-600 dark:text-green-400">📈 Cuentas por Cobrar</h3>
+          <h3 className="text-xl font-bold mb-4 text-green-600 dark:text-green-400 flex items-center gap-2">
+            <Icon name="trending-up" size="md" />
+            Cuentas por Cobrar
+          </h3>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600 dark:text-gray-400">Total Pendiente</span>
@@ -328,7 +341,10 @@ export default function FinancialDashboard() {
         </div>
 
         <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
-          <h3 className="text-xl font-bold mb-4 text-red-600 dark:text-red-400">📉 Cuentas por Pagar</h3>
+          <h3 className="text-xl font-bold mb-4 text-red-600 dark:text-red-400 flex items-center gap-2">
+            <Icon name="trending-down" size="md" />
+            Cuentas por Pagar
+          </h3>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600 dark:text-gray-400">Total Pendiente</span>
@@ -366,7 +382,10 @@ export default function FinancialDashboard() {
       {/* Treasury Summary */}
       <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-purple-600 dark:text-purple-400">💼 Resumen de Tesorería</h3>
+          <h3 className="text-xl font-bold text-purple-600 dark:text-purple-400 flex items-center gap-2">
+            <Icon name="briefcase" size="md" />
+            Resumen de Tesorería
+          </h3>
           <a 
             href="/cash-flow-projection"
             className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
@@ -391,8 +410,9 @@ export default function FinancialDashboard() {
                 Balance proyectado
               </div>
               {cashFlowSummary.critical_days_count > 0 && (
-                <div className="mt-2 text-xs text-red-600 dark:text-red-400">
-                  ⚠️ {cashFlowSummary.critical_days_count} días críticos
+                <div className="mt-2 text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
+                  <Icon name="warning" size="xs" />
+                  {cashFlowSummary.critical_days_count} días críticos
                 </div>
               )}
             </div>
@@ -401,8 +421,9 @@ export default function FinancialDashboard() {
           {/* Debts Summary */}
           <div className="border border-gray-200 dark:border-slate-700 rounded-lg p-4">
             <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-              <a href="/debts" className="hover:text-blue-600 dark:hover:text-blue-400">
-                💳 Deudas Activas
+              <a href="/debts" className="hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1.5">
+                <Icon name="credit-card" size="sm" />
+                Deudas Activas
               </a>
             </div>
             <div className="text-2xl font-bold text-red-600 dark:text-red-400">
@@ -422,8 +443,9 @@ export default function FinancialDashboard() {
           {portfolio && (
             <div className="border border-gray-200 dark:border-slate-700 rounded-lg p-4">
               <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                <a href="/investments" className="hover:text-blue-600 dark:hover:text-blue-400">
-                  📈 Portafolio de Inversiones
+                <a href="/investments" className="hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1.5">
+                  <Icon name="trending-up" size="sm" />
+                  Portafolio de Inversiones
                 </a>
               </div>
               <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">

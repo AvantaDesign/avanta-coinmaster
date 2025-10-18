@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import useFilterStore from '../stores/useFilterStore';
+import Icon from './icons/IconLibrary';
 
 /**
  * GlobalFilter Component
@@ -10,9 +11,9 @@ export default function GlobalFilter() {
   const { filter, setFilter } = useFilterStore();
   
   const filterOptions = [
-    { value: 'all', label: 'Todo', icon: '📊', color: 'gray' },
-    { value: 'personal', label: 'Personal', icon: '👤', color: 'blue' },
-    { value: 'business', label: 'Negocio', icon: '💼', color: 'green' },
+    { value: 'all', label: 'Todo', icon: 'chart', color: 'gray' },
+    { value: 'personal', label: 'Personal', icon: 'user', color: 'blue' },
+    { value: 'business', label: 'Negocio', icon: 'briefcase', color: 'green' },
   ];
 
   const getButtonClasses = (option) => {
@@ -36,7 +37,7 @@ export default function GlobalFilter() {
     <div className="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-gray-200 dark:border-slate-700 p-3">
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-          <span className="text-base">🔍</span>
+          <Icon name="search" size="sm" className="text-gray-500 dark:text-gray-400" />
           <span className="hidden sm:inline">Filtro:</span>
         </div>
         
@@ -49,7 +50,7 @@ export default function GlobalFilter() {
               aria-pressed={filter === option.value}
               aria-label={`Filtrar por ${option.label}`}
             >
-              <span className="text-base">{option.icon}</span>
+              <Icon name={option.icon} size="sm" />
               <span className="hidden sm:inline">{option.label}</span>
             </button>
           ))}

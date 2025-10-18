@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Icon from './icons/IconLibrary';
 
 /**
  * AdvancedFilter Component
@@ -239,8 +240,9 @@ export default function AdvancedFilter({ onFilterChange, onReset }) {
 
           {/* Amount Range */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              💰 Amount Range
+            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1.5">
+              <Icon name="currency" size="sm" className="text-gray-600" />
+              Amount Range
             </label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -350,7 +352,7 @@ export default function AdvancedFilter({ onFilterChange, onReset }) {
                       onClick={() => deleteSavedFilter(savedFilter.id)}
                       className="ml-2 text-red-600 hover:text-red-700"
                     >
-                      🗑️
+                      <Icon name="trash" size="sm" />
                     </button>
                   </div>
                 ))}

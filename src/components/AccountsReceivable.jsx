@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { fetchReceivables, createReceivable, updateReceivable, deleteReceivable } from '../utils/api';
 import { calculateAgingReport, calculateCollectionMetrics, getReceivablesNeedingAttention } from '../utils/receivables';
 import { formatCurrency, formatDate } from '../utils/calculations';
+import Icon from './icons/IconLibrary';
 
 export default function AccountsReceivable() {
   const [receivables, setReceivables] = useState([]);
@@ -515,7 +516,7 @@ export default function AccountsReceivable() {
                               className="text-green-600 hover:text-green-800 dark:text-green-300"
                               title="Registrar Pago"
                             >
-                              💰
+                              <Icon name="currency" size="sm" />
                             </button>
                           )}
                           <button
@@ -523,7 +524,7 @@ export default function AccountsReceivable() {
                             className="text-red-600 hover:text-red-800 dark:text-red-300"
                             title="Eliminar"
                           >
-                            🗑️
+                            <Icon name="trash" size="sm" />
                           </button>
                         </div>
                       </td>

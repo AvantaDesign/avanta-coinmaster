@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { fetchPayables, createPayable, updatePayable, deletePayable } from '../utils/api';
 import { calculatePaymentSchedule, getVendorSummary, calculatePaymentMetrics, getUrgentPayables, calculateAgingReport } from '../utils/payables';
 import { formatCurrency, formatDate } from '../utils/calculations';
+import Icon from './icons/IconLibrary';
 
 export default function AccountsPayable() {
   const [payables, setPayables] = useState([]);
@@ -185,7 +186,7 @@ export default function AccountsPayable() {
       {urgent.length > 0 && (
         <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 rounded">
           <div className="flex items-center">
-            <span className="text-2xl mr-3">⚠️</span>
+            <Icon name="warning" size="lg" className="text-red-600 mr-3" />
             <div>
               <div className="font-bold text-red-900">Pagos Urgentes</div>
               <div className="text-sm text-red-700">
@@ -473,7 +474,7 @@ export default function AccountsPayable() {
                               className="text-green-600 hover:text-green-800 dark:text-green-300"
                               title="Registrar Pago"
                             >
-                              💰
+                              <Icon name="currency" size="sm" />
                             </button>
                           )}
                           <button
@@ -481,7 +482,7 @@ export default function AccountsPayable() {
                             className="text-red-600 hover:text-red-800 dark:text-red-300"
                             title="Eliminar"
                           >
-                            🗑️
+                            <Icon name="trash" size="sm" />
                           </button>
                         </div>
                       </td>
