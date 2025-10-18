@@ -8,7 +8,8 @@ import {
   fetchPortfolioSummary,
   fetchCashFlowProjection,
   fetchNotifications,
-  fetchFinancialTasks
+  fetchFinancialTasks,
+  fetchTransactions
 } from '../utils/api';
 import { calculateCollectionMetrics } from '../utils/receivables';
 import { calculatePaymentMetrics } from '../utils/payables';
@@ -17,6 +18,7 @@ import { formatCurrency } from '../utils/calculations';
 import AccountBreakdown from './AccountBreakdown';
 import BudgetSummaryWidget from './BudgetSummaryWidget';
 import UpcomingPayments from './UpcomingPayments';
+import FinancialHealthScore from './FinancialHealthScore';
 import Icon from './icons/IconLibrary';
 
 export default function FinancialDashboard() {
@@ -32,6 +34,8 @@ export default function FinancialDashboard() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [tasks, setTasks] = useState([]);
   const [taskStats, setTaskStats] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const [budgets, setBudgets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [forecastDays, setForecastDays] = useState(30);
 
@@ -42,6 +46,12 @@ export default function FinancialDashboard() {
   const loadData = async () => {
     try {
       setLoading(true);
+      
+      // Calculate date range for last 3 months of transactions
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setMonth(startDate.getMonth() - 3);
+      
       const [
         receivablesData, 
         payablesData, 
@@ -51,7 +61,9 @@ export default function FinancialDashboard() {
         portfolioData,
         cashFlowData,
         notificationsData,
-        tasksData
+        tasksData,
+        transactionsData,
+        budgetsData
       ] = await Promise.all([
         fetchReceivables(),
         fetchPayables(),
@@ -61,7 +73,12 @@ export default function FinancialDashboard() {
         fetchPortfolioSummary().catch(() => null),
         fetchCashFlowProjection({ days: 30, scenario: 'realistic' }).catch(() => null),
         fetchNotifications({ unread: true }).catch(() => ({ notifications: [], unreadCount: 0 })),
-        fetchFinancialTasks().catch(() => ({ tasks: [], stats: [] }))
+        fetchFinancialTasks().catch(() => ({ tasks: [], stats: [] })),
+        fetchTransactions({ 
+          startDate: startDate.toISOString().split('T')[0],
+          endDate: endDate.toISOString().split('T')[0]
+        }).catch(() => []),
+        fetch('/api/budgets').then(r => r.json()).catch(() => [])
       ]);
       setReceivables(receivablesData);
       setPayables(payablesData);
@@ -74,6 +91,8 @@ export default function FinancialDashboard() {
       setUnreadCount(notificationsData.unreadCount || 0);
       setTasks(tasksData.tasks || []);
       setTaskStats(tasksData.stats || []);
+      setTransactions(Array.isArray(transactionsData) ? transactionsData : []);
+      setBudgets(Array.isArray(budgetsData) ? budgetsData : []);
       
       // Extract credits from accounts (credit cards)
       const creditCards = Array.isArray(accountsData) 
@@ -151,6 +170,15 @@ export default function FinancialDashboard() {
           </button>
         </div>
       </div>
+
+      {/* Financial Health Score - Top Priority Widget */}
+      <FinancialHealthScore
+        cashFlowData={cashFlowSummary}
+        debtData={debts}
+        budgetData={budgets}
+        accountData={accounts}
+        transactionData={transactions}
+      />
 
       {/* Account Balances and Budget Summary */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

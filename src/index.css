@@ -86,55 +86,6 @@ code {
   .shadow-elevation {
     @apply shadow-lg dark:shadow-xl dark:shadow-black/20;
   }
-
-  /* Typography Utilities */
-  .text-heading-1 {
-    @apply text-heading-1;
-  }
-  
-  .text-heading-2 {
-    @apply text-heading-2;
-  }
-  
-  .text-heading-3 {
-    @apply text-heading-3;
-  }
-  
-  .text-heading-4 {
-    @apply text-heading-4;
-  }
-  
-  .text-heading-5 {
-    @apply text-heading-5;
-  }
-  
-  .text-heading-6 {
-    @apply text-heading-6;
-  }
-  
-  .text-body-large {
-    @apply text-body-large;
-  }
-  
-  .text-body {
-    @apply text-body;
-  }
-  
-  .text-body-small {
-    @apply text-body-small;
-  }
-  
-  .text-label {
-    @apply text-label;
-  }
-  
-  .text-caption {
-    @apply text-caption;
-  }
-  
-  .text-code {
-    @apply text-code font-mono;
-  }
 }
 
 /* Toast notification animations */

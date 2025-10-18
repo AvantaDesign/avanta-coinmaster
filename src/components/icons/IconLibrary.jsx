@@ -6,12 +6,16 @@ import {
   DocumentTextIcon,
   BellIcon,
   QuestionMarkCircleIcon,
+  ChevronRightIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
   
   // Context Icons
   UserIcon,
   BriefcaseIcon,
   BuildingOfficeIcon,
   HomeModernIcon,
+  UsersIcon,
   
   // Financial Icons
   BanknotesIcon,
@@ -31,6 +35,15 @@ import {
   FunnelIcon,
   ArrowUpTrayIcon,
   ArrowDownTrayIcon,
+  CursorArrowRaysIcon,
+  LightBulbIcon,
+  BoltIcon,
+  FlagIcon,
+  ScaleIcon,
+  MinusIcon,
+  ClipboardDocumentCheckIcon,
+  ShieldCheckIcon,
+  DocumentCheckIcon,
   
   // Status Icons
   CheckCircleIcon,
@@ -115,10 +128,17 @@ function getIconComponent(name, variant) {
     // Navigation
     home: HomeIcon,
     chart: ChartBarIcon,
+    chartBar: ChartBarIcon,
     settings: Cog6ToothIcon,
+    cog: Cog6ToothIcon,
     document: DocumentTextIcon,
+    documentText: DocumentTextIcon,
     bell: BellIcon,
     help: QuestionMarkCircleIcon,
+    questionMarkCircle: QuestionMarkCircleIcon,
+    chevronRight: ChevronRightIcon,
+    chevronUp: ChevronUpIcon,
+    chevronDown: ChevronDownIcon,
     
     // Context
     user: UserIcon,
@@ -126,18 +146,23 @@ function getIconComponent(name, variant) {
     briefcase: BriefcaseIcon,
     business: BriefcaseIcon,
     building: BuildingOfficeIcon,
+    buildingLibrary: BuildingLibraryIcon,
     'home-modern': HomeModernIcon,
+    users: UsersIcon,
     
     // Financial
     banknotes: BanknotesIcon,
     money: BanknotesIcon,
     cash: BanknotesIcon,
     'credit-card': CreditCardIcon,
+    creditCard: CreditCardIcon,
     card: CreditCardIcon,
     bank: BuildingLibraryIcon,
     receipt: ReceiptPercentIcon,
     currency: CurrencyDollarIcon,
     dollar: CurrencyDollarIcon,
+    scale: ScaleIcon,
+    piggyBank: BanknotesIcon, // Using banknotes as closest alternative
     
     // Actions
     plus: PlusIcon,
@@ -153,7 +178,17 @@ function getIconComponent(name, variant) {
     search: MagnifyingGlassIcon,
     filter: FunnelIcon,
     upload: ArrowUpTrayIcon,
+    arrowUpTray: ArrowUpTrayIcon,
     download: ArrowDownTrayIcon,
+    arrowDownTray: ArrowDownTrayIcon,
+    cursor: CursorArrowRaysIcon,
+    lightBulb: LightBulbIcon,
+    bolt: BoltIcon,
+    flag: FlagIcon,
+    minus: MinusIcon,
+    clipboardDocumentCheck: ClipboardDocumentCheckIcon,
+    shieldCheck: ShieldCheckIcon,
+    documentCheck: DocumentCheckIcon,
     
     // Status
     'check-circle': CheckCircleIcon,
@@ -167,14 +202,18 @@ function getIconComponent(name, variant) {
     
     // Trends
     'trending-up': ArrowTrendingUpIcon,
+    arrowTrendingUp: ArrowTrendingUpIcon,
     up: ArrowTrendingUpIcon,
     increase: ArrowTrendingUpIcon,
     'trending-down': ArrowTrendingDownIcon,
+    arrowTrendingDown: ArrowTrendingDownIcon,
     down: ArrowTrendingDownIcon,
     decrease: ArrowTrendingDownIcon,
     'chart-pie': ChartPieIcon,
+    chartPie: ChartPieIcon,
     pie: ChartPieIcon,
     'chart-line': PresentationChartLineIcon,
+    presentationChartLine: PresentationChartLineIcon,
     analytics: PresentationChartLineIcon,
     
     // Other
