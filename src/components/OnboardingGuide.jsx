@@ -22,9 +22,10 @@ export default function OnboardingGuide({ onComplete }) {
             <ul className="space-y-1 text-sm text-primary-800 dark:text-primary-200">
               <li>✅ Gestionar tus finanzas personales y empresariales</li>
               <li>✅ Controlar ingresos, gastos e inversiones</li>
-              <li>✅ Cumplir con obligaciones fiscales mexicanas</li>
+              <li>✅ Cumplir con obligaciones fiscales mexicanas con deducibilidad granular</li>
               <li>✅ Generar reportes financieros detallados</li>
               <li>✅ Proyectar flujo de efectivo</li>
+              <li>✅ Automatizar clasificación fiscal de gastos</li>
             </ul>
           </div>
         </div>
@@ -56,6 +57,10 @@ export default function OnboardingGuide({ onComplete }) {
               <span className="text-lg">📋</span>
               <span><strong>Presupuestos:</strong> Control de gastos vs presupuesto</span>
             </li>
+            <li className="flex items-start gap-2">
+              <span className="text-lg">🔔</span>
+              <span><strong>Notificaciones:</strong> Accede al ícono de campana en la barra superior para ver alertas importantes</span>
+            </li>
           </ul>
         </div>
       ),
@@ -80,6 +85,14 @@ export default function OnboardingGuide({ onComplete }) {
             </li>
             <li className="flex items-start gap-2">
               <span>✅</span>
+              <span>Especificar deducibilidad granular (ISR e IVA por separado)</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span>✅</span>
+              <span>Clasificar tipo de gasto (nacional o internacional)</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span>✅</span>
               <span>Adjuntar comprobantes fiscales (XML/PDF)</span>
             </li>
             <li className="flex items-start gap-2">
@@ -89,12 +102,47 @@ export default function OnboardingGuide({ onComplete }) {
           </ul>
           <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
             <p className="text-sm text-blue-900 dark:text-blue-100">
-              💡 <strong>Consejo:</strong> Registra tus transacciones regularmente para mantener tus finanzas actualizadas.
+              💡 <strong>Consejo:</strong> Los badges de colores te ayudan a identificar la deducibilidad: azul para ISR, verde para IVA.
             </p>
           </div>
         </div>
       ),
       action: () => navigate('/transactions')
+    },
+    {
+      title: 'Deducibilidad Fiscal Granular ✅',
+      description: 'Control preciso de tus deducciones fiscales',
+      content: (
+        <div className="space-y-3">
+          <p className="text-gray-700 dark:text-gray-300">
+            Sistema avanzado de clasificación fiscal según regulaciones del SAT:
+          </p>
+          <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+            <li className="flex items-start gap-2">
+              <span className="text-lg">🔵</span>
+              <span><strong>ISR Deducible:</strong> Marca gastos deducibles para Impuesto Sobre la Renta</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-lg">🟢</span>
+              <span><strong>IVA Acreditable:</strong> Especifica si el IVA puede acreditarse</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-lg">🌍</span>
+              <span><strong>Tipos de gasto:</strong> Nacional, Internacional con/sin factura</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-lg">⚙️</span>
+              <span><strong>Reglas automáticas:</strong> Crea reglas en Fiscal → Reglas de Deducibilidad</span>
+            </li>
+          </ul>
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+            <p className="text-sm text-amber-900 dark:text-amber-100">
+              ⚠️ <strong>Importante:</strong> Los gastos internacionales sin factura mexicana NO permiten acreditar IVA según el SAT.
+            </p>
+          </div>
+        </div>
+      ),
+      action: () => navigate('/deductibility-rules')
     },
     {
       title: 'Gestión Fiscal 📄',
@@ -107,7 +155,7 @@ export default function OnboardingGuide({ onComplete }) {
           <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
             <li className="flex items-start gap-2">
               <span className="text-lg">🧾</span>
-              <span><strong>Calculadora fiscal:</strong> Calcula ISR, IVA e IEPS</span>
+              <span><strong>Calculadora fiscal:</strong> Calcula ISR, IVA e IEPS con deducibilidad granular</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-lg">📑</span>
@@ -116,6 +164,10 @@ export default function OnboardingGuide({ onComplete }) {
             <li className="flex items-start gap-2">
               <span className="text-lg">📊</span>
               <span><strong>Reportes fiscales:</strong> Genera reportes para declaraciones</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-lg">✅</span>
+              <span><strong>Reglas de deducibilidad:</strong> Automatiza la clasificación de gastos</span>
             </li>
           </ul>
           <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
@@ -152,6 +204,41 @@ export default function OnboardingGuide({ onComplete }) {
         </div>
       ),
       action: () => navigate('/cash-flow-projection')
+    },
+    {
+      title: 'Interfaz y Navegación 🎨',
+      description: 'Aprovecha las mejoras de interfaz',
+      content: (
+        <div className="space-y-3">
+          <p className="text-gray-700 dark:text-gray-300">
+            El sistema incluye mejoras de usabilidad y accesibilidad:
+          </p>
+          <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+            <li className="flex items-start gap-2">
+              <span className="text-lg">🔔</span>
+              <span><strong>Notificaciones:</strong> Ícono de campana en la barra superior con badge de no leídas</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-lg">🌙</span>
+              <span><strong>Modo oscuro:</strong> Ícono de sol/luna para cambiar tema con contraste mejorado</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-lg">☰</span>
+              <span><strong>Menú móvil:</strong> Menú de hamburguesa en tablets y móviles para mejor navegación</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-lg">🎨</span>
+              <span><strong>Badges informativos:</strong> Indicadores visuales de deducibilidad y estados</span>
+            </li>
+          </ul>
+          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+            <p className="text-sm text-green-900 dark:text-green-100">
+              ✨ <strong>Tip:</strong> El modo oscuro reduce la fatiga visual y cumple con estándares de accesibilidad WCAG AA.
+            </p>
+          </div>
+        </div>
+      ),
+      action: null
     },
     {
       title: 'Centro de Tareas 📋',
@@ -198,13 +285,15 @@ export default function OnboardingGuide({ onComplete }) {
             <ol className="space-y-2 text-sm text-green-800 dark:text-green-200 list-decimal list-inside">
               <li>Configura tus cuentas bancarias y tarjetas</li>
               <li>Define tus categorías de ingresos y gastos</li>
-              <li>Registra tus primeras transacciones</li>
+              <li>Crea reglas de deducibilidad para automatizar clasificación fiscal</li>
+              <li>Registra tus primeras transacciones con deducibilidad granular</li>
               <li>Establece presupuestos mensuales</li>
               <li>Revisa el centro de tareas para actividades regulares</li>
+              <li>Activa las notificaciones en el ícono de campana 🔔</li>
             </ol>
           </div>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            💡 Puedes acceder a la ayuda en cualquier momento desde el menú principal.
+            💡 Puedes acceder al Centro de Ayuda en cualquier momento desde el menú Ayuda en la barra superior.
           </p>
         </div>
       ),

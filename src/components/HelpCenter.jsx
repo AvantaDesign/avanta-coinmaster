@@ -9,16 +9,18 @@ export default function HelpCenter() {
     { id: 'getting-started', name: 'Primeros Pasos', icon: '🚀' },
     { id: 'transactions', name: 'Transacciones', icon: '💳' },
     { id: 'fiscal', name: 'Fiscal', icon: '📄' },
+    { id: 'deductibility', name: 'Deducibilidad', icon: '✅' },
     { id: 'reports', name: 'Reportes', icon: '📊' },
     { id: 'treasury', name: 'Tesorería', icon: '💼' },
-    { id: 'automation', name: 'Automatización', icon: '⚙️' }
+    { id: 'automation', name: 'Automatización', icon: '⚙️' },
+    { id: 'interface', name: 'Interfaz', icon: '🎨' }
   ];
 
   const faqs = [
     {
       category: 'getting-started',
       question: '¿Cómo empiezo a usar Avanta Finance?',
-      answer: 'Para comenzar, primero configura tus cuentas bancarias en la sección de Cuentas. Luego, define tus categorías de ingresos y gastos. Finalmente, empieza a registrar tus transacciones diarias.'
+      answer: 'Para comenzar, primero configura tus cuentas bancarias en la sección de Cuentas. Luego, define tus categorías de ingresos y gastos. Finalmente, empieza a registrar tus transacciones diarias. Puedes activar la Guía de Inicio desde el menú Ayuda para un recorrido completo.'
     },
     {
       category: 'getting-started',
@@ -26,9 +28,14 @@ export default function HelpCenter() {
       answer: 'Ve a Finanzas → Cuentas. Haz clic en "Agregar Cuenta" y completa los datos: nombre del banco, tipo de cuenta, y saldo inicial. Puedes agregar cuentas bancarias, tarjetas de crédito, efectivo e inversiones.'
     },
     {
+      category: 'getting-started',
+      question: '¿Dónde veo mis notificaciones?',
+      answer: 'Las notificaciones se encuentran en el ícono de campana 🔔 en la barra superior derecha. Haz clic en la campana para ver un resumen de tus últimas 5 notificaciones. El número en el badge rojo indica cuántas notificaciones no leídas tienes. Haz clic en "Ver todas" para acceder al Centro de Notificaciones completo.'
+    },
+    {
       category: 'transactions',
       question: '¿Cómo registro una transacción?',
-      answer: 'Ve a Finanzas → Transacciones y haz clic en "Nueva Transacción". Selecciona el tipo (ingreso o gasto), la cuenta, categoría, monto, fecha y descripción. Puedes adjuntar archivos XML o PDF de tus comprobantes fiscales.'
+      answer: 'Ve a Finanzas → Transacciones y haz clic en "Nueva Transacción". Selecciona el tipo (ingreso o gasto), la cuenta, categoría, monto, fecha y descripción. Puedes adjuntar archivos XML o PDF de tus comprobantes fiscales. Para gastos, también puedes especificar la deducibilidad fiscal detallada.'
     },
     {
       category: 'transactions',
@@ -43,7 +50,7 @@ export default function HelpCenter() {
     {
       category: 'fiscal',
       question: '¿Cómo calculo mis impuestos?',
-      answer: 'Ve a Fiscal → Fiscal para usar la calculadora fiscal. Ingresa tus ingresos y gastos del periodo, y el sistema calculará automáticamente ISR, IVA e IEPS según tu régimen fiscal.'
+      answer: 'Ve a Fiscal → Fiscal para usar la calculadora fiscal. El sistema calcula automáticamente ISR, IVA e IEPS según tu régimen fiscal, utilizando la deducibilidad granular de tus gastos para cálculos más precisos.'
     },
     {
       category: 'fiscal',
@@ -54,6 +61,41 @@ export default function HelpCenter() {
       category: 'fiscal',
       question: '¿Qué régimen fiscal debo usar?',
       answer: 'El sistema está diseñado para "Persona Física con Actividad Empresarial". Consulta con tu contador para determinar el régimen fiscal más adecuado para tu situación específica.'
+    },
+    {
+      category: 'deductibility',
+      question: '¿Qué es la deducibilidad granular?',
+      answer: 'La deducibilidad granular te permite especificar por separado si un gasto es deducible para ISR y si el IVA es acreditable. Esto proporciona cálculos fiscales más precisos según las regulaciones del SAT para Personas Físicas con Actividad Empresarial.'
+    },
+    {
+      category: 'deductibility',
+      question: '¿Cuál es la diferencia entre ISR deducible e IVA acreditable?',
+      answer: 'ISR Deducible significa que el gasto puede reducir tu base gravable para el Impuesto Sobre la Renta. IVA Acreditable significa que el IVA pagado en ese gasto puede acreditarse contra el IVA cobrado. Un gasto puede ser deducible para ISR pero no tener IVA acreditable (por ejemplo, gastos internacionales sin factura mexicana).'
+    },
+    {
+      category: 'deductibility',
+      question: '¿Qué son los tipos de gasto?',
+      answer: 'Los tipos de gasto clasifican tus gastos según el SAT: Nacional (gastos en México con factura mexicana), Internacional con Factura (gastos en el extranjero con factura mexicana o válida), e Internacional sin Factura (gastos en el extranjero sin factura mexicana, donde el IVA NO es acreditable).'
+    },
+    {
+      category: 'deductibility',
+      question: '¿Cómo marco la deducibilidad al registrar un gasto?',
+      answer: 'Al crear o editar un gasto, encontrarás la sección "Deducibilidad Fiscal" donde puedes marcar: ✓ Deducible ISR (si el gasto es deducible para ISR), ✓ IVA Acreditable (si el IVA es acreditable), y seleccionar el Tipo de Gasto apropiado.'
+    },
+    {
+      category: 'deductibility',
+      question: '¿Qué son las reglas de deducibilidad?',
+      answer: 'Las reglas de deducibilidad te permiten crear reglas automáticas para clasificar tus gastos. Por ejemplo, puedes crear una regla que marque automáticamente todos los gastos de transporte como deducibles. Accede a ellas en Fiscal → Reglas de Deducibilidad.'
+    },
+    {
+      category: 'deductibility',
+      question: '¿Cómo creo una regla de deducibilidad?',
+      answer: 'Ve a Fiscal → Reglas de Deducibilidad y haz clic en "Nueva Regla". Define criterios de coincidencia (categoría, palabras clave, rangos de monto) y las acciones a aplicar (marcar ISR deducible, IVA acreditable, tipo de gasto). Las reglas se evalúan por prioridad.'
+    },
+    {
+      category: 'deductibility',
+      question: '¿Los gastos internacionales son deducibles?',
+      answer: 'Depende. Los gastos internacionales CON factura mexicana o comprobante válido pueden ser deducibles para ISR y tener IVA acreditable si cumplen requisitos. Los gastos internacionales SIN factura mexicana pueden ser deducibles para ISR pero el IVA NO es acreditable según el SAT.'
     },
     {
       category: 'reports',
@@ -89,6 +131,21 @@ export default function HelpCenter() {
       category: 'automation',
       question: '¿Cómo funcionan los pagos recurrentes?',
       answer: 'En Operaciones puedes configurar pagos recurrentes para freelancers y servicios. El sistema te recordará los pagos y puede generar transacciones automáticamente según la frecuencia configurada.'
+    },
+    {
+      category: 'interface',
+      question: '¿Cómo activo el modo oscuro?',
+      answer: 'Haz clic en el ícono de sol/luna 🌙 en la barra superior derecha para cambiar entre modo claro y modo oscuro. El sistema recordará tu preferencia para futuras sesiones.'
+    },
+    {
+      category: 'interface',
+      question: '¿Cómo navego en la aplicación desde dispositivos móviles?',
+      answer: 'En pantallas pequeñas (móviles y tablets), encontrarás un menú de hamburguesa ☰ en la esquina superior izquierda. Haz clic en él para abrir el menú de navegación completo. En pantallas más grandes (escritorio), el menú se muestra siempre visible.'
+    },
+    {
+      category: 'interface',
+      question: '¿Qué significan los badges de colores en las transacciones?',
+      answer: 'Los badges indican la deducibilidad fiscal: Badge azul (ISR) = gasto deducible para ISR, Badge verde (IVA) = IVA acreditable, Badge naranja con 🌍 = gasto internacional. Estos indicadores te ayudan a identificar rápidamente el tratamiento fiscal de cada transacción.'
     }
   ];
 
@@ -98,6 +155,7 @@ export default function HelpCenter() {
     { title: 'Cuentas', path: '/accounts', icon: '🏦' },
     { title: 'Presupuestos', path: '/budgets', icon: '📋' },
     { title: 'Fiscal', path: '/fiscal', icon: '📄' },
+    { title: 'Reglas de Deducibilidad', path: '/deductibility-rules', icon: '✅' },
     { title: 'Facturas', path: '/invoices', icon: '📑' },
     { title: 'Cuentas por Cobrar', path: '/receivables', icon: '📈' },
     { title: 'Cuentas por Pagar', path: '/payables', icon: '📉' },
@@ -114,9 +172,24 @@ export default function HelpCenter() {
       icon: '💡'
     },
     {
+      title: 'Usa deducibilidad granular',
+      description: 'Marca correctamente si tus gastos son deducibles para ISR y si el IVA es acreditable para cálculos fiscales precisos.',
+      icon: '✅'
+    },
+    {
+      title: 'Crea reglas de deducibilidad',
+      description: 'Automatiza la clasificación fiscal de tus gastos creando reglas personalizadas basadas en categorías y palabras clave.',
+      icon: '⚙️'
+    },
+    {
       title: 'Usa categorías consistentes',
       description: 'Define y usa categorías claras para facilitar el análisis de tus gastos.',
       icon: '🏷️'
+    },
+    {
+      title: 'Revisa tus notificaciones',
+      description: 'Mantente al tanto de vencimientos y alertas importantes revisando el ícono de campana 🔔 en la barra superior.',
+      icon: '🔔'
     },
     {
       title: 'Revisa tu flujo de efectivo',
@@ -137,6 +210,11 @@ export default function HelpCenter() {
       title: 'Guarda tus comprobantes',
       description: 'Adjunta archivos XML y PDF a tus transacciones para una mejor documentación.',
       icon: '📎'
+    },
+    {
+      title: 'Aprovecha el modo oscuro',
+      description: 'Reduce la fatiga visual activando el modo oscuro desde el ícono de sol/luna en la barra superior.',
+      icon: '🌙'
     }
   ];
 
