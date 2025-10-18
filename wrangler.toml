@@ -59,7 +59,11 @@ pages_build_output_dir = "dist"
 #
 # ============================================================================
 
-# D1 Database binding moved to [env.production] section below
+# D1 Database binding for local development
+[[d1_databases]]
+binding = "DB"
+database_name = "avanta-coinmaster"
+database_id = "04aff2ec-b447-4af7-ae5d-0363bf6c8e49"
 
 # ============================================================================
 # R2 STORAGE BINDING (S3-Compatible Object Storage)
