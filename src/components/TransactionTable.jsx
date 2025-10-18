@@ -6,8 +6,9 @@ import { showSuccess, showError, showWarning } from '../utils/notifications';
 import useTransactionStore from '../stores/useTransactionStore';
 import BulkEditModal from './BulkEditModal';
 import TableRowDetail from './TableRowDetail';
+import TableFilters from './TableFilters';
 import Icon from './icons/IconLibrary';
-import { handleSwipeGesture, isTouchDevice } from '../utils/touchUtils';
+import { handleSwipeGesture, isTouchDevice, createSwipeableListItem } from '../utils/touchUtils';
 
 export default function TransactionTable({ transactions: propTransactions, onUpdate }) {
   // Use store if available, otherwise fall back to props
@@ -23,15 +24,37 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
   const [accounts, setAccounts] = useState([]);
   const [expandedRowId, setExpandedRowId] = useState(null);
   const [isTouch, setIsTouch] = useState(false);
+  const [filters, setFilters] = useState({});
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterPresets, setFilterPresets] = useState([]);
   
   // Refs for virtualization
   const parentRef = useRef(null);
 
-  // Load accounts for bulk edit modal and detect touch device
+  // Load accounts for bulk edit modal, detect touch device, and load filter presets
   useEffect(() => {
     fetchAccounts();
     setIsTouch(isTouchDevice());
+    loadFilterPresets();
   }, []);
+
+  const loadFilterPresets = () => {
+    try {
+      const saved = localStorage.getItem('transactionFilterPresets');
+      if (saved) {
+        setFilterPresets(JSON.parse(saved));
+      }
+    } catch (error) {
+      console.error('Error loading filter presets:', error);
+    }
+  };
+
+  const saveFilterPreset = (preset) => {
+    const newPresets = [...filterPresets, preset];
+    setFilterPresets(newPresets);
+    localStorage.setItem('transactionFilterPresets', JSON.stringify(newPresets));
+    showSuccess(`Filtro "${preset.name}" guardado`);
+  };
 
   const fetchAccounts = async () => {
     try {
@@ -164,7 +187,42 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
   };
 
   const getSortedTransactions = () => {
-    const sorted = [...transactions].sort((a, b) => {
+    // First filter
+    let filtered = [...transactions];
+    
+    // Apply filters
+    if (filters.type) {
+      filtered = filtered.filter(t => t.type === filters.type);
+    }
+    if (filters.category) {
+      filtered = filtered.filter(t => t.category === filters.category);
+    }
+    if (filters.transaction_type) {
+      filtered = filtered.filter(t => t.transaction_type === filters.transaction_type);
+    }
+    if (filters.is_deductible) {
+      filtered = filtered.filter(t => t.is_deductible === true);
+    }
+    if (filters.description) {
+      filtered = filtered.filter(t => 
+        t.description.toLowerCase().includes(filters.description.toLowerCase())
+      );
+    }
+    if (filters.daterange?.start) {
+      filtered = filtered.filter(t => t.date >= filters.daterange.start);
+    }
+    if (filters.daterange?.end) {
+      filtered = filtered.filter(t => t.date <= filters.daterange.end);
+    }
+    if (filters.amountrange?.min !== null && filters.amountrange?.min !== undefined) {
+      filtered = filtered.filter(t => parseFloat(t.amount) >= filters.amountrange.min);
+    }
+    if (filters.amountrange?.max !== null && filters.amountrange?.max !== undefined) {
+      filtered = filtered.filter(t => parseFloat(t.amount) <= filters.amountrange.max);
+    }
+
+    // Then sort
+    const sorted = filtered.sort((a, b) => {
       let aVal = a[sortBy];
       let bVal = b[sortBy];
 
@@ -217,8 +275,73 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
     overscan: 10 // Number of items to render outside of viewport
   });
 
+  // Available filter configurations
+  const availableFilters = [
+    {
+      key: 'description',
+      type: 'text',
+      label: 'Descripción',
+      placeholder: 'Buscar en descripción...'
+    },
+    {
+      key: 'type',
+      type: 'select',
+      label: 'Tipo',
+      options: [
+        { value: 'ingreso', label: 'Ingreso' },
+        { value: 'gasto', label: 'Gasto' }
+      ]
+    },
+    {
+      key: 'category',
+      type: 'select',
+      label: 'Categoría',
+      options: [
+        { value: 'personal', label: 'Personal' },
+        { value: 'avanta', label: 'Avanta' }
+      ]
+    },
+    {
+      key: 'transaction_type',
+      type: 'select',
+      label: 'Clasificación',
+      options: [
+        { value: 'personal', label: 'Personal' },
+        { value: 'business', label: 'Negocio' },
+        { value: 'transfer', label: 'Transferencia' }
+      ]
+    },
+    {
+      key: 'daterange',
+      type: 'daterange',
+      label: 'Rango de fechas'
+    },
+    {
+      key: 'amountrange',
+      type: 'numberrange',
+      label: 'Rango de monto'
+    },
+    {
+      key: 'is_deductible',
+      type: 'boolean',
+      label: 'Solo deducibles'
+    }
+  ];
+
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-lg shadow-md overflow-hidden">
+    <div className="space-y-4">
+      {/* Filters */}
+      <TableFilters
+        availableFilters={availableFilters}
+        initialFilters={filters}
+        onFiltersChange={setFilters}
+        presets={filterPresets}
+        onSavePreset={saveFilterPreset}
+        onClearFilters={() => setFilters({})}
+        showSavePreset={true}
+      />
+
+      <div className="bg-white dark:bg-slate-900 rounded-lg shadow-md overflow-hidden">
       {/* Bulk Actions Bar */}
       {selectedIds.length > 0 && (
         <div className="bg-blue-50 dark:bg-blue-900/20 px-4 py-3 border-b border-blue-200 flex items-center justify-between">
@@ -525,7 +648,7 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
         {sortedTransactions.map((transaction) => (
           <div 
             key={transaction.id}
-            className={`border-b border-gray-200 p-4 ${selectedIds.includes(transaction.id) ? 'bg-blue-50' : ''}`}
+            className={`border-b border-gray-200 dark:border-slate-700 p-4 ${selectedIds.includes(transaction.id) ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
           >
             {editingId === transaction.id ? (
               // Mobile Edit Mode
@@ -536,7 +659,7 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
                     type="date"
                     value={editForm.date}
                     onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
-                    className="border rounded px-2 py-1 w-full mt-1"
+                    className="border rounded px-2 py-1 w-full mt-1 dark:bg-slate-800 dark:text-gray-100"
                   />
                 </div>
                 <div>
@@ -545,7 +668,7 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
                     type="text"
                     value={editForm.description}
                     onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                    className="border rounded px-2 py-1 w-full mt-1"
+                    className="border rounded px-2 py-1 w-full mt-1 dark:bg-slate-800 dark:text-gray-100"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -554,7 +677,7 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
                     <select
                       value={editForm.type}
                       onChange={(e) => setEditForm({ ...editForm, type: e.target.value })}
-                      className="border rounded px-2 py-1 w-full mt-1"
+                      className="border rounded px-2 py-1 w-full mt-1 dark:bg-slate-800 dark:text-gray-100"
                     >
                       <option value="ingreso">ingreso</option>
                       <option value="gasto">gasto</option>
@@ -565,7 +688,7 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
                     <select
                       value={editForm.category}
                       onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
-                      className="border rounded px-2 py-1 w-full mt-1"
+                      className="border rounded px-2 py-1 w-full mt-1 dark:bg-slate-800 dark:text-gray-100"
                     >
                       <option value="personal">personal</option>
                       <option value="avanta">avanta</option>
@@ -580,11 +703,11 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
                       step="0.01"
                       value={editForm.amount}
                       onChange={(e) => setEditForm({ ...editForm, amount: parseFloat(e.target.value) })}
-                      className="border rounded px-2 py-1 w-full mt-1"
+                      className="border rounded px-2 py-1 w-full mt-1 dark:bg-slate-800 dark:text-gray-100"
                     />
                   </div>
                   <div className="flex items-center mt-5">
-                    <label className="flex items-center text-sm">
+                    <label className="flex items-center text-sm text-gray-700 dark:text-gray-300">
                       <input
                         type="checkbox"
                         checked={editForm.is_deductible === 1}
@@ -598,13 +721,13 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
                 <div className="flex gap-2 mt-3">
                   <button
                     onClick={saveEdit}
-                    className="flex-1 bg-green-600 dark:bg-green-700 text-white px-4 py-2 rounded hover:bg-green-700"
+                    className="flex-1 bg-green-600 dark:bg-green-700 text-white px-4 py-2 rounded hover:bg-green-700 dark:hover:bg-green-600"
                   >
                     Guardar
                   </button>
                   <button
                     onClick={cancelEdit}
-                    className="flex-1 bg-gray-300 text-gray-700 dark:text-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+                    className="flex-1 bg-gray-300 dark:bg-slate-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded hover:bg-gray-400 dark:hover:bg-slate-500"
                   >
                     Cancelar
                   </button>
@@ -713,6 +836,7 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
             )}
           </div>
         ))}
+        </div>
       </div>
     </div>
   );
