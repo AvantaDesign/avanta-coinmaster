@@ -36,6 +36,7 @@ const OnboardingGuide = lazy(() => import('./components/OnboardingGuide'));
 const GlobalFilter = lazy(() => import('./components/GlobalFilter'));
 const SavingsGoals = lazy(() => import('./pages/SavingsGoals'));
 const Import = lazy(() => import('./pages/Import'));
+const Receipts = lazy(() => import('./pages/Receipts'));
 
 // Loading fallback component
 function LoadingFallback() {
@@ -121,6 +122,7 @@ function NavigationBar() {
       items: [
         { name: 'Fiscal', icon: '🧾', path: '/fiscal' },
         { name: 'Facturas', icon: '📑', path: '/invoices' },
+        { name: 'Recibos', icon: '🧾', path: '/receipts' },
         { name: 'Importar Datos', icon: '📥', path: '/import' },
         { name: 'Cuentas por Cobrar', icon: '📈', path: '/receivables' },
         { name: 'Cuentas por Pagar', icon: '📉', path: '/payables' }
@@ -393,6 +395,7 @@ function AuthenticatedApp() {
                 <Route path="/budgets" element={<Budgets />} />
                 <Route path="/fiscal" element={<Fiscal />} />
                 <Route path="/invoices" element={<Invoices />} />
+                <Route path="/receipts" element={<Receipts />} />
                 <Route path="/automation" element={<Home />} />
                 <Route path="/receivables" element={<AccountsReceivable />} />
                 <Route path="/payables" element={<AccountsPayable />} />

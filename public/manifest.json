@@ -1,0 +1,81 @@
+{
+  "name": "Avanta Finance - Gestión Financiera",
+  "short_name": "Avanta Finance",
+  "description": "Sistema de contabilidad personal y empresarial para persona física con actividad empresarial en México",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "business", "productivity"],
+  "screenshots": [
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "375x667",
+      "type": "image/png",
+      "label": "Dashboard principal"
+    },
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "label": "Vista de escritorio"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Nueva Transacción",
+      "short_name": "Transacción",
+      "description": "Agregar una nueva transacción",
+      "url": "/transactions?add=true",
+      "icons": [
+        {
+          "src": "/icon-transaction.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Ver el dashboard financiero",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/icon-dashboard.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Subir Recibo",
+      "short_name": "Recibo",
+      "description": "Subir un nuevo recibo",
+      "url": "/receipts",
+      "icons": [
+        {
+          "src": "/icon-receipt.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "lang": "es-MX",
+  "dir": "ltr"
+}
