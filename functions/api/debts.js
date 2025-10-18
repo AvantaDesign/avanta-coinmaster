@@ -223,13 +223,15 @@ export async function onRequestPost(context) {
     const endDate = new Date(data.start_date);
     endDate.setMonth(endDate.getMonth() + data.loan_term_months);
 
+    const metadataStr = data.metadata ? (typeof data.metadata === 'string' ? data.metadata : JSON.stringify(data.metadata)) : null;
+
     const result = await env.DB.prepare(`
       INSERT INTO debts (
         debt_name, lender, principal_amount, current_balance, interest_rate,
         interest_type, loan_term_months, payment_frequency, monthly_payment,
         start_date, end_date, next_payment_date, status, category, description,
-        collateral, payment_day, user_id
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        collateral, payment_day, user_id, metadata
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       data.debt_name,
       data.lender,
@@ -248,7 +250,8 @@ export async function onRequestPost(context) {
       data.description || null,
       data.collateral || null,
       data.payment_day || null,
-      data.user_id || null
+      data.user_id || null,
+      metadataStr
     ).run();
 
     return new Response(JSON.stringify({ 
@@ -313,6 +316,11 @@ export async function onRequestPut(context) {
         updates.push(`${field} = ?`);
         params.push(data[field]);
       }
+    }
+
+    if (data.metadata !== undefined) {
+      updates.push('metadata = ?');
+      params.push(typeof data.metadata === 'string' ? data.metadata : JSON.stringify(data.metadata));
     }
 
     if (updates.length === 0) {

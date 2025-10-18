@@ -369,7 +369,7 @@ export async function onRequestPost(context) {
 
     // Create new credit
     const data = await request.json();
-    const { name, type, credit_limit, interest_rate, statement_day, payment_due_day } = data;
+    const { name, type, credit_limit, interest_rate, statement_day, payment_due_day, metadata } = data;
 
     // Validation
     const errors = [];
@@ -426,10 +426,12 @@ export async function onRequestPost(context) {
     // Generate ID
     const id = `crd_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
+    const metadataStr = metadata ? (typeof metadata === 'string' ? metadata : JSON.stringify(metadata)) : null;
+
     // Insert credit
     await env.DB.prepare(
-      `INSERT INTO credits (id, user_id, name, type, credit_limit, interest_rate, statement_day, payment_due_day)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO credits (id, user_id, name, type, credit_limit, interest_rate, statement_day, payment_due_day, metadata)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
       id,
       userId,
@@ -438,7 +440,8 @@ export async function onRequestPost(context) {
       credit_limit ? parseFloat(credit_limit) : null,
       interest_rate ? parseFloat(interest_rate) : null,
       statement_day ? parseInt(statement_day) : null,
-      payment_due_day ? parseInt(payment_due_day) : null
+      payment_due_day ? parseInt(payment_due_day) : null,
+      metadataStr
     ).run();
 
     // Fetch created credit
@@ -527,7 +530,7 @@ export async function onRequestPut(context) {
     }
 
     const data = await request.json();
-    const { name, type, credit_limit, interest_rate, statement_day, payment_due_day, is_active } = data;
+    const { name, type, credit_limit, interest_rate, statement_day, payment_due_day, is_active, metadata } = data;
 
     // Validation
     const errors = [];
@@ -624,6 +627,11 @@ export async function onRequestPut(context) {
     if (is_active !== undefined) {
       updates.push('is_active = ?');
       params.push(is_active ? 1 : 0);
+    }
+
+    if (metadata !== undefined) {
+      updates.push('metadata = ?');
+      params.push(typeof metadata === 'string' ? metadata : JSON.stringify(metadata));
     }
 
     // Always update updated_at

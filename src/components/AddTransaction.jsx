@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { createTransaction, fetchTransactions, fetchCategories, fetchInvoices } from '../utils/api';
+import { createTransaction, fetchTransactions, fetchCategories, fetchInvoices, fetchSavingsGoals, contributeSavingsGoal } from '../utils/api';
 import { showSuccess, showError } from '../utils/notifications';
 import SmartSuggestions from './SmartSuggestions';
 
@@ -18,19 +18,23 @@ export default function AddTransaction({ onSuccess }) {
     transaction_type: 'personal',
     category_id: null,
     linked_invoice_id: null,
-    notes: ''
+    notes: '',
+    // Phase 7: Savings Goals
+    savings_goal_id: null
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [transactionHistory, setTransactionHistory] = useState([]);
   const [categories, setCategories] = useState([]);
   const [invoices, setInvoices] = useState([]);
+  const [savingsGoals, setSavingsGoals] = useState([]);
 
   // Load transaction history for smart suggestions
   useEffect(() => {
     loadHistory();
     loadCategories();
     loadInvoices();
+    loadSavingsGoals();
   }, []);
 
   const loadHistory = async () => {
@@ -63,18 +67,40 @@ export default function AddTransaction({ onSuccess }) {
     }
   };
 
+  const loadSavingsGoals = async () => {
+    try {
+      const result = await fetchSavingsGoals({ is_active: 'true' });
+      setSavingsGoals(result || []);
+    } catch (err) {
+      // Silent fail - savings goals are optional
+      console.error('Failed to load savings goals:', err);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
+      const amount = parseFloat(formData.amount);
       await createTransaction({
         ...formData,
-        amount: parseFloat(formData.amount)
+        amount
       });
       
-      showSuccess('Transacción creada exitosamente');
+      // If linked to savings goal and it's an income/deposit, contribute to the goal
+      if (formData.savings_goal_id && formData.type === 'ingreso') {
+        try {
+          await contributeSavingsGoal(formData.savings_goal_id, amount);
+          showSuccess('Transacción creada y contribución agregada a la meta de ahorro');
+        } catch (goalErr) {
+          console.error('Failed to contribute to savings goal:', goalErr);
+          showSuccess('Transacción creada, pero hubo un error al actualizar la meta de ahorro');
+        }
+      } else {
+        showSuccess('Transacción creada exitosamente');
+      }
       
       // Reset form
       setFormData({
@@ -90,7 +116,8 @@ export default function AddTransaction({ onSuccess }) {
         transaction_type: 'personal',
         category_id: null,
         linked_invoice_id: null,
-        notes: ''
+        notes: '',
+        savings_goal_id: null
       });
       
       if (onSuccess) onSuccess();
@@ -283,6 +310,24 @@ export default function AddTransaction({ onSuccess }) {
             ))}
           </select>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Opcional: Vincular con factura existente</p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Meta de Ahorro</label>
+          <select
+            name="savings_goal_id"
+            value={formData.savings_goal_id || ''}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border rounded-md"
+          >
+            <option value="">Sin meta</option>
+            {savingsGoals.filter(goal => goal.is_active && goal.progress_percentage < 100).map(goal => (
+              <option key={goal.id} value={goal.id}>
+                🎯 {goal.name} ({goal.progress_percentage.toFixed(0)}%)
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Opcional: Vincular ingreso con meta de ahorro</p>
         </div>
 
         <div className="md:col-span-2">

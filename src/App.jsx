@@ -34,6 +34,7 @@ const HelpCenter = lazy(() => import('./components/HelpCenter'));
 const QuickActions = lazy(() => import('./components/QuickActions'));
 const OnboardingGuide = lazy(() => import('./components/OnboardingGuide'));
 const GlobalFilter = lazy(() => import('./components/GlobalFilter'));
+const SavingsGoals = lazy(() => import('./pages/SavingsGoals'));
 
 // Loading fallback component
 function LoadingFallback() {
@@ -138,6 +139,7 @@ function NavigationBar() {
       type: 'dropdown',
       items: [
         { name: 'Proyección de Flujo', icon: '💵', path: '/cash-flow-projection' },
+        { name: 'Metas de Ahorro', icon: '🎯', path: '/savings-goals' },
         { name: 'Deudas', icon: '💳', path: '/debts' },
         { name: 'Inversiones', icon: '📈', path: '/investments' }
       ]
@@ -399,6 +401,7 @@ function AuthenticatedApp() {
                 <Route path="/recurring-freelancers" element={<RecurringFreelancersDashboard />} />
                 <Route path="/recurring-services" element={<RecurringServicesDashboard />} />
                 <Route path="/cash-flow-projection" element={<CashFlowProjection />} />
+                <Route path="/savings-goals" element={<SavingsGoals />} />
                 <Route path="/debts" element={<Debts />} />
                 <Route path="/investments" element={<Investments />} />
                 <Route path="/financial-tasks" element={<FinancialTasks />} />
