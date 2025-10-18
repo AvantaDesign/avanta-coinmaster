@@ -189,7 +189,7 @@ function NavigationBar() {
 
   return (
     <nav className="bg-white dark:bg-slate-900 shadow-lg dark:shadow-xl dark:shadow-black/20 border-b border-gray-200 dark:border-slate-800 sticky top-0 z-40 transition-colors duration-300">
-      <div className="w-full px-2 sm:px-4 lg:px-6">
+      <div className="w-full px-4 sm:px-4 lg:px-6">
         <div className="flex justify-between items-center h-16">
           {/* Logo and Brand */}
           <div className="flex items-center flex-shrink-0">
