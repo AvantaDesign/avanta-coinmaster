@@ -323,9 +323,7 @@ function NavigationBar() {
                             to={item.path}
                             className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-slate-700 rounded-md transition-colors touch-manipulation"
                             style={{ WebkitTapHighlightColor: 'rgba(59, 130, 246, 0.1)' }}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              navigate(item.path);
+                            onClick={() => {
                               setActiveDropdown(null);
                               setMobileMenuOpen(false);
                             }}
