@@ -1010,3 +1010,123 @@ export async function deleteFiscalParameter(id) {
   if (!response.ok) throw new Error('Failed to delete fiscal parameter');
   return response.json();
 }
+
+// ============================================================================
+// Receipts API Functions
+// ============================================================================
+
+/**
+ * Upload receipt file to R2 storage
+ * @param {File} file - Receipt image file
+ * @returns {Promise<Object>} Upload result with receipt data
+ */
+export async function uploadReceipt(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  const response = await authFetch(`${API_BASE}/receipts/upload`, {
+    method: 'POST',
+    body: formData
+    // Don't set Content-Type header - browser will set it with boundary for FormData
+  });
+  
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Failed to upload receipt' }));
+    throw new Error(error.error || error.message || 'Failed to upload receipt');
+  }
+  
+  return response.json();
+}
+
+/**
+ * Fetch all receipts for current user
+ * @param {Object} params - Query parameters (status, limit, offset)
+ * @returns {Promise<Object>} Receipts list with pagination
+ */
+export async function fetchReceipts(params = {}) {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/receipts${queryString ? '?' + queryString : ''}`;
+  const response = await authFetch(url);
+  if (!response.ok) throw new Error('Failed to fetch receipts');
+  return response.json();
+}
+
+/**
+ * Get specific receipt by ID
+ * @param {string} id - Receipt ID
+ * @returns {Promise<Object>} Receipt data
+ */
+export async function fetchReceipt(id) {
+  const response = await authFetch(`${API_BASE}/receipts/${id}`);
+  if (!response.ok) throw new Error('Failed to fetch receipt');
+  return response.json();
+}
+
+/**
+ * Process receipt with OCR
+ * @param {string} id - Receipt ID
+ * @returns {Promise<Object>} Processing result
+ */
+export async function processReceiptOCR(id) {
+  const response = await authFetch(`${API_BASE}/receipts/${id}/process`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    }
+  });
+  if (!response.ok) throw new Error('Failed to process receipt');
+  return response.json();
+}
+
+/**
+ * Update receipt data
+ * @param {string} id - Receipt ID
+ * @param {Object} data - Receipt data to update
+ * @returns {Promise<Object>} Updated receipt
+ */
+export async function updateReceipt(id, data) {
+  const response = await authFetch(`${API_BASE}/receipts/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error('Failed to update receipt');
+  return response.json();
+}
+
+/**
+ * Link receipt to transaction
+ * @param {string} receiptId - Receipt ID
+ * @param {number} transactionId - Transaction ID
+ * @returns {Promise<Object>} Updated receipt
+ */
+export async function linkReceiptToTransaction(receiptId, transactionId) {
+  const response = await authFetch(`${API_BASE}/receipts/${receiptId}/link-transaction`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify({ transaction_id: transactionId })
+  });
+  if (!response.ok) throw new Error('Failed to link receipt to transaction');
+  return response.json();
+}
+
+/**
+ * Delete receipt
+ * @param {string} id - Receipt ID
+ * @returns {Promise<Object>} Deletion result
+ */
+export async function deleteReceipt(id) {
+  const response = await authFetch(`${API_BASE}/receipts/${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to delete receipt');
+  return response.json();
+}
