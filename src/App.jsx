@@ -44,6 +44,7 @@ const Breadcrumbs = lazy(() => import('./components/Breadcrumbs'));
 const QuickAddFAB = lazy(() => import('./components/QuickAddFAB'));
 const CFDIManager = lazy(() => import('./components/CFDIManager'));
 const TaxCalculations = lazy(() => import('./components/TaxCalculations'));
+const BankReconciliation = lazy(() => import('./components/BankReconciliation'));
 
 // Loading fallback component
 function LoadingFallback() {
@@ -154,6 +155,7 @@ function NavigationBar() {
       items: [
         { name: 'Fiscal', icon: '🧾', path: '/fiscal' },
         { name: 'Cálculos Fiscales', icon: '🧮', path: '/tax-calculations' },
+        { name: 'Conciliación Bancaria', icon: '🏦', path: '/bank-reconciliation' },
         { name: 'Gestor de CFDI', icon: '📋', path: '/cfdi-manager' },
         { name: 'Facturas', icon: '📑', path: '/invoices' },
         { name: 'Recibos', icon: '🧾', path: '/receipts' },
@@ -519,6 +521,7 @@ function AuthenticatedApp() {
                 <Route path="/budgets" element={<Budgets />} />
                 <Route path="/fiscal" element={<Fiscal />} />
                 <Route path="/tax-calculations" element={<TaxCalculations />} />
+                <Route path="/bank-reconciliation" element={<BankReconciliation />} />
                 <Route path="/cfdi-manager" element={<CFDIManager />} />
                 <Route path="/invoices" element={<Invoices />} />
                 <Route path="/receipts" element={<Receipts />} />
