@@ -29,14 +29,13 @@ This document outlines the next development plan for enhancing the Avanta Financ
 
 1.  **Database Schema Enhancement (Migration):**
     *   Modify the `transactions` table to replace the generic `is_deductible` with specific boolean flags: `is_isr_deductible` and `is_iva_accreditable`.
-    *   Add a `deductibility_notes` text field for justifications.
-    *   Add an `expense_type` field (e.g., `operativo`, `inversion`, `personal`).
+    *   Add fields for `deductibility_notes` (text), `expense_type` (e.g., `operativo`, `inversion`, `personal`), `status` (e.g., `pagado`, `pendiente`, `a crédito`), and `retenciones_efectuadas` (JSON or TEXT).
     *   Create a `proportional_expenses` table to manage items with mixed personal/business use (e.g., vehicle, rent, utilities) and store their business-use percentage.
 2.  **Backend API Updates (`/api/transactions`):**
-    *   Update POST/PUT endpoints to handle the new granular fields (`is_isr_deductible`, `is_iva_accreditable`, `expense_type`).
+    *   Update POST/PUT endpoints to handle all new granular fields.
     *   Create new endpoints for managing `proportional_expenses`.
 3.  **Frontend Expense Module (`Módulo de Egresos`):**
-    *   Update the `AddTransaction` / `EditTransaction` forms to include the new classification options.
+    *   Update the `AddTransaction` / `EditTransaction` forms to include the new classification options, status, and retentions fields.
     *   Implement UI for managing proportional expenses, allowing users to set a percentage and link it to relevant transactions. The system should automatically calculate the deductible portion.
     *   Ensure the UI prevents marking a transaction as `is_isr_deductible` if payment was in cash over $2,000 MXN.
     *   Visually tag non-deductible expenses in the transaction list for clear identification.
@@ -53,6 +52,8 @@ This document outlines the next development plan for enhancing the Avanta Financ
         *   Client's tax residence country.
         *   Distinguishing between payment date and invoice emission date.
         *   Applied IVA rate (16%, 0%, or exento).
+        *   `metodo_de_pago` (e.g., PUE, PPD).
+        *   `retenciones_aplicadas` (JSON or TEXT for ISR/IVA retentions).
 2.  **CFDI Control Module (`Módulo de Control de CFDI`):**
     *   Integrate a service to validate CFDI UUIDs against the SAT registry for both received (expenses) and emitted (income) invoices.
     *   Add a visual status indicator (Vigente/Cancelado) to transactions linked to a CFDI.
@@ -70,7 +71,7 @@ This document outlines the next development plan for enhancing the Avanta Financ
         *   Accumulated income (`ingresos acumulados`).
         *   Authorized deductions (`deducciones autorizadas`) using the new `is_isr_deductible` flag.
         *   Applies the progressive rates from the official SAT tariff tables (Art. 96 LISR).
-        *   Subtracts previous provisional payments and withholdings.
+        *   Subtracts previous provisional payments and withholdings (`retenciones_aplicadas` and `retenciones_efectuadas`).
 2.  **Monthly IVA Calculation Module:**
     *   Create a utility (`ivaCalculation.js`) that calculates the monthly IVA payment:
         *   Sums `IVA trasladado` (from income).
@@ -111,13 +112,29 @@ This document outlines the next development plan for enhancing the Avanta Financ
 1.  **Electronic Accounting (`Contabilidad Electrónica`):**
     *   Develop a feature to generate the `Catálogo de Cuentas` in the SAT-specified XML format (Anexo 24), mapping the app's categories to the SAT's `código agrupador`.
     *   Develop a feature to generate the monthly `Balanza de Comprobación` (Trial Balance) in the required XML format.
+    *   Develop a feature to generate `Pólizas y Auxiliares` in XML format on-demand, as required by the SAT for audits or refund requests.
     *   This feature should only be available if the user's income exceeds the legal threshold ($2,000,000 MXN).
 2.  **Bank Reconciliation Module:**
     *   Enhance the existing bank statement import feature.
     *   Implement logic to automatically match imported bank transactions with CFDI-backed income and expense records in the system.
     *   Provide a UI to highlight unmatched transactions and allow for manual linking.
 
-## Phase 21: System-Wide Verification and Integrity Check
+## Phase 21: Digital Document Archive
+
+**Goal:** To create a secure and organized digital repository for all fiscal documents, leveraging Cloudflare R2.
+
+**Tasks:**
+
+1.  **R2 Storage Architecture:**
+    *   Define and implement a folder structure within the R2 bucket to organize files by fiscal year, month, and transaction type (e.g., `/{userId}/{year}/{month}/income/{transactionId}/`).
+2.  **Automated Document Upload:**
+    *   Implement backend logic to automatically upload and associate CFDI XMLs (and PDFs, if provided) with their corresponding transactions in the database.
+    *   The upload should happen whenever a transaction with a CFDI is created or updated.
+3.  **Document Access UI:**
+    *   Create a UI within the transaction details view (or a dedicated document manager) to list, access, and download associated documents from R2.
+    *   Ensure the UI provides clear links to the stored XML and PDF files.
+
+## Phase 22: System-Wide Verification and Integrity Check
 
 **Goal:** To perform a comprehensive audit of the entire system to ensure all data is correct, all calculations are accurate, and all logic is sound.
 
@@ -132,7 +149,7 @@ This document outlines the next development plan for enhancing the Avanta Financ
 3.  **Automation and Workflow Testing:**
     *   End-to-end testing of all automated workflows, such as recurring transactions and the new fiscal alerts.
 
-## Phase 22: Documentation and Support Update
+## Phase 23: Documentation and Support Update
 
 **Goal:** To update all user-facing documentation and help materials to reflect the latest features and ensure a smooth user onboarding experience.
 
