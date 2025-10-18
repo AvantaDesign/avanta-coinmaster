@@ -7,6 +7,7 @@ import {
   calculateBusinessKPIs,
   detectAnomalies
 } from '../utils/advancedAnalytics';
+import Icon from './icons/IconLibrary';
 
 export default function AdvancedAnalytics({ transactions = [], financialData = {} }) {
   const [activeTab, setActiveTab] = useState('health');
@@ -67,7 +68,10 @@ export default function AdvancedAnalytics({ transactions = [], financialData = {
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 dark:from-blue-700 to-purple-600 dark:to-purple-700 p-6 rounded-lg shadow-lg text-white">
-        <h2 className="text-2xl font-bold mb-2">📊 Analítica Avanzada</h2>
+        <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
+          <Icon name="chart" size="lg" className="text-white" />
+          Analítica Avanzada
+        </h2>
         <p className="text-blue-100">
           Insights profundos sobre la salud financiera de tu negocio
         </p>
@@ -78,43 +82,47 @@ export default function AdvancedAnalytics({ transactions = [], financialData = {
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setActiveTab('health')}
-            className={`flex-1 min-w-[150px] px-4 py-3 rounded-md font-medium transition-colors ${
+            className={`flex-1 min-w-[150px] px-4 py-3 rounded-md font-medium transition-colors flex items-center justify-center gap-2 ${
               activeTab === 'health'
                 ? 'bg-blue-600 dark:bg-blue-700 text-white'
                 : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
             }`}
           >
-            💓 Salud Financiera
+            <Icon name="check-circle" size="sm" />
+            Salud Financiera
           </button>
           <button
             onClick={() => setActiveTab('forecast')}
-            className={`flex-1 min-w-[150px] px-4 py-3 rounded-md font-medium transition-colors ${
+            className={`flex-1 min-w-[150px] px-4 py-3 rounded-md font-medium transition-colors flex items-center justify-center gap-2 ${
               activeTab === 'forecast'
                 ? 'bg-blue-600 dark:bg-blue-700 text-white'
                 : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
             }`}
           >
-            📈 Pronóstico
+            <Icon name="trending-up" size="sm" />
+            Pronóstico
           </button>
           <button
             onClick={() => setActiveTab('profitability')}
-            className={`flex-1 min-w-[150px] px-4 py-3 rounded-md font-medium transition-colors ${
+            className={`flex-1 min-w-[150px] px-4 py-3 rounded-md font-medium transition-colors flex items-center justify-center gap-2 ${
               activeTab === 'profitability'
                 ? 'bg-blue-600 dark:bg-blue-700 text-white'
                 : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
             }`}
           >
-            💰 Rentabilidad
+            <Icon name="currency" size="sm" />
+            Rentabilidad
           </button>
           <button
             onClick={() => setActiveTab('kpis')}
-            className={`flex-1 min-w-[150px] px-4 py-3 rounded-md font-medium transition-colors ${
+            className={`flex-1 min-w-[150px] px-4 py-3 rounded-md font-medium transition-colors flex items-center justify-center gap-2 ${
               activeTab === 'kpis'
                 ? 'bg-blue-600 dark:bg-blue-700 text-white'
                 : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
             }`}
           >
-            📊 KPIs
+            <Icon name="chart" size="sm" />
+            KPIs
           </button>
           <button
             onClick={() => setActiveTab('anomalies')}
@@ -195,25 +203,29 @@ function HealthScoreTab({ healthScore }) {
             metrics={healthScore.breakdown.liquidity.metrics}
           />
           <ScoreBreakdownCard
-            title="💰 Rentabilidad"
+            title="Rentabilidad"
+            icon="currency"
             score={healthScore.breakdown.profitability.score}
             maxScore={healthScore.breakdown.profitability.maxScore}
             metrics={healthScore.breakdown.profitability.metrics}
           />
           <ScoreBreakdownCard
-            title="🏦 Solvencia"
+            title="Solvencia"
+            icon="bank"
             score={healthScore.breakdown.solvency.score}
             maxScore={healthScore.breakdown.solvency.maxScore}
             metrics={healthScore.breakdown.solvency.metrics}
           />
           <ScoreBreakdownCard
-            title="⚡ Eficiencia"
+            title="Eficiencia"
+            icon="trending-up"
             score={healthScore.breakdown.efficiency.score}
             maxScore={healthScore.breakdown.efficiency.maxScore}
             metrics={healthScore.breakdown.efficiency.metrics}
           />
           <ScoreBreakdownCard
-            title="📈 Crecimiento"
+            title="Crecimiento"
+            icon="trending-up"
             score={healthScore.breakdown.growth.score}
             maxScore={healthScore.breakdown.growth.maxScore}
             metrics={healthScore.breakdown.growth.metrics}
@@ -271,12 +283,15 @@ function HealthScoreTab({ healthScore }) {
 }
 
 // Score Breakdown Card Component
-function ScoreBreakdownCard({ title, score, maxScore, metrics }) {
+function ScoreBreakdownCard({ title, icon, score, maxScore, metrics }) {
   const percentage = (score / maxScore) * 100;
 
   return (
     <div className="bg-white dark:bg-slate-900 p-4 rounded-lg border border-gray-200 dark:border-slate-700">
-      <h4 className="font-bold mb-3">{title}</h4>
+      <h4 className="font-bold mb-3 flex items-center gap-2">
+        {icon && <Icon name={icon} size="sm" className="text-blue-600" />}
+        {title}
+      </h4>
       <div className="mb-3">
         <div className="flex justify-between text-sm mb-1">
           <span>{score}</span>
@@ -311,11 +326,11 @@ function ScoreBreakdownCard({ title, score, maxScore, metrics }) {
 
 // Cash Flow Forecast Tab Component
 function CashFlowForecastTab({ forecast }) {
-  const trendEmoji = {
-    improving: '📈',
-    declining: '📉',
-    stable: '➡️',
-    insufficient_data: '❓'
+  const trendIcon = {
+    improving: 'trending-up',
+    declining: 'trending-down',
+    stable: 'minus',
+    insufficient_data: 'info'
   };
 
   const trendColor = {
@@ -329,7 +344,10 @@ function CashFlowForecastTab({ forecast }) {
     <div className="space-y-6">
       {/* Trend Overview */}
       <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
-        <h3 className="text-xl font-bold mb-4">📈 Tendencia de Flujo de Caja</h3>
+        <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <Icon name="trending-up" size="md" />
+          Tendencia de Flujo de Caja
+        </h3>
         <div className="flex items-center gap-4">
           <span className="text-4xl">{trendEmoji[forecast.trend]}</span>
           <div>
@@ -416,7 +434,7 @@ function CashFlowForecastTab({ forecast }) {
         <div className="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 p-4 rounded">
           <div className="flex">
             <div className="flex-shrink-0">
-              <span className="text-2xl">⚠️</span>
+              <Icon name="warning" size="lg" className="text-yellow-600" />
             </div>
             <div className="ml-3">
               <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-300">Datos insuficientes</h3>
@@ -469,7 +487,10 @@ function ProfitabilityTab({ profitability }) {
             </div>
           </div>
           <div className="bg-red-50 dark:bg-red-900/20 p-6 rounded-lg border-2 border-red-200">
-            <h3 className="text-lg font-bold text-red-800 dark:text-red-300 mb-2">⚠️ Requiere Atención</h3>
+            <h3 className="text-lg font-bold text-red-800 dark:text-red-300 mb-2 flex items-center gap-2">
+              <Icon name="warning" size="sm" />
+              Requiere Atención
+            </h3>
             <div className="text-2xl font-bold text-red-700">{profitability.summary.worstPerformer}</div>
             <div className="text-lg text-red-600">
               {formatCurrency(profitability.summary.worstPerformerProfit)} de utilidad
@@ -480,7 +501,10 @@ function ProfitabilityTab({ profitability }) {
 
       {/* Profitability by Group */}
       <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
-        <h3 className="text-xl font-bold mb-4">📊 Rentabilidad por Categoría</h3>
+        <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <Icon name="chart" size="md" />
+          Rentabilidad por Categoría
+        </h3>
         <div className="space-y-3">
           {profitability.groups.map((group, index) => (
             <div key={index} className="border border-gray-200 dark:border-slate-700 rounded-lg p-4">
@@ -533,31 +557,34 @@ function KPIsTab({ kpis }) {
   return (
     <div className="space-y-6">
       {/* Financial KPIs */}
-      <KPISection title="💰 KPIs Financieros" kpis={kpis.financial} />
+      <KPISection title="KPIs Financieros" icon="currency" kpis={kpis.financial} />
       
       {/* Liquidity KPIs */}
-      <KPISection title="💧 KPIs de Liquidez" kpis={kpis.liquidity} />
+      <KPISection title="KPIs de Liquidez" icon="banknotes" kpis={kpis.liquidity} />
       
       {/* Efficiency KPIs */}
-      <KPISection title="⚡ KPIs de Eficiencia" kpis={kpis.efficiency} />
+      <KPISection title="KPIs de Eficiencia" icon="trending-up" kpis={kpis.efficiency} />
       
       {/* Growth KPIs */}
-      <KPISection title="📈 KPIs de Crecimiento" kpis={kpis.growth} />
+      <KPISection title="KPIs de Crecimiento" icon="trending-up" kpis={kpis.growth} />
       
       {/* Customer KPIs */}
-      <KPISection title="👥 KPIs de Clientes" kpis={kpis.customer} />
+      <KPISection title="KPIs de Clientes" icon="user" kpis={kpis.customer} />
       
       {/* Employee KPIs */}
-      <KPISection title="👔 KPIs de Empleados" kpis={kpis.employee} />
+      <KPISection title="KPIs de Empleados" icon="user" kpis={kpis.employee} />
     </div>
   );
 }
 
 // KPI Section Component
-function KPISection({ title, kpis }) {
+function KPISection({ title, icon, kpis }) {
   return (
     <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
-      <h3 className="text-xl font-bold mb-4">{title}</h3>
+      <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+        {icon && <Icon name={icon} size="md" className="text-blue-600" />}
+        {title}
+      </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {Object.entries(kpis).map(([key, kpi]) => (
           <KPICard key={key} kpi={kpi} />
@@ -638,8 +665,9 @@ function AnomaliesTab({ anomalies }) {
       {/* High Severity */}
       {anomaliesBySeverity.high.length > 0 && (
         <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
-          <h3 className="text-xl font-bold text-red-600 mb-4">
-            🚨 Alta Prioridad ({anomaliesBySeverity.high.length})
+          <h3 className="text-xl font-bold text-red-600 mb-4 flex items-center gap-2">
+            <Icon name="error" size="md" />
+            Alta Prioridad ({anomaliesBySeverity.high.length})
           </h3>
           <div className="space-y-3">
             {anomaliesBySeverity.high.map((anomaly, index) => (
@@ -652,8 +680,9 @@ function AnomaliesTab({ anomalies }) {
       {/* Medium Severity */}
       {anomaliesBySeverity.medium.length > 0 && (
         <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
-          <h3 className="text-xl font-bold text-orange-600 mb-4">
-            ⚠️ Prioridad Media ({anomaliesBySeverity.medium.length})
+          <h3 className="text-xl font-bold text-orange-600 mb-4 flex items-center gap-2">
+            <Icon name="warning" size="md" />
+            Prioridad Media ({anomaliesBySeverity.medium.length})
           </h3>
           <div className="space-y-3">
             {anomaliesBySeverity.medium.map((anomaly, index) => (
