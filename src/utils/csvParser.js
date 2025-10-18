@@ -334,7 +334,7 @@ export function parseWithMapping(csvText, mapping) {
  * Helper: Parse monetary amount from string
  * Handles: $1,234.56, 1.234,56, 1234.56, (1234.56) for negatives
  */
-function parseAmount(amountStr) {
+export function parseAmount(amountStr) {
   if (!amountStr) return 0;
   
   // Remove currency symbols and spaces
@@ -374,9 +374,9 @@ function formatDate(dateStr) {
   // Try to parse common formats
   const formats = [
     // DD/MM/YYYY or DD-MM-YYYY
-    /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/,
+    /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/, //
     // YYYY/MM/DD or YYYY-MM-DD
-    /^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/,
+    /^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/, //
     // DD/MM/YY or DD-MM-YY
     /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2})$/
   ];
@@ -411,6 +411,56 @@ function formatDate(dateStr) {
   
   // Return today's date if parsing fails
   return new Date().toISOString().split('T')[0];
+}
+
+// Exported parseDate for external usage (functions import parseDate)
+export function parseDate(dateStr) {
+  return formatDate(dateStr);
+}
+
+// Heuristic column detection helper (used by functions import code)
+export function detectColumns(headers = []) {
+  if (!Array.isArray(headers)) return {};
+  const normalized = headers.map(h => (h || '').toString().toLowerCase());
+  const mapping = {};
+  normalized.forEach((h, i) => {
+    if (h.match(/date|fecha/)) mapping.date = headers[i];
+    else if (h.match(/amount|importe|monto|cantidad/)) mapping.amount = headers[i];
+    else if (h.match(/description|descripcion|concepto|detalle/)) mapping.description = headers[i];
+    else if (h.match(/balance/)) mapping.balance = headers[i];
+    else if (h.match(/transaction|tipo|transaccion/)) mapping.type = headers[i];
+  });
+  return mapping;
+}
+
+// Detect transaction type from description or amount sign
+export function detectTransactionType({ description = '', amount = 0 } = {}) {
+  const desc = String(description).toLowerCase();
+  if (typeof amount === 'number') {
+    if (amount < 0) return 'gasto';
+    if (amount > 0) return 'ingreso';
+  }
+  if (desc.match(/deposit|pago|ingreso|abono|deposito|depósito/)) return 'ingreso';
+  if (desc.match(/retiro|cargo|compra|pago a|retirada/)) return 'gasto';
+  return 'unknown';
+}
+
+// Naive duplicate detection: exact same date + amount + normalized description
+export function detectDuplicates(rows = [], existing = []) {
+  const normalize = (s) => (s || '').toString().toLowerCase().replace(/\s+/g, ' ').trim();
+  const keySet = new Set();
+  (existing || []).forEach(tx => {
+    const key = `${tx.date || ''}|||${tx.amount || ''}|||${normalize(tx.description)}`;
+    keySet.add(key);
+  });
+  const duplicates = [];
+  rows.forEach((r, idx) => {
+    const date = r.date ? (r.date instanceof Date ? r.date.toISOString().split('T')[0] : String(r.date)) : '';
+    const amount = r.amount != null ? String(r.amount) : '';
+    const key = `${date}|||${amount}|||${normalize(r.description)}`;
+    if (keySet.has(key)) duplicates.push({ index: idx, row: r });
+  });
+  return duplicates;
 }
 
 /**

@@ -857,3 +857,156 @@ export async function contributeSavingsGoal(id, amount) {
   if (!response.ok) throw new Error('Failed to contribute to savings goal');
   return response.json();
 }
+
+// Import API
+export async function parseCSV(csvContent, fileName, source = 'csv_bank_statement') {
+  const response = await authFetch(`${API_BASE}/import/csv`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify({ csvContent, fileName, source })
+  });
+  if (!response.ok) throw new Error('Failed to parse CSV');
+  return response.json();
+}
+
+export async function confirmImport(data) {
+  const response = await authFetch(`${API_BASE}/import/confirm`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error('Failed to confirm import');
+  return response.json();
+}
+
+export async function fetchImportHistory(params = {}) {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/import/history${queryString ? '?' + queryString : ''}`;
+  const response = await authFetch(url, {
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to fetch import history');
+  return response.json();
+}
+
+export async function fetchImportDetails(importId) {
+  const response = await authFetch(`${API_BASE}/import/history/${importId}`, {
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to fetch import details');
+  return response.json();
+}
+
+export async function deleteImport(importId) {
+  const response = await authFetch(`${API_BASE}/import/history/${importId}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to delete import');
+  return response.json();
+}
+
+// SAT Reconciliation API
+export async function fetchReconciliationData(year, month) {
+  const response = await authFetch(`${API_BASE}/sat-reconciliation/${year}/${month}`, {
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to fetch reconciliation data');
+  return response.json();
+}
+
+export async function saveSATDeclaration(data) {
+  const response = await authFetch(`${API_BASE}/sat-reconciliation/declaration`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error('Failed to save SAT declaration');
+  return response.json();
+}
+
+export async function updateSATDeclaration(id, data) {
+  const response = await authFetch(`${API_BASE}/sat-reconciliation/declaration/${id}`, {
+    method: 'PUT',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error('Failed to update SAT declaration');
+  return response.json();
+}
+
+export async function fetchDiscrepancies(params = {}) {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/sat-reconciliation/discrepancies${queryString ? '?' + queryString : ''}`;
+  const response = await authFetch(url, {
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to fetch discrepancies');
+  return response.json();
+}
+
+// Fiscal Parameters API
+export async function fetchFiscalParameters(params = {}) {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/fiscal-parameters${queryString ? '?' + queryString : ''}`;
+  const response = await authFetch(url, {
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to fetch fiscal parameters');
+  return response.json();
+}
+
+export async function fetchFiscalParameter(type, date) {
+  const response = await authFetch(`${API_BASE}/fiscal-parameters/${type}/${date}`, {
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to fetch fiscal parameter');
+  return response.json();
+}
+
+export async function createFiscalParameter(data) {
+  const response = await authFetch(`${API_BASE}/fiscal-parameters`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error('Failed to create fiscal parameter');
+  return response.json();
+}
+
+export async function updateFiscalParameter(id, data) {
+  const response = await authFetch(`${API_BASE}/fiscal-parameters/${id}`, {
+    method: 'PUT',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error('Failed to update fiscal parameter');
+  return response.json();
+}
+
+export async function deleteFiscalParameter(id) {
+  const response = await authFetch(`${API_BASE}/fiscal-parameters/${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to delete fiscal parameter');
+  return response.json();
+}
