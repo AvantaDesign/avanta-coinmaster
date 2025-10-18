@@ -790,3 +790,70 @@ export async function deleteFinancialTask(id) {
   if (!response.ok) throw new Error('Failed to delete financial task');
   return response.json();
 }
+
+// Savings Goals API
+export async function fetchSavingsGoals(params = {}) {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/savings-goals${queryString ? '?' + queryString : ''}`;
+  const response = await authFetch(url, {
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to fetch savings goals');
+  return response.json();
+}
+
+export async function fetchSavingsGoal(id) {
+  const response = await authFetch(`${API_BASE}/savings-goals/${id}`, {
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to fetch savings goal');
+  return response.json();
+}
+
+export async function createSavingsGoal(data) {
+  const response = await authFetch(`${API_BASE}/savings-goals`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error('Failed to create savings goal');
+  return response.json();
+}
+
+export async function updateSavingsGoal(id, data) {
+  const response = await authFetch(`${API_BASE}/savings-goals/${id}`, {
+    method: 'PUT',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error('Failed to update savings goal');
+  return response.json();
+}
+
+export async function deleteSavingsGoal(id) {
+  const response = await authFetch(`${API_BASE}/savings-goals/${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to delete savings goal');
+  return response.json();
+}
+
+export async function contributeSavingsGoal(id, amount) {
+  const response = await authFetch(`${API_BASE}/savings-goals/${id}/contribute`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify({ amount })
+  });
+  if (!response.ok) throw new Error('Failed to contribute to savings goal');
+  return response.json();
+}
