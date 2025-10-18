@@ -152,19 +152,19 @@ export default function FinancialDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Dashboard Financiero</h1>
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-center sm:text-left">Dashboard Financiero</h1>
+        <div className="flex flex-col sm:flex-row items-center gap-3">
           <a
             href="/quick-actions"
-            className="bg-purple-600 dark:bg-purple-700 text-white px-4 py-2 rounded-md hover:bg-purple-700 dark:hover:bg-purple-600 flex items-center gap-2"
+            className="w-full sm:w-auto bg-purple-600 dark:bg-purple-700 text-white px-4 py-2 rounded-md hover:bg-purple-700 dark:hover:bg-purple-600 flex items-center justify-center gap-2"
           >
             <Icon name="plus" size="sm" />
             Acciones Rápidas
           </a>
           <button
             onClick={loadData}
-            className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 flex items-center gap-2"
+            className="w-full sm:w-auto bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 flex items-center justify-center gap-2"
           >
             <Icon name="refresh" size="sm" />
             Actualizar
