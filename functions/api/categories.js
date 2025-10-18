@@ -36,10 +36,22 @@ export async function onRequestGet(context) {
       });
     }
 
-    // Get only active categories for this user
-    const result = await env.DB.prepare(
-      'SELECT * FROM categories WHERE user_id = ? AND is_active = 1 ORDER BY name'
-    ).bind(userId).all();
+    // Build query with optional type filter
+    const url = new URL(request.url);
+    const categoryType = url.searchParams.get('category_type');
+    
+    let query = 'SELECT * FROM categories WHERE user_id = ? AND is_active = 1';
+    const params = [userId];
+    
+    // Support filtering by category_type (personal/business)
+    if (categoryType && ['personal', 'business'].includes(categoryType)) {
+      query += ' AND category_type = ?';
+      params.push(categoryType);
+    }
+    
+    query += ' ORDER BY name';
+    
+    const result = await env.DB.prepare(query).bind(...params).all();
     
     return new Response(JSON.stringify(result.results || []), {
       headers: corsHeaders

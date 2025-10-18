@@ -15,16 +15,32 @@ export default function CategoryManager() {
     color: '#3B82F6'
   });
 
-  // Predefined colors
+  // Expanded color palette with 24 colors
   const colors = [
     { name: 'Azul', value: '#3B82F6' },
+    { name: 'Azul Claro', value: '#60A5FA' },
+    { name: 'Azul Oscuro', value: '#1E40AF' },
     { name: 'Verde', value: '#10B981' },
+    { name: 'Verde Claro', value: '#34D399' },
+    { name: 'Verde Lima', value: '#84CC16' },
     { name: 'Rojo', value: '#EF4444' },
+    { name: 'Rojo Oscuro', value: '#DC2626' },
+    { name: 'Naranja', value: '#F97316' },
     { name: 'Amarillo', value: '#F59E0B' },
+    { name: 'Ámbar', value: '#FBBF24' },
     { name: 'Morado', value: '#8B5CF6' },
+    { name: 'Morado Oscuro', value: '#7C3AED' },
+    { name: 'Índigo', value: '#6366F1' },
     { name: 'Rosa', value: '#EC4899' },
+    { name: 'Rosa Claro', value: '#F472B6' },
+    { name: 'Fucsia', value: '#D946EF' },
     { name: 'Cyan', value: '#06B6D4' },
-    { name: 'Gris', value: '#6B7280' }
+    { name: 'Teal', value: '#14B8A6' },
+    { name: 'Esmeralda', value: '#059669' },
+    { name: 'Gris', value: '#6B7280' },
+    { name: 'Gris Claro', value: '#9CA3AF' },
+    { name: 'Gris Oscuro', value: '#4B5563' },
+    { name: 'Slate', value: '#64748B' }
   ];
 
   useEffect(() => {

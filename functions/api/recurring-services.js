@@ -96,6 +96,13 @@ export async function onRequestGet(context) {
       params.push(status);
     }
 
+    // Support filtering by type (personal/business)
+    const type = url.searchParams.get('type');
+    if (type && ['personal', 'business'].includes(type)) {
+      query += ' AND type = ?';
+      params.push(type);
+    }
+
     query += ' ORDER BY next_payment_date ASC, service_name ASC';
 
     const stmt = params.length > 0 
@@ -143,7 +150,8 @@ export async function onRequestPost(context) {
       frequency,
       payment_day,
       description,
-      category
+      category,
+      type = 'business' // Default to business for backward compatibility
     } = data;
 
     // Validate required fields
@@ -188,8 +196,8 @@ export async function onRequestPost(context) {
     const result = await env.DB.prepare(
       `INSERT INTO recurring_services (
         service_name, provider, amount, frequency, payment_day,
-        description, category, next_payment_date, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')`
+        description, category, next_payment_date, status, type
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', ?)`
     ).bind(
       service_name,
       provider,
@@ -198,7 +206,8 @@ export async function onRequestPost(context) {
       payment_day || null,
       description || null,
       category || null,
-      nextPaymentDate
+      nextPaymentDate,
+      type
     ).run();
 
     return new Response(JSON.stringify({
@@ -272,7 +281,7 @@ export async function onRequestPut(context) {
     // List of allowed update fields
     const allowedFields = [
       'service_name', 'provider', 'amount', 'frequency', 
-      'payment_day', 'description', 'category', 'status'
+      'payment_day', 'description', 'category', 'status', 'type'
     ];
 
     for (const field of allowedFields) {
