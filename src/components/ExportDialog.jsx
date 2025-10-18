@@ -223,7 +223,7 @@ export default function ExportDialog({ transactions, filters, onClose }) {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Formato de exportación
             </label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 onClick={() => setFormat('csv')}
                 className={`p-4 border-2 rounded-lg text-center transition ${
@@ -287,7 +287,7 @@ export default function ExportDialog({ transactions, filters, onClose }) {
                 </button>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto p-2 border rounded-lg">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto p-2 border rounded-lg">
               {availableFields.map(field => (
                 <label key={field.key} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
                   <input

@@ -81,9 +81,9 @@ export default function Invoices() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Facturas CFDI</h1>
-        <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Facturas CFDI</h1>
+        <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => setShowCFDIImport(true)}
             className="bg-success-600 dark:bg-success-700 text-white px-4 py-2 rounded-md hover:bg-success-700 dark:hover:bg-success-600 flex items-center gap-2 transition-colors"

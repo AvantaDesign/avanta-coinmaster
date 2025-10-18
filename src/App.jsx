@@ -79,6 +79,13 @@ function NavigationBar() {
     };
   }, [activeDropdown]);
 
+  // Close mobile menu when route changes
+  const location = useLocation();
+  useEffect(() => {
+    setMobileMenuOpen(false);
+    setActiveDropdown(null);
+  }, [location]);
+
   // Define navigation modules with icons
   const navigationModules = [
     {
@@ -279,7 +286,7 @@ function NavigationBar() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-gray-50 dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700">
+        <div className="lg:hidden bg-gray-50 dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 max-h-[calc(100vh-4rem)] overflow-y-auto">
           <div className="px-2 pt-2 pb-3 space-y-1">
             {navigationModules.map((module) => (
               <div key={module.name}>

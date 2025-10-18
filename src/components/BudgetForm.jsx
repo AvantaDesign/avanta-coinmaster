@@ -115,7 +115,7 @@ export default function BudgetForm({ budget, onSubmit, onCancel }) {
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Clasificación <span className="text-red-500">*</span>
         </label>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <button
             type="button"
             onClick={() => setFormData(prev => ({ ...prev, classification: 'business' }))}
@@ -210,7 +210,7 @@ export default function BudgetForm({ budget, onSubmit, onCancel }) {
       </div>
 
       {/* Dates */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Fecha de Inicio <span className="text-red-500">*</span>

@@ -291,7 +291,7 @@ export default function CSVImport({ onSuccess, onClose }) {
 
               {/* Summary */}
               <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mb-4">
-                <div className="grid grid-cols-3 gap-4 text-center">
+                <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
                   <div>
                     <p className="text-2xl font-bold text-blue-600">
                       {parseResult.validation.totalCount}

@@ -72,8 +72,8 @@ export default function Transactions() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Transacciones</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Transacciones</h1>
         <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => handleFilterChange('transactionType', 'all')}

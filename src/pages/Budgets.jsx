@@ -143,9 +143,9 @@ export default function Budgets() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Header */}
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Presupuestos</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Presupuestos</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
             Administra tus presupuestos mensuales, trimestrales y anuales
           </p>

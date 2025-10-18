@@ -12,7 +12,7 @@ export default function Fiscal() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Vista Fiscal</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Vista Fiscal</h1>
 
       {/* Tabs */}
       <div className="bg-white dark:bg-slate-900 rounded-lg shadow-default border border-gray-200 dark:border-slate-700">
@@ -205,7 +205,7 @@ function SimpleFiscalView() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-red-50 dark:bg-red-900/20 p-6 rounded-lg">
                 <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">ISR</div>
-                <div className="text-3xl font-bold text-red-700">
+                <div className="text-2xl sm:text-3xl font-bold text-red-700">
                   {formatCurrency(data.isr)}
                 </div>
                 <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
@@ -215,7 +215,7 @@ function SimpleFiscalView() {
 
               <div className="bg-orange-50 p-6 rounded-lg">
                 <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">IVA</div>
-                <div className="text-3xl font-bold text-orange-700">
+                <div className="text-2xl sm:text-3xl font-bold text-orange-700">
                   {formatCurrency(data.iva)}
                 </div>
                 <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">

@@ -141,9 +141,9 @@ export default function Home() {
 
       {/* Business/Personal View Toggle */}
       <div className="bg-white dark:bg-slate-900 p-4 rounded-lg shadow-default border border-gray-200 dark:border-slate-700">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Vista</h3>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <button
               onClick={() => setViewMode('all')}
               className={`px-4 py-2 rounded-md text-sm transition-colors ${
@@ -237,7 +237,7 @@ export default function Home() {
               </button>
             </div>
             <div className="flex items-center gap-3">
-              <div className={`text-4xl font-bold ${
+              <div className={`text-3xl sm:text-4xl font-bold ${
                 healthScore.score >= 80 ? 'text-success-600 dark:text-success-400' :
                 healthScore.score >= 60 ? 'text-primary-600 dark:text-primary-400' :
                 healthScore.score >= 40 ? 'text-warning-600 dark:text-warning-400' :
