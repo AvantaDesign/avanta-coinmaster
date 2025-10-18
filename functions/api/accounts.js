@@ -37,10 +37,22 @@ export async function onRequestGet(context) {
       });
     }
 
-    // Get only active accounts for this user
-    const result = await env.DB.prepare(
-      'SELECT * FROM accounts WHERE user_id = ? AND is_active = 1 ORDER BY type, name'
-    ).bind(userId).all();
+    // Build query with optional type filter
+    const url = new URL(request.url);
+    const accountType = url.searchParams.get('account_type');
+    
+    let query = 'SELECT * FROM accounts WHERE user_id = ? AND is_active = 1';
+    const params = [userId];
+    
+    // Support filtering by account_type (personal/business)
+    if (accountType && ['personal', 'business'].includes(accountType)) {
+      query += ' AND account_type = ?';
+      params.push(accountType);
+    }
+    
+    query += ' ORDER BY type, name';
+    
+    const result = await env.DB.prepare(query).bind(...params).all();
     
     return new Response(JSON.stringify(result.results || []), {
       headers: corsHeaders

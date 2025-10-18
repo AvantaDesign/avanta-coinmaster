@@ -21,7 +21,8 @@ export default function RecurringFreelancersDashboard() {
     frequency: 'monthly',
     payment_day: '',
     description: '',
-    category: ''
+    category: '',
+    type: 'business'
   });
 
   useEffect(() => {
@@ -53,7 +54,8 @@ export default function RecurringFreelancersDashboard() {
       frequency: 'monthly',
       payment_day: '',
       description: '',
-      category: ''
+      category: '',
+      type: 'business'
     });
     setEditingId(null);
     setShowForm(false);
@@ -67,7 +69,8 @@ export default function RecurringFreelancersDashboard() {
       frequency: freelancer.frequency,
       payment_day: freelancer.payment_day?.toString() || '',
       description: freelancer.description || '',
-      category: freelancer.category || ''
+      category: freelancer.category || '',
+      type: freelancer.type || 'business'
     });
     setEditingId(freelancer.id);
     setShowForm(true);
@@ -270,6 +273,20 @@ export default function RecurringFreelancersDashboard() {
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 dark:bg-slate-700 dark:text-white"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Tipo
+              </label>
+              <select
+                value={formData.type}
+                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 dark:bg-slate-700 dark:text-white"
+              >
+                <option value="business">💼 Negocio</option>
+                <option value="personal">👤 Personal</option>
+              </select>
             </div>
 
             <div className="md:col-span-2">

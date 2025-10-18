@@ -7,6 +7,7 @@ import {
   deleteTransaction,
   restoreTransaction 
 } from '../utils/api';
+import useFilterStore from './useFilterStore';
 
 /**
  * Transaction Store using Zustand
@@ -83,6 +84,12 @@ const useTransactionStore = create(
           if (filters.dateFrom) queryParams.date_from = filters.dateFrom;
           if (filters.dateTo) queryParams.date_to = filters.dateTo;
           if (filters.showDeleted) queryParams.include_deleted = true;
+          
+          // Apply global filter (overrides local transactionType filter)
+          const globalFilter = useFilterStore.getState().filter;
+          if (globalFilter !== 'all') {
+            queryParams.transaction_type = globalFilter;
+          }
           
           const result = await fetchTransactions(queryParams);
           
