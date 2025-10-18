@@ -156,3 +156,75 @@ This document outlines the development plan for enhancing the Avanta Finance app
         *   `date range`
         *   `metadata tags` (from Phase 7)
     *   **Backend:** Update the `GET /api/transactions` endpoint to accept and process these advanced filtering parameters.
+
+## Phase 11: Design System & Visual Foundation
+
+**Goal:** To establish the foundational elements of a sophisticated design system, elevating the application's visual consistency and professional aesthetic.
+
+**Tasks:**
+
+1.  **Implement a Professional Icon Set:**
+    *   **Description:** Replace all current emoji-based icons with a consistent, professional icon library (e.g., Heroicons, Feather Icons). This includes navigation, buttons, and informational elements. Use distinct, clear icons for `Personal` and `Business` contexts (e.g., a briefcase for business, a house for personal).
+
+2.  **Refine Typography Scale & Hierarchy:**
+    *   **Description:** Establish and enforce a strict typographic scale in `tailwind.config.js`. Ensure all components use these defined styles for headings, subheadings, body text, and labels to create a clear and consistent visual hierarchy.
+
+3.  **Evolve and Standardize the Color Palette:**
+    *   **Description:** In `tailwind.config.js`, define a refined and accessible color palette. Create a "semantic" color system (e.g., `success`, `danger`, `warning`, `info`) and apply these colors consistently across the application for alerts, buttons, and status indicators.
+
+4.  **Standardize Spacing and Layout:**
+    *   **Description:** Implement a consistent spacing system (e.g., based on an 8px grid) for all components and layouts. Refactor existing components to use the new spacing variables, ensuring a harmonious and visually balanced interface.
+
+## Phase 12: Dashboard & Navigation Refinement
+
+**Goal:** To redesign the main dashboard and navigation to be more intuitive, insightful, and goal-oriented.
+
+**Tasks:**
+
+1.  **Create a "Command Center" Dashboard:**
+    *   **Description:** Overhaul `FinancialDashboard.jsx`. Introduce a "Financial Health Score" widget at the top. This score will be calculated based on key metrics like cash flow, debt-to-income ratio, and budget adherence, providing an instant overview.
+
+2.  **Implement Interactive & Drill-Down Charts:**
+    *   **Description:** Refactor chart components (e.g., `MonthlyChart.jsx`) to be fully interactive. Implement detailed tooltips on hover and "drill-down" functionality on click, navigating users to pre-filtered data views.
+
+3.  **Introduce Breadcrumbs:**
+    *   **Description:** Implement a `Breadcrumbs` component and integrate it into the main layout. It should dynamically display the user's navigation path and allow for easy traversal back to parent pages.
+
+4.  **Implement a Global "Quick Add" Button:**
+    *   **Description:** Add a floating action button (FAB) that is visible on all pages. This button will open a menu with shortcuts to the most common actions, such as "Add Income," "Add Expense," and "Upload Invoice."
+
+## Phase 13: Interaction & Mobile Experience
+
+**Goal:** To enhance detailed user interactions, streamline data entry, and deliver a superior mobile-first experience.
+
+**Tasks:**
+
+1.  **Design "Smart" Forms:**
+    *   **Description:** Refactor key data entry forms like `AddTransaction.jsx`. Implement intelligent features such as auto-suggesting categories based on the description (e.g., "Uber" -> "Transport"), pre-filling dates, and using input masking for currency and dates.
+
+2.  **Enhance Data Tables:**
+    *   **Description:** Upgrade all data tables (`TransactionTable.jsx`, etc.). Add client-side sorting and filtering to column headers. Implement a "Detail View" that allows a row to be expanded for more information without leaving the page.
+
+3.  **Adopt a Mobile-First Design Philosophy:**
+    *   **Description:** Conduct a review of the most common user flows (e.g., adding a transaction, checking account balances). Redesign these views with a mobile-first approach, rather than simply stacking desktop elements. Focus on creating a thumb-friendly and optimized layout for small screens.
+
+4.  **Optimize for Touch:**
+    *   **Description:** Increase the size of tap targets for all interactive elements on mobile. Implement swipe gestures in data tables (e.g., swipe a transaction to reveal "Edit" and "Delete" actions).
+
+## Phase 14: Expert Features & Accessibility
+
+**Goal:** To implement highly valuable, expert-driven features specific to the Mexican market and ensure the application is accessible to all users.
+
+**Tasks:**
+
+1.  **Create a "Declaración Anual" Simulator:**
+    *   **Description:** Build a dedicated "Annual Tax Declaration Simulator". This tool will guide users through a mock declaration, using their financial data to highlight potential deductions and estimate their annual ISR liability.
+
+2.  **Dashboard Widget for "IVA Favor/Contra":**
+    *   **Description:** Add a prominent widget to the main dashboard that clearly shows the current balance of `IVA Acreditable` vs. `IVA Trasladado`, resulting in a real-time "IVA a favor" or "IVA a pagar" calculation for the current period.
+
+3.  **Visual Cues for `Uso de CFDI`:**
+    *   **Description:** In transaction and invoice forms, automatically suggest the appropriate `Uso de CFDI` code based on the selected category, simplifying this mandatory step for Mexican invoicing.
+
+4.  **Full Accessibility (a11y) Audit & Remediation:**
+    *   **Description:** Conduct a full WCAG 2.1 AA compliance audit. Remediate all identified issues, including adding `alt` tags, ensuring proper label associations for forms, enabling full keyboard navigation, and correctly using ARIA attributes.
