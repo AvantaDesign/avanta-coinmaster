@@ -349,7 +349,7 @@ function CashFlowForecastTab({ forecast }) {
           Tendencia de Flujo de Caja
         </h3>
         <div className="flex items-center gap-4">
-          <span className="text-4xl">{trendEmoji[forecast.trend]}</span>
+          <Icon name={trendIcon[forecast.trend]} size="2xl" className={trendColor[forecast.trend]} />
           <div>
             <p className={`text-2xl font-bold ${trendColor[forecast.trend]}`}>
               {forecast.trend === 'improving'
