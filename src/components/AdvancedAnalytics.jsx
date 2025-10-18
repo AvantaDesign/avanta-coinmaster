@@ -472,7 +472,7 @@ function ProfitabilityTab({ profitability }) {
         </div>
         <div className="bg-gradient-to-br from-purple-500 dark:from-purple-600 to-purple-600 dark:to-purple-700 p-6 rounded-lg text-white">
           <div className="text-sm mb-1">Margen Total</div>
-          <div className="text-2xl font-bold">{profitability.totalMargin.toFixed(1)}%</div>
+          <div className="text-2xl font-bold">{profitability.totalMargin ? profitability.totalMargin.toFixed(1) : '0.0'}%</div>
         </div>
       </div>
 
@@ -511,27 +511,27 @@ function ProfitabilityTab({ profitability }) {
               <div className="flex justify-between items-start mb-2">
                 <h4 className="font-bold text-lg">{group.name}</h4>
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  group.margin >= 20
+                  (group.margin || 0) >= 20
                     ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
-                    : group.margin >= 10
+                    : (group.margin || 0) >= 10
                     ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
-                    : group.margin >= 0
+                    : (group.margin || 0) >= 0
                     ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
                     : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
                 }`}>
-                  {group.margin.toFixed(1)}% margen
+                  {(group.margin || 0).toFixed(1)}% margen
                 </span>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
                   <div className="text-gray-600 dark:text-gray-400">Ingresos</div>
                   <div className="font-medium text-green-600">{formatCurrency(group.revenue)}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">{group.revenueShare.toFixed(1)}% del total</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">{(group.revenueShare || 0).toFixed(1)}% del total</div>
                 </div>
                 <div>
                   <div className="text-gray-600 dark:text-gray-400">Gastos</div>
                   <div className="font-medium text-red-600">{formatCurrency(group.expenses)}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">{group.expenseShare.toFixed(1)}% del total</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">{(group.expenseShare || 0).toFixed(1)}% del total</div>
                 </div>
                 <div>
                   <div className="text-gray-600 dark:text-gray-400">Utilidad</div>
@@ -604,7 +604,7 @@ function KPICard({ kpi }) {
       <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">{kpi.label}</div>
       <div className="flex items-end justify-between mb-2">
         <span className="text-2xl font-bold">
-          {kpi.unit === '$' ? formatCurrency(kpi.value) : kpi.value.toFixed(2)}
+          {kpi.unit === '$' ? formatCurrency(kpi.value) : (kpi.value || 0).toFixed(2)}
           {kpi.unit !== '$' && <span className="text-sm ml-1">{kpi.unit}</span>}
         </span>
         <span className={`text-xs px-2 py-1 rounded-full bg-${performanceColor}-100 text-${performanceColor}-700`}>
