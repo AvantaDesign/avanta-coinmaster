@@ -5,6 +5,9 @@ import { deleteTransaction, updateTransaction, restoreTransaction } from '../uti
 import { showSuccess, showError, showWarning } from '../utils/notifications';
 import useTransactionStore from '../stores/useTransactionStore';
 import BulkEditModal from './BulkEditModal';
+import TableRowDetail from './TableRowDetail';
+import Icon from './icons/IconLibrary';
+import { handleSwipeGesture, isTouchDevice } from '../utils/touchUtils';
 
 export default function TransactionTable({ transactions: propTransactions, onUpdate }) {
   // Use store if available, otherwise fall back to props
@@ -18,13 +21,16 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
   const [sortOrder, setSortOrder] = useState('desc');
   const [showBulkEditModal, setShowBulkEditModal] = useState(false);
   const [accounts, setAccounts] = useState([]);
+  const [expandedRowId, setExpandedRowId] = useState(null);
+  const [isTouch, setIsTouch] = useState(false);
   
   // Refs for virtualization
   const parentRef = useRef(null);
 
-  // Load accounts for bulk edit modal
+  // Load accounts for bulk edit modal and detect touch device
   useEffect(() => {
     fetchAccounts();
+    setIsTouch(isTouchDevice());
   }, []);
 
   const fetchAccounts = async () => {
@@ -178,9 +184,19 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
 
   const SortIcon = ({ column }) => {
     if (sortBy !== column) {
-      return <span className="text-gray-400 ml-1">⇅</span>;
+      return <Icon name="chevron-up-down" className="w-4 h-4 text-gray-400 inline ml-1" />;
     }
-    return sortOrder === 'asc' ? <span className="ml-1">↑</span> : <span className="ml-1">↓</span>;
+    return sortOrder === 'asc' 
+      ? <Icon name="chevron-up" className="w-4 h-4 inline ml-1" />
+      : <Icon name="chevron-down" className="w-4 h-4 inline ml-1" />;
+  };
+
+  const toggleRowExpand = (transactionId) => {
+    if (expandedRowId === transactionId) {
+      setExpandedRowId(null);
+    } else {
+      setExpandedRowId(transactionId);
+    }
   };
 
   if (!transactions || transactions.length === 0) {
@@ -305,10 +321,11 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
               {rowVirtualizer.getVirtualItems().map((virtualRow) => {
                 const transaction = sortedTransactions[virtualRow.index];
                 return (
-                  <tr 
-                    key={transaction.id} 
-                    className={`hover:bg-gray-50 ${selectedIds.includes(transaction.id) ? 'bg-blue-50' : ''}`}
-                  >
+                  <>
+                    <tr 
+                      key={transaction.id} 
+                      className={`hover:bg-gray-50 dark:hover:bg-slate-800 ${selectedIds.includes(transaction.id) ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+                    >
                 <td className="px-4 py-3 text-center">
                   <input
                     type="checkbox"
@@ -455,24 +472,49 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
                     <td className="px-4 py-3 text-sm text-center">
                       <div className="flex gap-1 justify-center">
                         <button
-                          onClick={() => startEdit(transaction)}
-                          className="text-blue-600 hover:text-blue-900 px-2"
+                          onClick={() => toggleRowExpand(transaction.id)}
+                          className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 px-2"
+                          title="Ver detalles"
                         >
-                          ✏️
+                          <Icon 
+                            name={expandedRowId === transaction.id ? "chevron-up" : "chevron-down"} 
+                            className="w-4 h-4" 
+                          />
+                        </button>
+                        <button
+                          onClick={() => startEdit(transaction)}
+                          className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 px-2"
+                          title="Editar"
+                        >
+                          <Icon name="pencil" className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(transaction.id)}
-                          className="text-red-600 hover:text-red-900 px-2"
+                          className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 px-2"
+                          title="Eliminar"
                         >
-                          🗑️
+                          <Icon name="trash" className="w-4 h-4" />
                         </button>
                       </div>
                     </td>
                   </>
                 )}
-              </tr>
-              );
-            })}
+                    </tr>
+                    
+                    {/* Expandable Detail Row */}
+                    {expandedRowId === transaction.id && (
+                      <tr key={`${transaction.id}-detail`}>
+                        <td colSpan="9" className="p-0">
+                          <TableRowDetail 
+                            transaction={transaction} 
+                            onClose={() => setExpandedRowId(null)} 
+                          />
+                        </td>
+                      </tr>
+                    )}
+                  </>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -636,18 +678,37 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
                 
                 <div className="flex gap-2 mt-2">
                   <button
-                    onClick={() => startEdit(transaction)}
-                    className="flex-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 px-3 py-1 rounded text-sm hover:bg-blue-100 dark:bg-blue-900/30"
+                    onClick={() => toggleRowExpand(transaction.id)}
+                    className="flex-1 bg-gray-50 dark:bg-slate-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded text-sm hover:bg-gray-100 dark:hover:bg-slate-600 flex items-center justify-center gap-1"
                   >
-                    ✏️ Editar
+                    <Icon name={expandedRowId === transaction.id ? "chevron-up" : "chevron-down"} className="w-4 h-4" />
+                    {expandedRowId === transaction.id ? 'Ocultar' : 'Detalles'}
+                  </button>
+                  <button
+                    onClick={() => startEdit(transaction)}
+                    className="flex-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 px-3 py-1 rounded text-sm hover:bg-blue-100 dark:hover:bg-blue-900/30 flex items-center justify-center gap-1"
+                  >
+                    <Icon name="pencil" className="w-4 h-4" />
+                    Editar
                   </button>
                   <button
                     onClick={() => handleDelete(transaction.id)}
-                    className="flex-1 bg-red-50 dark:bg-red-900/20 text-red-700 px-3 py-1 rounded text-sm hover:bg-red-100 dark:bg-red-900/30"
+                    className="flex-1 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 px-3 py-1 rounded text-sm hover:bg-red-100 dark:hover:bg-red-900/30 flex items-center justify-center gap-1"
                   >
-                    🗑️ Eliminar
+                    <Icon name="trash" className="w-4 h-4" />
+                    Eliminar
                   </button>
                 </div>
+              </div>
+            )}
+            
+            {/* Mobile Detail View */}
+            {expandedRowId === transaction.id && editingId !== transaction.id && (
+              <div className="mt-3">
+                <TableRowDetail 
+                  transaction={transaction} 
+                  onClose={() => setExpandedRowId(null)} 
+                />
               </div>
             )}
           </div>

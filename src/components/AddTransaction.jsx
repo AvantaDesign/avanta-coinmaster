@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
-import { createTransaction, fetchTransactions, fetchCategories, fetchInvoices, fetchSavingsGoals, contributeSavingsGoal } from '../utils/api';
+import { createTransaction, fetchTransactions, fetchCategories, fetchInvoices, fetchSavingsGoals, contributeSavingsGoal, fetchAccounts } from '../utils/api';
 import { showSuccess, showError } from '../utils/notifications';
 import SmartSuggestions from './SmartSuggestions';
+import SmartInput from './SmartInput';
+import CurrencyInput from './CurrencyInput';
+import DatePicker from './DatePicker';
+import { getDescriptionSuggestions, getAccountSuggestions, validateTransactionData } from '../utils/smartFormUtils';
 
 export default function AddTransaction({ onSuccess }) {
   const [formData, setFormData] = useState({
@@ -28,6 +32,8 @@ export default function AddTransaction({ onSuccess }) {
   const [categories, setCategories] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [savingsGoals, setSavingsGoals] = useState([]);
+  const [accounts, setAccounts] = useState([]);
+  const [validationErrors, setValidationErrors] = useState({});
 
   // Load transaction history for smart suggestions
   useEffect(() => {
@@ -35,6 +41,7 @@ export default function AddTransaction({ onSuccess }) {
     loadCategories();
     loadInvoices();
     loadSavingsGoals();
+    loadAccounts();
   }, []);
 
   const loadHistory = async () => {
@@ -77,10 +84,30 @@ export default function AddTransaction({ onSuccess }) {
     }
   };
 
+  const loadAccounts = async () => {
+    try {
+      const result = await fetchAccounts();
+      setAccounts(result.accounts || result || []);
+    } catch (err) {
+      // Silent fail - accounts are optional
+      console.error('Failed to load accounts:', err);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    // Validate form data
+    const validation = validateTransactionData(formData);
+    if (!validation.isValid) {
+      setValidationErrors(validation.errors);
+      setError('Por favor corrige los errores en el formulario');
+      setLoading(false);
+      return;
+    }
+    setValidationErrors({});
 
     try {
       const amount = parseFloat(formData.amount);
@@ -143,6 +170,56 @@ export default function AddTransaction({ onSuccess }) {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+    
+    // Clear validation error for this field
+    if (validationErrors[name]) {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleDescriptionSelect = (suggestion) => {
+    setFormData(prev => ({
+      ...prev,
+      description: suggestion.description,
+      category: suggestion.category || prev.category,
+      transaction_type: suggestion.transaction_type || prev.transaction_type,
+    }));
+  };
+
+  const handleAmountChange = (numericValue) => {
+    setFormData(prev => ({
+      ...prev,
+      amount: numericValue
+    }));
+    
+    // Clear validation error
+    if (validationErrors.amount) {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.amount;
+        return newErrors;
+      });
+    }
+  };
+
+  const handleDateChange = (dateValue) => {
+    setFormData(prev => ({
+      ...prev,
+      date: dateValue
+    }));
+    
+    // Clear validation error
+    if (validationErrors.date) {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.date;
+        return newErrors;
+      });
+    }
   };
 
   return (
@@ -157,39 +234,41 @@ export default function AddTransaction({ onSuccess }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Fecha</label>
-          <input
-            type="date"
-            name="date"
+          <DatePicker
+            label="Fecha"
             value={formData.date}
-            onChange={handleChange}
+            onChange={handleDateChange}
             required
-            className="w-full px-3 py-2 border rounded-md"
+            error={validationErrors.date}
+            showQuickOptions={true}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Monto</label>
-          <input
-            type="number"
-            name="amount"
+          <CurrencyInput
+            label="Monto"
             value={formData.amount}
-            onChange={handleChange}
-            step="0.01"
+            onChange={handleAmountChange}
             required
-            className="w-full px-3 py-2 border rounded-md"
+            min={0}
+            error={validationErrors.amount}
+            currency="MXN"
+            locale="es-MX"
           />
         </div>
 
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium mb-1">Descripción</label>
-          <input
-            type="text"
-            name="description"
+          <SmartInput
+            label="Descripción"
             value={formData.description}
-            onChange={handleChange}
+            onChange={(value) => setFormData(prev => ({ ...prev, description: value }))}
+            onSelect={handleDescriptionSelect}
+            getSuggestions={(partial) => getDescriptionSuggestions(partial, transactionHistory, 5)}
+            placeholder="Ej: Uber, Comida, Servicio de diseño..."
             required
-            className="w-full px-3 py-2 border rounded-md"
+            error={validationErrors.description}
+            minChars={2}
+            showMetadata={true}
           />
         </div>
 
