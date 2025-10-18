@@ -293,7 +293,8 @@ function NavigationBar() {
                 {module.type === 'single' ? (
                   <Link
                     to={module.path}
-                    className="flex items-center px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-slate-700 rounded-md transition-colors"
+                    className="flex items-center px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-slate-700 rounded-md transition-colors touch-manipulation"
+                    style={{ WebkitTapHighlightColor: 'rgba(59, 130, 246, 0.1)' }}
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <span className="mr-2 text-lg">{module.icon}</span>
@@ -303,7 +304,8 @@ function NavigationBar() {
                   <>
                     <button
                       onClick={() => toggleDropdown(module.name)}
-                      className="w-full flex items-center justify-between px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-slate-700 rounded-md transition-colors"
+                      className="w-full flex items-center justify-between px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-slate-700 rounded-md transition-colors touch-manipulation"
+                      style={{ WebkitTapHighlightColor: 'transparent' }}
                     >
                       <div className="flex items-center">
                         <span className="mr-2 text-lg">{module.icon}</span>
@@ -319,8 +321,11 @@ function NavigationBar() {
                           <Link
                             key={item.name}
                             to={item.path}
-                            className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-slate-700 rounded-md transition-colors"
-                            onClick={() => {
+                            className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-slate-700 rounded-md transition-colors touch-manipulation"
+                            style={{ WebkitTapHighlightColor: 'rgba(59, 130, 246, 0.1)' }}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              navigate(item.path);
                               setActiveDropdown(null);
                               setMobileMenuOpen(false);
                             }}
