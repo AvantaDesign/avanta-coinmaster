@@ -171,9 +171,9 @@ export default function BulkEditModal({
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Bulk Edit Transactions</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Edición Masiva de Transacciones</h2>
             <p className="text-sm text-gray-600 mt-1">
-              Editing {selectedTransactions.length} transaction(s)
+              Editando {selectedTransactions.length} transacción(es)
             </p>
           </div>
           <button
@@ -191,7 +191,7 @@ export default function BulkEditModal({
           {/* Edit Mode Selector */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Edit Mode
+              Modo de Edición
             </label>
             <div className="flex space-x-4">
               <label className="flex items-center">
@@ -202,7 +202,7 @@ export default function BulkEditModal({
                   onChange={(e) => setEditMode(e.target.value)}
                   className="mr-2"
                 />
-                <span className="text-sm">Update (add to existing)</span>
+                <span className="text-sm">Actualizar (agregar a lo existente)</span>
               </label>
               <label className="flex items-center">
                 <input
@@ -212,7 +212,7 @@ export default function BulkEditModal({
                   onChange={(e) => setEditMode(e.target.value)}
                   className="mr-2"
                 />
-                <span className="text-sm">Replace (overwrite existing)</span>
+                <span className="text-sm">Reemplazar (sobrescribir lo existente)</span>
               </label>
             </div>
           </div>
@@ -220,31 +220,31 @@ export default function BulkEditModal({
           {/* Transaction Type */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Transaction Type
+              Tipo de Transacción
             </label>
             <select
               value={formData.transaction_type}
               onChange={(e) => handleChange('transaction_type', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">No Change</option>
+              <option value="">Sin Cambios</option>
               <option value="personal">Personal</option>
-              <option value="business">Business</option>
-              <option value="transfer">Transfer</option>
+              <option value="business">Negocio</option>
+              <option value="transfer">Transferencia</option>
             </select>
           </div>
 
           {/* Category */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Category
+              Categoría
             </label>
             <select
               value={formData.category}
               onChange={(e) => handleChange('category', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">No Change</option>
+              <option value="">Sin Cambios</option>
               <option value="personal">Personal</option>
               <option value="avanta">Avanta</option>
             </select>
@@ -253,14 +253,14 @@ export default function BulkEditModal({
           {/* Account */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Account
+              Cuenta
             </label>
             <select
               value={formData.account}
               onChange={(e) => handleChange('account', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">No Change</option>
+              <option value="">Sin Cambios</option>
               {accounts.map(account => (
                 <option key={account.id} value={account.name}>
                   {account.name}
@@ -273,25 +273,25 @@ export default function BulkEditModal({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Find Text in Description
+                Buscar Texto en Descripción
               </label>
               <input
                 type="text"
                 value={formData.description_find}
                 onChange={(e) => handleChange('description_find', e.target.value)}
-                placeholder="Text to find..."
+                placeholder="Texto a buscar..."
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Replace With
+                Reemplazar Con
               </label>
               <input
                 type="text"
                 value={formData.description_replace}
                 onChange={(e) => handleChange('description_replace', e.target.value)}
-                placeholder="Replacement text..."
+                placeholder="Texto de reemplazo..."
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={!formData.description_find}
               />
@@ -308,8 +308,8 @@ export default function BulkEditModal({
               onChange={(e) => handleChange('is_deductible', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">No Change</option>
-              <option value="1">Yes</option>
+              <option value="">Sin Cambios</option>
+              <option value="1">Sí</option>
               <option value="0">No</option>
             </select>
           </div>
@@ -317,12 +317,12 @@ export default function BulkEditModal({
           {/* Notes */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Notes {editMode === 'update' ? '(will be appended)' : '(will replace)'}
+              Notas {editMode === 'update' ? '(se agregarán)' : '(se reemplazarán)'}
             </label>
             <textarea
               value={formData.notes}
               onChange={(e) => handleChange('notes', e.target.value)}
-              placeholder="Add notes..."
+              placeholder="Agregar notas..."
               rows="3"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -335,32 +335,32 @@ export default function BulkEditModal({
               className="text-blue-600 hover:text-blue-700 text-sm font-medium"
               disabled={!hasChanges()}
             >
-              {showPreview ? 'Hide' : 'Show'} Preview ({preview.length} transactions)
+              {showPreview ? 'Ocultar' : 'Mostrar'} Vista Previa ({preview.length} transacciones)
             </button>
           </div>
 
           {/* Preview Section */}
           {showPreview && hasChanges() && (
             <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 max-h-96 overflow-y-auto">
-              <h3 className="font-medium text-gray-900 mb-3">Preview Changes</h3>
+              <h3 className="font-medium text-gray-900 mb-3">Vista Previa de Cambios</h3>
               <div className="space-y-2">
                 {preview.slice(0, 10).map((transaction, index) => (
                   <div key={index} className="bg-white p-3 rounded border border-gray-200 text-sm">
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <p className="text-gray-500">Description:</p>
+                        <p className="text-gray-500">Descripción:</p>
                         <p className="font-medium">{transaction.description}</p>
                       </div>
                       <div>
-                        <p className="text-gray-500">Type:</p>
+                        <p className="text-gray-500">Tipo:</p>
                         <p className="font-medium">{transaction.transaction_type || 'N/A'}</p>
                       </div>
                       <div>
-                        <p className="text-gray-500">Category:</p>
+                        <p className="text-gray-500">Categoría:</p>
                         <p className="font-medium">{transaction.category}</p>
                       </div>
                       <div>
-                        <p className="text-gray-500">Account:</p>
+                        <p className="text-gray-500">Cuenta:</p>
                         <p className="font-medium">{transaction.account || 'N/A'}</p>
                       </div>
                     </div>
@@ -368,7 +368,7 @@ export default function BulkEditModal({
                 ))}
                 {preview.length > 10 && (
                   <p className="text-sm text-gray-500 text-center py-2">
-                    ...and {preview.length - 10} more transactions
+                    ...y {preview.length - 10} transacciones más
                   </p>
                 )}
               </div>
@@ -383,14 +383,14 @@ export default function BulkEditModal({
             className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             disabled={processing}
           >
-            Cancel
+            Cancelar
           </button>
           <button
             onClick={handleApply}
             disabled={!hasChanges() || processing}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {processing ? 'Updating...' : 'Apply Changes'}
+            {processing ? 'Actualizando...' : 'Aplicar Cambios'}
           </button>
         </div>
       </div>
