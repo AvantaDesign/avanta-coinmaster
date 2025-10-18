@@ -39,6 +39,7 @@ const SavingsGoals = lazy(() => import('./pages/SavingsGoals'));
 const Import = lazy(() => import('./pages/Import'));
 const Receipts = lazy(() => import('./pages/Receipts'));
 const AuditLog = lazy(() => import('./pages/AuditLog'));
+const DeductibilityRules = lazy(() => import('./pages/DeductibilityRules'));
 const Breadcrumbs = lazy(() => import('./components/Breadcrumbs'));
 const QuickAddFAB = lazy(() => import('./components/QuickAddFAB'));
 
@@ -152,6 +153,7 @@ function NavigationBar() {
         { name: 'Fiscal', icon: '🧾', path: '/fiscal' },
         { name: 'Facturas', icon: '📑', path: '/invoices' },
         { name: 'Recibos', icon: '🧾', path: '/receipts' },
+        { name: 'Reglas de Deducibilidad', icon: '⚖️', path: '/deductibility-rules' },
         { name: 'Importar Datos', icon: '📥', path: '/import' },
         { name: 'Cuentas por Cobrar', icon: '📈', path: '/receivables' },
         { name: 'Cuentas por Pagar', icon: '📉', path: '/payables' }
@@ -534,6 +536,7 @@ function AuthenticatedApp() {
                 <Route path="/onboarding" element={<OnboardingGuide />} />
                 <Route path="/import" element={<Import />} />
                 <Route path="/audit-log" element={<AuditLog />} />
+                <Route path="/deductibility-rules" element={<DeductibilityRules />} />
               </Routes>
             </Suspense>
           </div>

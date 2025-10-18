@@ -27,7 +27,11 @@ export default function AddTransaction({ onSuccess }) {
     // Phase 7: Savings Goals
     savings_goal_id: null,
     // Phase 14: CFDI Usage Code
-    cfdi_usage_code: ''
+    cfdi_usage_code: '',
+    // Phase 16: Granular Tax Deductibility
+    is_iva_deductible: false,
+    is_isr_deductible: false,
+    expense_type: 'national'
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -97,6 +101,18 @@ export default function AddTransaction({ onSuccess }) {
     }
   };
 
+  // Phase 16: Sync legacy is_deductible with granular fields for backward compatibility
+  useEffect(() => {
+    // If either ISR or IVA is deductible, set is_deductible to true
+    const shouldBeDeductible = formData.is_isr_deductible || formData.is_iva_deductible;
+    if (formData.is_deductible !== shouldBeDeductible) {
+      setFormData(prev => ({
+        ...prev,
+        is_deductible: shouldBeDeductible
+      }));
+    }
+  }, [formData.is_isr_deductible, formData.is_iva_deductible]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -148,7 +164,10 @@ export default function AddTransaction({ onSuccess }) {
         linked_invoice_id: null,
         notes: '',
         savings_goal_id: null,
-        cfdi_usage_code: ''
+        cfdi_usage_code: '',
+        is_iva_deductible: false,
+        is_isr_deductible: false,
+        expense_type: 'national'
       });
       
       if (onSuccess) onSuccess();
@@ -322,25 +341,73 @@ export default function AddTransaction({ onSuccess }) {
             name="account"
             value={formData.account}
             onChange={handleChange}
-            className="w-full px-3 py-2 border rounded-md"
+            className="w-full px-3 py-2 border rounded-md dark:bg-slate-800 dark:border-slate-600 dark:text-white"
           />
         </div>
 
-        <div>
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              name="is_deductible"
-              checked={formData.is_deductible}
-              onChange={handleChange}
-              className="mr-2"
-            />
-            <span className="text-sm font-medium">Deducible</span>
-          </label>
-        </div>
+        {/* Phase 16: Granular Tax Deductibility - Only show for expenses */}
+        {formData.type === 'gasto' && (
+          <>
+            <div className="md:col-span-2 border-t pt-4 mt-4 dark:border-slate-700">
+              <h3 className="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-300">Deducibilidad Fiscal</h3>
+            </div>
+
+            <div>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  name="is_isr_deductible"
+                  checked={formData.is_isr_deductible}
+                  onChange={handleChange}
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                />
+                <div>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">Deducible ISR</span>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Impuesto Sobre la Renta</p>
+                </div>
+              </label>
+            </div>
+
+            <div>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  name="is_iva_deductible"
+                  checked={formData.is_iva_deductible}
+                  onChange={handleChange}
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                />
+                <div>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">IVA Acreditable</span>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Impuesto al Valor Agregado</p>
+                </div>
+              </label>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Tipo de Gasto</label>
+              <select
+                name="expense_type"
+                value={formData.expense_type}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-md dark:bg-slate-800 dark:border-slate-600 dark:text-white"
+              >
+                <option value="national">Nacional</option>
+                <option value="international_with_invoice">Internacional con Factura</option>
+                <option value="international_no_invoice">Internacional sin Factura</option>
+              </select>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Clasificación del gasto según SAT. Gastos internacionales sin factura mexicana no permiten acreditar IVA.
+              </p>
+            </div>
+          </>
+        )}
+
+        {/* Keep legacy is_deductible for backward compatibility - hidden but synced */}
+        <input type="hidden" name="is_deductible" value={formData.is_deductible} />
 
         {/* Phase 1: Advanced Transaction Classification Fields */}
-        <div className="md:col-span-2 border-t pt-4 mt-4">
+        <div className="md:col-span-2 border-t pt-4 mt-4 dark:border-slate-700">
           <h3 className="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-300">Clasificación Avanzada</h3>
         </div>
 

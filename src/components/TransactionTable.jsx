@@ -590,7 +590,22 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
                       {formatCurrency(transaction.amount)}
                     </td>
                     <td className="px-4 py-3 text-sm text-center">
-                      {transaction.is_deductible ? '✓' : ''}
+                      {/* Phase 16: Granular Tax Deductibility Indicators */}
+                      <div className="flex gap-1 justify-center items-center">
+                        {transaction.is_isr_deductible && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" title="Deducible ISR">
+                            ISR
+                          </span>
+                        )}
+                        {transaction.is_iva_deductible && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" title="IVA Acreditable">
+                            IVA
+                          </span>
+                        )}
+                        {!transaction.is_isr_deductible && !transaction.is_iva_deductible && transaction.is_deductible && (
+                          <span className="text-gray-400" title="Deducible (legacy)">✓</span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-sm text-center">
                       <div className="flex gap-1 justify-center">
@@ -782,9 +797,25 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
                      transaction.transaction_type === 'transfer' ? '🔄 Transfer' : 
                      '👤 Personal'}
                   </span>
-                  {transaction.is_deductible && (
+                  {/* Phase 16: Granular Tax Deductibility Badges */}
+                  {transaction.is_isr_deductible && (
+                    <span className="px-2 py-0.5 rounded-full text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+                      ISR Deducible
+                    </span>
+                  )}
+                  {transaction.is_iva_deductible && (
+                    <span className="px-2 py-0.5 rounded-full text-xs bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
+                      IVA Acreditable
+                    </span>
+                  )}
+                  {transaction.expense_type && transaction.expense_type !== 'national' && (
+                    <span className="px-2 py-0.5 rounded-full text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300">
+                      {transaction.expense_type === 'international_with_invoice' ? '🌍 Intl. c/Factura' : '🌍 Intl. s/Factura'}
+                    </span>
+                  )}
+                  {!transaction.is_isr_deductible && !transaction.is_iva_deductible && transaction.is_deductible && (
                     <span className="px-2 py-0.5 rounded-full text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300">
-                      Deducible
+                      Deducible (legacy)
                     </span>
                   )}
                   {transaction.linked_invoice_id && (

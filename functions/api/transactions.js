@@ -416,7 +416,10 @@ export async function onRequestGet(context) {
  *   transaction_type: 'business' | 'personal' | 'transfer' (optional, default: 'personal'),
  *   category_id: integer (optional, FK to categories table),
  *   linked_invoice_id: integer (optional, FK to invoices table),
- *   notes: string (optional)
+ *   notes: string (optional),
+ *   is_iva_deductible: boolean (optional, default: false),
+ *   is_isr_deductible: boolean (optional, default: false),
+ *   expense_type: 'national' | 'international_with_invoice' | 'international_no_invoice' (optional, default: 'national')
  * }
  */
 export async function onRequestPost(context) {
@@ -468,7 +471,7 @@ export async function onRequestPost(context) {
       });
     }
 
-    const { date, description, amount, type, category, account, is_deductible, economic_activity, receipt_url, transaction_type, category_id, linked_invoice_id, notes } = data;
+    const { date, description, amount, type, category, account, is_deductible, economic_activity, receipt_url, transaction_type, category_id, linked_invoice_id, notes, is_iva_deductible, is_isr_deductible, expense_type } = data;
     
     // Comprehensive validation
     const errors = [];
@@ -564,6 +567,11 @@ export async function onRequestPost(context) {
       errors.push('notes must be 1000 characters or less');
     }
 
+    // Validate expense_type if provided
+    if (expense_type && !['national', 'international_with_invoice', 'international_no_invoice'].includes(expense_type)) {
+      errors.push('expense_type must be "national", "international_with_invoice", or "international_no_invoice"');
+    }
+
     // Return validation errors if any
     if (errors.length > 0) {
       return new Response(JSON.stringify({ 
@@ -587,12 +595,15 @@ export async function onRequestPost(context) {
     const numCategoryId = category_id ? parseInt(category_id) : null;
     const numLinkedInvoiceId = linked_invoice_id ? parseInt(linked_invoice_id) : null;
     const sanitizedNotes = notes?.trim() || null;
+    const ivaDeductibleValue = is_iva_deductible ? 1 : 0;
+    const isrDeductibleValue = is_isr_deductible ? 1 : 0;
+    const sanitizedExpenseType = expense_type || 'national';
 
     // Insert transaction
     try {
       const result = await env.DB.prepare(
-        `INSERT INTO transactions (user_id, date, description, amount, type, category, account, is_deductible, economic_activity, receipt_url, transaction_type, category_id, linked_invoice_id, notes)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        `INSERT INTO transactions (user_id, date, description, amount, type, category, account, is_deductible, economic_activity, receipt_url, transaction_type, category_id, linked_invoice_id, notes, is_iva_deductible, is_isr_deductible, expense_type)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       ).bind(
         userId,
         date,
@@ -607,7 +618,10 @@ export async function onRequestPost(context) {
         sanitizedTransactionType,
         numCategoryId,
         numLinkedInvoiceId,
-        sanitizedNotes
+        sanitizedNotes,
+        ivaDeductibleValue,
+        isrDeductibleValue,
+        sanitizedExpenseType
       ).run();
 
       // Fetch the created transaction to return it (verify ownership)
@@ -741,7 +755,7 @@ export async function onRequestPut(context) {
       });
     }
 
-    const { date, description, amount, type, category, account, is_deductible, economic_activity, receipt_url, transaction_type, category_id, linked_invoice_id, notes } = data;
+    const { date, description, amount, type, category, account, is_deductible, economic_activity, receipt_url, transaction_type, category_id, linked_invoice_id, notes, is_iva_deductible, is_isr_deductible, expense_type } = data;
     
     // Validate provided fields
     const errors = [];
@@ -815,6 +829,10 @@ export async function onRequestPut(context) {
       errors.push('notes must be 1000 characters or less');
     }
 
+    if (expense_type !== undefined && !['national', 'international_with_invoice', 'international_no_invoice'].includes(expense_type)) {
+      errors.push('expense_type must be "national", "international_with_invoice", or "international_no_invoice"');
+    }
+
     if (errors.length > 0) {
       return new Response(JSON.stringify({ 
         error: 'Validation failed',
@@ -881,6 +899,18 @@ export async function onRequestPut(context) {
     if (notes !== undefined) {
       updates.push('notes = ?');
       params.push(notes?.trim() || null);
+    }
+    if (is_iva_deductible !== undefined) {
+      updates.push('is_iva_deductible = ?');
+      params.push(is_iva_deductible ? 1 : 0);
+    }
+    if (is_isr_deductible !== undefined) {
+      updates.push('is_isr_deductible = ?');
+      params.push(is_isr_deductible ? 1 : 0);
+    }
+    if (expense_type !== undefined) {
+      updates.push('expense_type = ?');
+      params.push(expense_type);
     }
 
     // If no fields to update

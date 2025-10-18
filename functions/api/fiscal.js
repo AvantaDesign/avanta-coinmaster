@@ -106,37 +106,43 @@ export async function onRequestGet(context) {
       SELECT 
         SUM(CASE WHEN t.type = 'ingreso' AND (t.category = 'avanta' OR t.transaction_type = 'business') THEN t.amount ELSE 0 END) as business_income,
         SUM(CASE WHEN t.type = 'gasto' AND (t.category = 'avanta' OR t.transaction_type = 'business') THEN t.amount ELSE 0 END) as business_expenses,
-        SUM(CASE WHEN t.type = 'gasto' AND (t.category = 'avanta' OR t.transaction_type = 'business') AND COALESCE(c.is_deductible, 0) = 1 THEN t.amount ELSE 0 END) as deductible,
+        SUM(CASE WHEN t.type = 'gasto' AND (t.category = 'avanta' OR t.transaction_type = 'business') AND t.is_isr_deductible = 1 THEN t.amount ELSE 0 END) as isr_deductible,
+        SUM(CASE WHEN t.type = 'gasto' AND (t.category = 'avanta' OR t.transaction_type = 'business') AND t.is_iva_deductible = 1 THEN t.amount ELSE 0 END) as iva_deductible,
         SUM(CASE WHEN t.type = 'ingreso' THEN t.amount ELSE 0 END) as total_income,
         SUM(CASE WHEN t.type = 'gasto' THEN t.amount ELSE 0 END) as total_expenses,
         SUM(CASE WHEN t.type = 'gasto' AND (t.category = 'personal' OR t.transaction_type = 'personal') THEN t.amount ELSE 0 END) as personal_expenses
       FROM transactions t
-      LEFT JOIN categories c ON t.category_id = c.id
       WHERE t.user_id = ? AND t.date >= ? AND t.date <= ? AND t.is_deleted = 0
     `).bind(userId, firstDay, lastDay).first();
     
     // Use Decimal for precise financial calculations
     const businessIncome = new Decimal(summary?.business_income || 0);
     const businessExpenses = new Decimal(summary?.business_expenses || 0);
-    const deductible = new Decimal(summary?.deductible || 0);
+    const isrDeductible = new Decimal(summary?.isr_deductible || 0);
+    const ivaDeductible = new Decimal(summary?.iva_deductible || 0);
     const totalIncome = new Decimal(summary?.total_income || 0);
     const totalExpenses = new Decimal(summary?.total_expenses || 0);
     const personalExpenses = new Decimal(summary?.personal_expenses || 0);
     
-    const utilidad = businessIncome.minus(deductible);
+    const utilidad = businessIncome.minus(isrDeductible);
     
     // Calculate ISR using Mexican tax brackets
     const isr = calculateISR(utilidad);
     
     // Calculate IVA (16%)
     const ivaCobrado = businessIncome.times(new Decimal('0.16'));
-    const ivaPagado = deductible.times(new Decimal('0.16'));
+    const ivaPagado = ivaDeductible.times(new Decimal('0.16'));
     const iva = Decimal.max(new Decimal(0), ivaCobrado.minus(ivaPagado));
     const ivaAFavor = Decimal.max(new Decimal(0), ivaPagado.minus(ivaCobrado));
     
-    // Calculate deductible percentage
-    const deductiblePercentage = businessExpenses.gt(0) 
-      ? deductible.div(businessExpenses).times(new Decimal(100)) 
+    // Calculate deductible percentage for ISR
+    const isrDeductiblePercentage = businessExpenses.gt(0) 
+      ? isrDeductible.div(businessExpenses).times(new Decimal(100)) 
+      : new Decimal(0);
+      
+    // Calculate deductible percentage for IVA
+    const ivaDeductiblePercentage = businessExpenses.gt(0) 
+      ? ivaDeductible.div(businessExpenses).times(new Decimal(100)) 
       : new Decimal(0);
     
     const response = {
@@ -149,8 +155,10 @@ export async function onRequestGet(context) {
       businessIncome: parseFloat(businessIncome.toFixed(2)),
       businessExpenses: parseFloat(businessExpenses.toFixed(2)),
       personalExpenses: parseFloat(personalExpenses.toFixed(2)),
-      deductibleExpenses: parseFloat(deductible.toFixed(2)),
-      deductiblePercentage: parseFloat(deductiblePercentage.toFixed(2)),
+      isrDeductibleExpenses: parseFloat(isrDeductible.toFixed(2)),
+      ivaDeductibleExpenses: parseFloat(ivaDeductible.toFixed(2)),
+      isrDeductiblePercentage: parseFloat(isrDeductiblePercentage.toFixed(2)),
+      ivaDeductiblePercentage: parseFloat(ivaDeductiblePercentage.toFixed(2)),
       utilidad: parseFloat(utilidad.toFixed(2)),
       isr: parseFloat(isr.toFixed(2)),
       iva: parseFloat(iva.toFixed(2)),
