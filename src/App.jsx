@@ -42,6 +42,7 @@ const AuditLog = lazy(() => import('./pages/AuditLog'));
 const DeductibilityRules = lazy(() => import('./pages/DeductibilityRules'));
 const Breadcrumbs = lazy(() => import('./components/Breadcrumbs'));
 const QuickAddFAB = lazy(() => import('./components/QuickAddFAB'));
+const CFDIManager = lazy(() => import('./components/CFDIManager'));
 
 // Loading fallback component
 function LoadingFallback() {
@@ -151,6 +152,7 @@ function NavigationBar() {
       type: 'dropdown',
       items: [
         { name: 'Fiscal', icon: '🧾', path: '/fiscal' },
+        { name: 'Gestor de CFDI', icon: '📋', path: '/cfdi-manager' },
         { name: 'Facturas', icon: '📑', path: '/invoices' },
         { name: 'Recibos', icon: '🧾', path: '/receipts' },
         { name: 'Reglas de Deducibilidad', icon: '⚖️', path: '/deductibility-rules' },
@@ -514,6 +516,7 @@ function AuthenticatedApp() {
                 <Route path="/credits" element={<Credits />} />
                 <Route path="/budgets" element={<Budgets />} />
                 <Route path="/fiscal" element={<Fiscal />} />
+                <Route path="/cfdi-manager" element={<CFDIManager />} />
                 <Route path="/invoices" element={<Invoices />} />
                 <Route path="/receipts" element={<Receipts />} />
                 <Route path="/automation" element={<Home />} />
