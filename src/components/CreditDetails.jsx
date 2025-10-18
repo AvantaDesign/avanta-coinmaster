@@ -204,7 +204,7 @@ export default function CreditDetails({ credit, movements = [], onClose, onAddMo
               </div>
 
               {/* Summary Stats */}
-              <div className="px-4 py-3 bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 grid grid-cols-3 gap-4">
+              <div className="px-4 py-3 bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 grid grid-cols-3 gap-2 sm:gap-4">
                 <div className="text-center">
                   <div className="text-xs text-gray-600 dark:text-gray-400">Total Pagos</div>
                   <div className="text-lg font-semibold text-green-600">

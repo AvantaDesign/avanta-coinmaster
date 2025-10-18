@@ -257,7 +257,7 @@ export default function CFDIImport({ onSuccess, onClose, mode = 'invoice' }) {
                 </div>
 
                 {/* Amounts */}
-                <div className="grid grid-cols-3 gap-4 pt-3 border-t">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 border-t">
                   <div>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Subtotal:</p>
                     <p className="font-bold">{parseResult.display.subtotal}</p>

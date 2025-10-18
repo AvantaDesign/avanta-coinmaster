@@ -12,7 +12,7 @@ export default function Fiscal() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Vista Fiscal</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Vista Fiscal</h1>
 
       {/* Tabs */}
       <div className="bg-white dark:bg-slate-900 rounded-lg shadow-default border border-gray-200 dark:border-slate-700">

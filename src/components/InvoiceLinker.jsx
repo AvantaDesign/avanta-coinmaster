@@ -132,7 +132,7 @@ export default function InvoiceLinker({ transaction, onClose, onLinked }) {
           </div>
 
           {/* Summary */}
-          <div className="mt-4 grid grid-cols-3 gap-4">
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
               <p className="text-sm text-blue-600">Monto Transacción</p>
               <p className="text-lg font-bold text-blue-900">{formatCurrency(transaction.amount)}</p>
