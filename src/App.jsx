@@ -85,9 +85,17 @@ function NavigationBar() {
       }
     };
 
+    const handleTouchOutside = (event) => {
+      if (activeDropdown && !event.target.closest('.dropdown-container')) {
+        setActiveDropdown(null);
+      }
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleTouchOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleTouchOutside);
     };
   }, [activeDropdown]);
 
@@ -343,15 +351,21 @@ function NavigationBar() {
                       </svg>
                     </button>
                     {activeDropdown === module.name && (
-                      <div className="pl-4 space-y-1">
+                      <div className="pl-4 space-y-1 dropdown-container">
                         {module.items.map((item) => (
                           <Link
                             key={item.name}
                             to={item.path}
-                            className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-slate-700 rounded-md transition-colors touch-manipulation"
+                            className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-slate-700 rounded-md transition-colors touch-manipulation dropdown-container"
                             style={{ WebkitTapHighlightColor: 'rgba(59, 130, 246, 0.1)' }}
                             onClick={(e) => {
                               // Prevent event bubbling to avoid closing dropdown
+                              e.stopPropagation();
+                              setActiveDropdown(null);
+                              setMobileMenuOpen(false);
+                            }}
+                            onTouchEnd={(e) => {
+                              // Handle touch events specifically for mobile
                               e.stopPropagation();
                               setActiveDropdown(null);
                               setMobileMenuOpen(false);
