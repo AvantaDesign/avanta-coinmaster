@@ -85,17 +85,9 @@ function NavigationBar() {
       }
     };
 
-    const handleTouchOutside = (event) => {
-      if (activeDropdown && !event.target.closest('.dropdown-container')) {
-        setActiveDropdown(null);
-      }
-    };
-
     document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('touchstart', handleTouchOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleTouchOutside);
     };
   }, [activeDropdown]);
 
@@ -361,13 +353,7 @@ function NavigationBar() {
                             onClick={(e) => {
                               // Prevent event bubbling to avoid closing dropdown
                               e.stopPropagation();
-                              setActiveDropdown(null);
-                              setMobileMenuOpen(false);
-                            }}
-                            onTouchEnd={(e) => {
-                              // Handle touch events specifically for mobile
-                              e.stopPropagation();
-                              setActiveDropdown(null);
+                              // Only close mobile menu, keep dropdown open for better UX
                               setMobileMenuOpen(false);
                             }}
                           >
