@@ -28,6 +28,11 @@ const RecurringServicesDashboard = lazy(() => import('./components/RecurringServ
 const CashFlowProjection = lazy(() => import('./components/CashFlowProjection'));
 const Debts = lazy(() => import('./components/Debts'));
 const Investments = lazy(() => import('./components/Investments'));
+const FinancialTasks = lazy(() => import('./components/FinancialTasks'));
+const NotificationCenter = lazy(() => import('./components/NotificationCenter'));
+const HelpCenter = lazy(() => import('./components/HelpCenter'));
+const QuickActions = lazy(() => import('./components/QuickActions'));
+const OnboardingGuide = lazy(() => import('./components/OnboardingGuide'));
 
 // Loading fallback component
 function LoadingFallback() {
@@ -152,6 +157,17 @@ function NavigationBar() {
       items: [
         { name: 'Analytics', icon: '📈', path: '/analytics' },
         { name: 'Reportes', icon: '📋', path: '/reports' }
+      ]
+    },
+    {
+      name: 'Ayuda',
+      icon: '❓',
+      type: 'dropdown',
+      items: [
+        { name: 'Centro de Ayuda', icon: '📚', path: '/help' },
+        { name: 'Tareas Financieras', icon: '📋', path: '/financial-tasks' },
+        { name: 'Notificaciones', icon: '🔔', path: '/notifications' },
+        { name: 'Acciones Rápidas', icon: '⚡', path: '/quick-actions' }
       ]
     }
   ];
@@ -377,6 +393,11 @@ function AuthenticatedApp() {
                 <Route path="/cash-flow-projection" element={<CashFlowProjection />} />
                 <Route path="/debts" element={<Debts />} />
                 <Route path="/investments" element={<Investments />} />
+                <Route path="/financial-tasks" element={<FinancialTasks />} />
+                <Route path="/notifications" element={<NotificationCenter />} />
+                <Route path="/help" element={<HelpCenter />} />
+                <Route path="/quick-actions" element={<QuickActions />} />
+                <Route path="/onboarding" element={<OnboardingGuide />} />
               </Routes>
             </Suspense>
           </div>
