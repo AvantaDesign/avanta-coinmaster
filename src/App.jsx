@@ -38,6 +38,8 @@ const SavingsGoals = lazy(() => import('./pages/SavingsGoals'));
 const Import = lazy(() => import('./pages/Import'));
 const Receipts = lazy(() => import('./pages/Receipts'));
 const AuditLog = lazy(() => import('./pages/AuditLog'));
+const Breadcrumbs = lazy(() => import('./components/Breadcrumbs'));
+const QuickAddFAB = lazy(() => import('./components/QuickAddFAB'));
 
 // Loading fallback component
 function LoadingFallback() {
@@ -387,6 +389,11 @@ function AuthenticatedApp() {
               </div>
             </Suspense>
             
+            {/* Breadcrumbs - contextual navigation */}
+            <Suspense fallback={null}>
+              <Breadcrumbs />
+            </Suspense>
+            
             <Suspense fallback={<LoadingFallback />}>
               <Routes>
                 <Route path="/" element={<FinancialDashboard />} />
@@ -431,6 +438,11 @@ function AuthenticatedApp() {
           </div>
         </footer>
       </div>
+      
+      {/* Quick Add Floating Action Button */}
+      <Suspense fallback={null}>
+        <QuickAddFAB />
+      </Suspense>
     </>
   );
 }
