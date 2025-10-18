@@ -197,7 +197,8 @@ export default function AccountManager() {
 
       {/* Accounts List */}
       <div className="bg-white dark:bg-slate-900 rounded-lg shadow-md overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
           <thead className="bg-gray-50 dark:bg-slate-800">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -258,6 +259,7 @@ export default function AccountManager() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Summary */}
