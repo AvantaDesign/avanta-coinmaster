@@ -419,7 +419,20 @@ export async function onRequestGet(context) {
  *   notes: string (optional),
  *   is_iva_deductible: boolean (optional, default: false),
  *   is_isr_deductible: boolean (optional, default: false),
- *   expense_type: 'national' | 'international_with_invoice' | 'international_no_invoice' (optional, default: 'national')
+ *   expense_type: 'national' | 'international_with_invoice' | 'international_no_invoice' (optional, default: 'national'),
+ *   // Phase 17: Income-specific fields
+ *   client_type: 'nacional' | 'extranjero' (optional, default: 'nacional'),
+ *   client_rfc: string (optional, RFC of client),
+ *   currency: string (optional, 3-letter currency code, default: 'MXN'),
+ *   exchange_rate: number (optional, default: 1.0),
+ *   payment_method: 'PUE' | 'PPD' (optional, Pago en Una Exhibición or Pago en Parcialidades),
+ *   iva_rate: '16' | '0' | 'exento' (optional, IVA rate applied),
+ *   isr_retention: number (optional, ISR amount withheld, default: 0),
+ *   iva_retention: number (optional, IVA amount withheld, default: 0),
+ *   cfdi_uuid: string (optional, CFDI folio fiscal),
+ *   issue_date: string (optional, YYYY-MM-DD, CFDI issue date),
+ *   payment_date: string (optional, YYYY-MM-DD, actual payment date),
+ *   economic_activity_code: string (optional, SAT economic activity code)
  * }
  */
 export async function onRequestPost(context) {
@@ -471,7 +484,7 @@ export async function onRequestPost(context) {
       });
     }
 
-    const { date, description, amount, type, category, account, is_deductible, economic_activity, receipt_url, transaction_type, category_id, linked_invoice_id, notes, is_iva_deductible, is_isr_deductible, expense_type } = data;
+    const { date, description, amount, type, category, account, is_deductible, economic_activity, receipt_url, transaction_type, category_id, linked_invoice_id, notes, is_iva_deductible, is_isr_deductible, expense_type, client_type, client_rfc, currency, exchange_rate, payment_method, iva_rate, isr_retention, iva_retention, cfdi_uuid, issue_date, payment_date, economic_activity_code } = data;
     
     // Comprehensive validation
     const errors = [];
@@ -572,6 +585,67 @@ export async function onRequestPost(context) {
       errors.push('expense_type must be "national", "international_with_invoice", or "international_no_invoice"');
     }
 
+    // Phase 17: Validate income-specific fields
+    if (client_type && !['nacional', 'extranjero'].includes(client_type)) {
+      errors.push('client_type must be "nacional" or "extranjero"');
+    }
+
+    // Validate client_rfc format if provided (basic RFC validation)
+    if (client_rfc && client_rfc.trim() !== '') {
+      const rfcPattern = /^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/i;
+      if (!rfcPattern.test(client_rfc.trim())) {
+        errors.push('client_rfc format is invalid (should be RFC format like XEXX010101000)');
+      }
+    }
+
+    // Validate currency code if provided (3-letter ISO code)
+    if (currency && (typeof currency !== 'string' || currency.length !== 3)) {
+      errors.push('currency must be a 3-letter ISO code (e.g., MXN, USD, EUR)');
+    }
+
+    // Validate exchange_rate if provided
+    if (exchange_rate !== undefined && exchange_rate !== null) {
+      const numExchangeRate = parseFloat(exchange_rate);
+      if (isNaN(numExchangeRate) || numExchangeRate <= 0) {
+        errors.push('exchange_rate must be a positive number');
+      }
+    }
+
+    // Validate payment_method if provided
+    if (payment_method && !['PUE', 'PPD'].includes(payment_method)) {
+      errors.push('payment_method must be "PUE" or "PPD"');
+    }
+
+    // Validate iva_rate if provided
+    if (iva_rate && !['16', '0', 'exento'].includes(iva_rate)) {
+      errors.push('iva_rate must be "16", "0", or "exento"');
+    }
+
+    // Validate retention amounts if provided
+    if (isr_retention !== undefined && isr_retention !== null) {
+      const numIsrRetention = parseFloat(isr_retention);
+      if (isNaN(numIsrRetention) || numIsrRetention < 0) {
+        errors.push('isr_retention must be a non-negative number');
+      }
+    }
+
+    if (iva_retention !== undefined && iva_retention !== null) {
+      const numIvaRetention = parseFloat(iva_retention);
+      if (isNaN(numIvaRetention) || numIvaRetention < 0) {
+        errors.push('iva_retention must be a non-negative number');
+      }
+    }
+
+    // Validate issue_date format if provided
+    if (issue_date && !/^\d{4}-\d{2}-\d{2}$/.test(issue_date)) {
+      errors.push('issue_date must be in YYYY-MM-DD format');
+    }
+
+    // Validate payment_date format if provided
+    if (payment_date && !/^\d{4}-\d{2}-\d{2}$/.test(payment_date)) {
+      errors.push('payment_date must be in YYYY-MM-DD format');
+    }
+
     // Return validation errors if any
     if (errors.length > 0) {
       return new Response(JSON.stringify({ 
@@ -598,12 +672,26 @@ export async function onRequestPost(context) {
     const ivaDeductibleValue = is_iva_deductible ? 1 : 0;
     const isrDeductibleValue = is_isr_deductible ? 1 : 0;
     const sanitizedExpenseType = expense_type || 'national';
+    
+    // Phase 17: Sanitize income-specific fields
+    const sanitizedClientType = client_type || 'nacional';
+    const sanitizedClientRfc = client_rfc?.trim() || null;
+    const sanitizedCurrency = currency?.trim().toUpperCase() || 'MXN';
+    const numExchangeRate = exchange_rate ? parseFloat(exchange_rate) : 1.0;
+    const sanitizedPaymentMethod = payment_method?.trim() || null;
+    const sanitizedIvaRate = iva_rate || null;
+    const numIsrRetention = isr_retention ? parseFloat(isr_retention) : 0;
+    const numIvaRetention = iva_retention ? parseFloat(iva_retention) : 0;
+    const sanitizedCfdiUuid = cfdi_uuid?.trim() || null;
+    const sanitizedIssueDate = issue_date?.trim() || null;
+    const sanitizedPaymentDate = payment_date?.trim() || null;
+    const sanitizedEconomicActivityCode = economic_activity_code?.trim() || null;
 
     // Insert transaction
     try {
       const result = await env.DB.prepare(
-        `INSERT INTO transactions (user_id, date, description, amount, type, category, account, is_deductible, economic_activity, receipt_url, transaction_type, category_id, linked_invoice_id, notes, is_iva_deductible, is_isr_deductible, expense_type)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        `INSERT INTO transactions (user_id, date, description, amount, type, category, account, is_deductible, economic_activity, receipt_url, transaction_type, category_id, linked_invoice_id, notes, is_iva_deductible, is_isr_deductible, expense_type, client_type, client_rfc, currency, exchange_rate, payment_method, iva_rate, isr_retention, iva_retention, cfdi_uuid, issue_date, payment_date, economic_activity_code)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       ).bind(
         userId,
         date,
@@ -621,7 +709,19 @@ export async function onRequestPost(context) {
         sanitizedNotes,
         ivaDeductibleValue,
         isrDeductibleValue,
-        sanitizedExpenseType
+        sanitizedExpenseType,
+        sanitizedClientType,
+        sanitizedClientRfc,
+        sanitizedCurrency,
+        numExchangeRate,
+        sanitizedPaymentMethod,
+        sanitizedIvaRate,
+        numIsrRetention,
+        numIvaRetention,
+        sanitizedCfdiUuid,
+        sanitizedIssueDate,
+        sanitizedPaymentDate,
+        sanitizedEconomicActivityCode
       ).run();
 
       // Fetch the created transaction to return it (verify ownership)
@@ -755,7 +855,7 @@ export async function onRequestPut(context) {
       });
     }
 
-    const { date, description, amount, type, category, account, is_deductible, economic_activity, receipt_url, transaction_type, category_id, linked_invoice_id, notes, is_iva_deductible, is_isr_deductible, expense_type } = data;
+    const { date, description, amount, type, category, account, is_deductible, economic_activity, receipt_url, transaction_type, category_id, linked_invoice_id, notes, is_iva_deductible, is_isr_deductible, expense_type, client_type, client_rfc, currency, exchange_rate, payment_method, iva_rate, isr_retention, iva_retention, cfdi_uuid, issue_date, payment_date, economic_activity_code } = data;
     
     // Validate provided fields
     const errors = [];
@@ -831,6 +931,59 @@ export async function onRequestPut(context) {
 
     if (expense_type !== undefined && !['national', 'international_with_invoice', 'international_no_invoice'].includes(expense_type)) {
       errors.push('expense_type must be "national", "international_with_invoice", or "international_no_invoice"');
+    }
+
+    // Phase 17: Validate income-specific fields (same as POST)
+    if (client_type !== undefined && !['nacional', 'extranjero'].includes(client_type)) {
+      errors.push('client_type must be "nacional" or "extranjero"');
+    }
+
+    if (client_rfc !== undefined && client_rfc !== null && client_rfc.trim() !== '') {
+      const rfcPattern = /^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/i;
+      if (!rfcPattern.test(client_rfc.trim())) {
+        errors.push('client_rfc format is invalid');
+      }
+    }
+
+    if (currency !== undefined && currency !== null && (typeof currency !== 'string' || currency.length !== 3)) {
+      errors.push('currency must be a 3-letter ISO code');
+    }
+
+    if (exchange_rate !== undefined && exchange_rate !== null) {
+      const numExchangeRate = parseFloat(exchange_rate);
+      if (isNaN(numExchangeRate) || numExchangeRate <= 0) {
+        errors.push('exchange_rate must be a positive number');
+      }
+    }
+
+    if (payment_method !== undefined && payment_method !== null && !['PUE', 'PPD'].includes(payment_method)) {
+      errors.push('payment_method must be "PUE" or "PPD"');
+    }
+
+    if (iva_rate !== undefined && iva_rate !== null && !['16', '0', 'exento'].includes(iva_rate)) {
+      errors.push('iva_rate must be "16", "0", or "exento"');
+    }
+
+    if (isr_retention !== undefined && isr_retention !== null) {
+      const numIsrRetention = parseFloat(isr_retention);
+      if (isNaN(numIsrRetention) || numIsrRetention < 0) {
+        errors.push('isr_retention must be a non-negative number');
+      }
+    }
+
+    if (iva_retention !== undefined && iva_retention !== null) {
+      const numIvaRetention = parseFloat(iva_retention);
+      if (isNaN(numIvaRetention) || numIvaRetention < 0) {
+        errors.push('iva_retention must be a non-negative number');
+      }
+    }
+
+    if (issue_date !== undefined && issue_date !== null && !/^\d{4}-\d{2}-\d{2}$/.test(issue_date)) {
+      errors.push('issue_date must be in YYYY-MM-DD format');
+    }
+
+    if (payment_date !== undefined && payment_date !== null && !/^\d{4}-\d{2}-\d{2}$/.test(payment_date)) {
+      errors.push('payment_date must be in YYYY-MM-DD format');
     }
 
     if (errors.length > 0) {
@@ -911,6 +1064,56 @@ export async function onRequestPut(context) {
     if (expense_type !== undefined) {
       updates.push('expense_type = ?');
       params.push(expense_type);
+    }
+    
+    // Phase 17: Add income-specific fields to update
+    if (client_type !== undefined) {
+      updates.push('client_type = ?');
+      params.push(client_type);
+    }
+    if (client_rfc !== undefined) {
+      updates.push('client_rfc = ?');
+      params.push(client_rfc?.trim() || null);
+    }
+    if (currency !== undefined) {
+      updates.push('currency = ?');
+      params.push(currency?.trim().toUpperCase() || 'MXN');
+    }
+    if (exchange_rate !== undefined) {
+      updates.push('exchange_rate = ?');
+      params.push(exchange_rate ? parseFloat(exchange_rate) : 1.0);
+    }
+    if (payment_method !== undefined) {
+      updates.push('payment_method = ?');
+      params.push(payment_method?.trim() || null);
+    }
+    if (iva_rate !== undefined) {
+      updates.push('iva_rate = ?');
+      params.push(iva_rate || null);
+    }
+    if (isr_retention !== undefined) {
+      updates.push('isr_retention = ?');
+      params.push(isr_retention ? parseFloat(isr_retention) : 0);
+    }
+    if (iva_retention !== undefined) {
+      updates.push('iva_retention = ?');
+      params.push(iva_retention ? parseFloat(iva_retention) : 0);
+    }
+    if (cfdi_uuid !== undefined) {
+      updates.push('cfdi_uuid = ?');
+      params.push(cfdi_uuid?.trim() || null);
+    }
+    if (issue_date !== undefined) {
+      updates.push('issue_date = ?');
+      params.push(issue_date?.trim() || null);
+    }
+    if (payment_date !== undefined) {
+      updates.push('payment_date = ?');
+      params.push(payment_date?.trim() || null);
+    }
+    if (economic_activity_code !== undefined) {
+      updates.push('economic_activity_code = ?');
+      params.push(economic_activity_code?.trim() || null);
     }
 
     // If no fields to update
