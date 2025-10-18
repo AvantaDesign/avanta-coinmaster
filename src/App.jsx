@@ -6,6 +6,7 @@ import LoginForm from './components/LoginForm';
 import ToastContainer from './components/ToastNotification';
 import { initializeAnalytics, trackPageView } from './utils/analytics';
 import { initializeErrorMonitoring } from './utils/errorMonitoring';
+import { fetchNotifications } from './utils/api';
 
 // Lazy load pages and heavy components for better performance
 const Home = lazy(() => import('./pages/Home'));
@@ -71,11 +72,32 @@ function NavigationBar() {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   
   const handleLogout = () => {
     logout();
     navigate('/login', { replace: true });
   };
+
+  // Load notifications
+  useEffect(() => {
+    const loadNotifications = async () => {
+      try {
+        const data = await fetchNotifications({ unread: true, limit: 5 });
+        setNotifications(data.notifications || []);
+        setUnreadCount(data.unreadCount || 0);
+      } catch (error) {
+        console.error('Error loading notifications:', error);
+      }
+    };
+    
+    loadNotifications();
+    // Poll for new notifications every 60 seconds
+    const interval = setInterval(loadNotifications, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -83,19 +105,23 @@ function NavigationBar() {
       if (activeDropdown && !event.target.closest('.dropdown-container')) {
         setActiveDropdown(null);
       }
+      if (showNotifications && !event.target.closest('.notifications-container')) {
+        setShowNotifications(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [activeDropdown]);
+  }, [activeDropdown, showNotifications]);
 
   // Close mobile menu when route changes
   const location = useLocation();
   useEffect(() => {
     setMobileMenuOpen(false);
     setActiveDropdown(null);
+    setShowNotifications(false);
   }, [location]);
 
   // Define navigation modules with icons
@@ -176,7 +202,6 @@ function NavigationBar() {
       items: [
         { name: 'Centro de Ayuda', icon: '📚', path: '/help' },
         { name: 'Tareas Financieras', icon: '📋', path: '/financial-tasks' },
-        { name: 'Notificaciones', icon: '🔔', path: '/notifications' },
         { name: 'Acciones Rápidas', icon: '⚡', path: '/quick-actions' },
         { name: 'Registro de Auditoría', icon: '🔒', path: '/audit-log' }
       ]
@@ -202,7 +227,7 @@ function NavigationBar() {
           </div>
 
           {/* Desktop Navigation Menu */}
-          <div className="hidden lg:flex lg:items-center lg:space-x-1">
+          <div className="hidden xl:flex xl:items-center xl:space-x-1">
             {navigationModules.map((module) => (
               <div key={module.name} className="relative dropdown-container">
                 {module.type === 'single' ? (
@@ -261,6 +286,88 @@ function NavigationBar() {
               {isDark ? '☀️' : '🌙'}
             </button>
 
+            {/* Notifications Bell */}
+            {user && (
+              <div className="relative notifications-container">
+                <button
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors duration-200 relative"
+                  aria-label="Notificaciones"
+                  title="Notificaciones"
+                >
+                  <span className="text-xl">🔔</span>
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-danger-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* Notifications Popover */}
+                {showNotifications && (
+                  <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-lg shadow-xl dark:shadow-2xl dark:shadow-black/30 ring-1 ring-black dark:ring-slate-700 ring-opacity-5 z-50 notifications-container max-h-96 overflow-y-auto">
+                    <div className="p-4 border-b border-gray-200 dark:border-slate-700">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                          Notificaciones
+                        </h3>
+                        <button
+                          onClick={() => {
+                            setShowNotifications(false);
+                            navigate('/notifications');
+                          }}
+                          className="text-sm text-primary-600 dark:text-primary-400 hover:underline"
+                        >
+                          Ver todas
+                        </button>
+                      </div>
+                    </div>
+                    <div className="py-2">
+                      {notifications.length === 0 ? (
+                        <div className="px-4 py-8 text-center">
+                          <div className="text-4xl mb-2">📭</div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            No hay notificaciones nuevas
+                          </p>
+                        </div>
+                      ) : (
+                        notifications.map((notification) => (
+                          <div
+                            key={notification.id}
+                            onClick={() => {
+                              setShowNotifications(false);
+                              navigate('/notifications');
+                            }}
+                            className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer transition-colors border-b border-gray-100 dark:border-slate-700 last:border-b-0"
+                          >
+                            <div className="flex items-start gap-3">
+                              <span className="text-2xl">{notification.type === 'payment_reminder' ? '💰' : notification.type === 'tax_deadline' ? '📋' : '🔔'}</span>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                                  {notification.title}
+                                </p>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
+                                  {notification.message}
+                                </p>
+                                <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                                  {new Date(notification.created_at).toLocaleString('es-MX', {
+                                    day: 'numeric',
+                                    month: 'short',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {user && (
               <>
                 {/* User Profile - Clickable to Admin */}
@@ -301,7 +408,7 @@ function NavigationBar() {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden inline-flex items-center justify-center p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors duration-200"
+              className="xl:hidden inline-flex items-center justify-center p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors duration-200"
             >
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={mobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
@@ -313,7 +420,7 @@ function NavigationBar() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-gray-50 dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 max-h-[calc(100vh-4rem)] overflow-y-auto">
+        <div className="xl:hidden bg-gray-50 dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 max-h-[calc(100vh-4rem)] overflow-y-auto">
           <div className="px-2 pt-2 pb-3 space-y-1">
             {navigationModules.map((module) => (
               <div key={module.name}>

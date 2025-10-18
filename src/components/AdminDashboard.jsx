@@ -74,7 +74,7 @@ export default function AdminDashboard() {
       const data = await response.json();
       setProfile(data.user);
       setEditingName(false);
-      showSuccess('Profile updated successfully');
+      showSuccess('Perfil actualizado exitosamente');
       
       // Refresh auth context
       await checkAuth();
@@ -152,7 +152,7 @@ export default function AdminDashboard() {
       setConfirmPassword('');
       setPasswordErrors({});
       
-      showSuccess('Password changed successfully');
+      showSuccess('Contraseña cambiada exitosamente');
     } catch (error) {
       console.error('Error changing password:', error);
       showError(error.message || 'Failed to change password');

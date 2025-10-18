@@ -1,9 +1,7 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function QuickActions() {
   const navigate = useNavigate();
-  const [showShortcuts, setShowShortcuts] = useState(false);
 
   const quickActions = [
     {
@@ -11,64 +9,56 @@ export default function QuickActions() {
       description: 'Registrar ingreso o gasto',
       icon: '➕',
       color: 'primary',
-      action: () => navigate('/transactions'),
-      shortcut: 'Ctrl+N'
+      action: () => navigate('/transactions')
     },
     {
       title: 'Ver Dashboard',
       description: 'Ir al panel principal',
       icon: '🏠',
       color: 'blue',
-      action: () => navigate('/'),
-      shortcut: 'Ctrl+H'
+      action: () => navigate('/')
     },
     {
       title: 'Cuentas',
       description: 'Gestionar cuentas bancarias',
       icon: '🏦',
       color: 'green',
-      action: () => navigate('/accounts'),
-      shortcut: 'Ctrl+A'
+      action: () => navigate('/accounts')
     },
     {
       title: 'Reportes',
       description: 'Ver análisis financieros',
       icon: '📊',
       color: 'purple',
-      action: () => navigate('/reports'),
-      shortcut: 'Ctrl+R'
+      action: () => navigate('/reports')
     },
     {
       title: 'Facturas',
       description: 'Gestionar CFDI',
       icon: '📑',
       color: 'orange',
-      action: () => navigate('/invoices'),
-      shortcut: 'Ctrl+F'
+      action: () => navigate('/invoices')
     },
     {
       title: 'Flujo de Efectivo',
       description: 'Ver proyección',
       icon: '💵',
       color: 'teal',
-      action: () => navigate('/cash-flow-projection'),
-      shortcut: 'Ctrl+C'
+      action: () => navigate('/cash-flow-projection')
     },
     {
       title: 'Tareas',
       description: 'Centro de tareas financieras',
       icon: '📋',
       color: 'indigo',
-      action: () => navigate('/financial-tasks'),
-      shortcut: 'Ctrl+T'
+      action: () => navigate('/financial-tasks')
     },
     {
       title: 'Notificaciones',
       description: 'Ver alertas y recordatorios',
       icon: '🔔',
       color: 'red',
-      action: () => navigate('/notifications'),
-      shortcut: 'Ctrl+B'
+      action: () => navigate('/notifications')
     }
   ];
 
@@ -77,19 +67,6 @@ export default function QuickActions() {
     { icon: '📄', text: 'Factura importada', time: 'Hace 15 minutos', color: 'blue' },
     { icon: '✅', text: 'Tarea completada', time: 'Hace 1 hora', color: 'purple' },
     { icon: '📊', text: 'Reporte generado', time: 'Hace 2 horas', color: 'orange' }
-  ];
-
-  const shortcuts = [
-    { key: 'Ctrl+N', description: 'Nueva transacción' },
-    { key: 'Ctrl+H', description: 'Ir al Dashboard' },
-    { key: 'Ctrl+A', description: 'Ver Cuentas' },
-    { key: 'Ctrl+R', description: 'Ver Reportes' },
-    { key: 'Ctrl+F', description: 'Ver Facturas' },
-    { key: 'Ctrl+C', description: 'Flujo de Efectivo' },
-    { key: 'Ctrl+T', description: 'Centro de Tareas' },
-    { key: 'Ctrl+B', description: 'Notificaciones' },
-    { key: 'Ctrl+/', description: 'Mostrar ayuda' },
-    { key: 'Esc', description: 'Cerrar diálogos' }
   ];
 
   const getColorClasses = (color) => {
@@ -120,54 +97,15 @@ export default function QuickActions() {
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              ⚡ Acciones Rápidas
-            </h1>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-              Accede rápidamente a las funciones más utilizadas
-            </p>
-          </div>
-          <button
-            onClick={() => setShowShortcuts(!showShortcuts)}
-            className="px-4 py-2 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors flex items-center gap-2"
-          >
-            ⌨️ Atajos de teclado
-          </button>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            ⚡ Acciones Rápidas
+          </h1>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            Accede rápidamente a las funciones más utilizadas
+          </p>
         </div>
       </div>
-
-      {/* Shortcuts Modal */}
-      {showShortcuts && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-md w-full">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-slate-700">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                ⌨️ Atajos de Teclado
-              </h2>
-              <button
-                onClick={() => setShowShortcuts(false)}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="p-6 max-h-96 overflow-y-auto">
-              <div className="space-y-3">
-                {shortcuts.map((shortcut, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <span className="text-gray-700 dark:text-gray-300">{shortcut.description}</span>
-                    <kbd className="px-3 py-1 bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded text-sm font-mono text-gray-900 dark:text-gray-100">
-                      {shortcut.key}
-                    </kbd>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Quick Actions Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -180,13 +118,8 @@ export default function QuickActions() {
             <div className="text-4xl mb-3">{action.icon}</div>
             <h3 className="text-lg font-bold mb-1">{action.title}</h3>
             <p className="text-sm text-white/90 mb-3">{action.description}</p>
-            <div className="flex items-center justify-between text-xs text-white/70">
+            <div className="text-xs text-white/70">
               <span>Haz clic para acceder</span>
-              {action.shortcut && (
-                <kbd className="px-2 py-1 bg-white/20 rounded text-white/90 font-mono">
-                  {action.shortcut}
-                </kbd>
-              )}
             </div>
           </button>
         ))}

@@ -116,13 +116,6 @@ export default function DatePicker({
               </button>
             ))}
           </div>
-
-          {/* Keyboard shortcuts hint */}
-          <div className="hidden md:block border-t border-gray-200 dark:border-slate-700 px-4 py-2 bg-gray-50 dark:bg-slate-900">
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              💡 Atajos de teclado: {quickOptions.map(opt => opt.shortcut.toUpperCase()).join(', ')}
-            </p>
-          </div>
         </div>
       )}
     </div>

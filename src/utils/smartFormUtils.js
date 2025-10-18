@@ -203,28 +203,23 @@ export function getQuickDateOptions() {
   return [
     {
       label: 'Hoy',
-      value: today.toISOString().split('T')[0],
-      shortcut: 'h'
+      value: today.toISOString().split('T')[0]
     },
     {
       label: 'Ayer',
-      value: yesterday.toISOString().split('T')[0],
-      shortcut: 'a'
+      value: yesterday.toISOString().split('T')[0]
     },
     {
       label: 'Hace una semana',
-      value: lastWeek.toISOString().split('T')[0],
-      shortcut: 's'
+      value: lastWeek.toISOString().split('T')[0]
     },
     {
       label: 'Inicio del mes',
-      value: startOfMonth.toISOString().split('T')[0],
-      shortcut: 'i'
+      value: startOfMonth.toISOString().split('T')[0]
     },
     {
       label: 'Fin del mes',
-      value: endOfMonth.toISOString().split('T')[0],
-      shortcut: 'f'
+      value: endOfMonth.toISOString().split('T')[0]
     }
   ];
 }
