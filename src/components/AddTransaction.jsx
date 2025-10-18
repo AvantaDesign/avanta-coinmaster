@@ -31,7 +31,20 @@ export default function AddTransaction({ onSuccess }) {
     // Phase 16: Granular Tax Deductibility
     is_iva_deductible: false,
     is_isr_deductible: false,
-    expense_type: 'national'
+    expense_type: 'national',
+    // Phase 17: Income-specific fields
+    client_type: 'nacional',
+    client_rfc: '',
+    currency: 'MXN',
+    exchange_rate: 1.0,
+    payment_method: 'PUE',
+    iva_rate: '16',
+    isr_retention: 0,
+    iva_retention: 0,
+    cfdi_uuid: '',
+    issue_date: '',
+    payment_date: '',
+    economic_activity_code: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -167,7 +180,20 @@ export default function AddTransaction({ onSuccess }) {
         cfdi_usage_code: '',
         is_iva_deductible: false,
         is_isr_deductible: false,
-        expense_type: 'national'
+        expense_type: 'national',
+        // Phase 17: Reset income fields
+        client_type: 'nacional',
+        client_rfc: '',
+        currency: 'MXN',
+        exchange_rate: 1.0,
+        payment_method: 'PUE',
+        iva_rate: '16',
+        isr_retention: 0,
+        iva_retention: 0,
+        cfdi_uuid: '',
+        issue_date: '',
+        payment_date: '',
+        economic_activity_code: ''
       });
       
       if (onSuccess) onSuccess();
@@ -405,6 +431,200 @@ export default function AddTransaction({ onSuccess }) {
 
         {/* Keep legacy is_deductible for backward compatibility - hidden but synced */}
         <input type="hidden" name="is_deductible" value={formData.is_deductible} />
+
+        {/* Phase 17: Income-Specific Fields - Only show for income transactions */}
+        {formData.type === 'ingreso' && (
+          <>
+            <div className="md:col-span-2 border-t pt-4 mt-4 dark:border-slate-700">
+              <h3 className="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-300">Información Fiscal del Ingreso</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                Complete los datos fiscales para el correcto registro del ingreso según SAT
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Tipo de Cliente</label>
+              <select
+                name="client_type"
+                value={formData.client_type}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-md dark:bg-slate-800 dark:border-slate-600 dark:text-white"
+              >
+                <option value="nacional">Nacional</option>
+                <option value="extranjero">Extranjero</option>
+              </select>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Cliente nacional o del extranjero</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">RFC del Cliente</label>
+              <input
+                type="text"
+                name="client_rfc"
+                value={formData.client_rfc}
+                onChange={handleChange}
+                placeholder={formData.client_type === 'extranjero' ? 'XEXX010101000' : 'RFC13'}
+                className="w-full px-3 py-2 border rounded-md dark:bg-slate-800 dark:border-slate-600 dark:text-white"
+                maxLength={13}
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {formData.client_type === 'extranjero' 
+                  ? 'RFC genérico para extranjeros: XEXX010101000' 
+                  : 'RFC del cliente nacional'}
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Moneda</label>
+              <select
+                name="currency"
+                value={formData.currency}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-md dark:bg-slate-800 dark:border-slate-600 dark:text-white"
+              >
+                <option value="MXN">MXN - Peso Mexicano</option>
+                <option value="USD">USD - Dólar Estadounidense</option>
+                <option value="EUR">EUR - Euro</option>
+                <option value="CAD">CAD - Dólar Canadiense</option>
+                <option value="GBP">GBP - Libra Esterlina</option>
+              </select>
+            </div>
+
+            {formData.currency !== 'MXN' && (
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Tipo de Cambio</label>
+                <input
+                  type="number"
+                  name="exchange_rate"
+                  value={formData.exchange_rate}
+                  onChange={handleChange}
+                  step="0.0001"
+                  min="0"
+                  className="w-full px-3 py-2 border rounded-md dark:bg-slate-800 dark:border-slate-600 dark:text-white"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Tipo de cambio {formData.currency} a MXN al momento del cobro
+                </p>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Método de Pago</label>
+              <select
+                name="payment_method"
+                value={formData.payment_method}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-md dark:bg-slate-800 dark:border-slate-600 dark:text-white"
+              >
+                <option value="PUE">PUE - Pago en Una Exhibición</option>
+                <option value="PPD">PPD - Pago en Parcialidades o Diferido</option>
+              </select>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Método de pago según CFDI</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Tasa de IVA</label>
+              <select
+                name="iva_rate"
+                value={formData.iva_rate}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-md dark:bg-slate-800 dark:border-slate-600 dark:text-white"
+              >
+                <option value="16">16% - Tasa general</option>
+                <option value="0">0% - Tasa cero (exportación/servicios específicos)</option>
+                <option value="exento">Exento - Sin IVA</option>
+              </select>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {formData.client_type === 'extranjero' && formData.iva_rate === '0' 
+                  ? 'Tasa 0% aplica para servicios al extranjero con requisitos SAT' 
+                  : 'Tasa de IVA aplicada en la factura'}
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Retención ISR</label>
+              <input
+                type="number"
+                name="isr_retention"
+                value={formData.isr_retention}
+                onChange={handleChange}
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                className="w-full px-3 py-2 border rounded-md dark:bg-slate-800 dark:border-slate-600 dark:text-white"
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Monto retenido de ISR (si aplica)</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Retención IVA</label>
+              <input
+                type="number"
+                name="iva_retention"
+                value={formData.iva_retention}
+                onChange={handleChange}
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                className="w-full px-3 py-2 border rounded-md dark:bg-slate-800 dark:border-slate-600 dark:text-white"
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Monto retenido de IVA (si aplica, ej: 10.67%)</p>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">UUID del CFDI</label>
+              <input
+                type="text"
+                name="cfdi_uuid"
+                value={formData.cfdi_uuid}
+                onChange={handleChange}
+                placeholder="Folio fiscal del CFDI emitido"
+                className="w-full px-3 py-2 border rounded-md dark:bg-slate-800 dark:border-slate-600 dark:text-white font-mono text-sm"
+                maxLength={36}
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">UUID/Folio fiscal de la factura emitida</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Fecha de Emisión</label>
+              <input
+                type="date"
+                name="issue_date"
+                value={formData.issue_date}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-md dark:bg-slate-800 dark:border-slate-600 dark:text-white"
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Fecha en que se emitió el CFDI</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Fecha de Cobro</label>
+              <input
+                type="date"
+                name="payment_date"
+                value={formData.payment_date}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-md dark:bg-slate-800 dark:border-slate-600 dark:text-white"
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Fecha en que se recibió el pago efectivo</p>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Código de Actividad Económica</label>
+              <input
+                type="text"
+                name="economic_activity_code"
+                value={formData.economic_activity_code}
+                onChange={handleChange}
+                placeholder="Código de actividad económica SAT"
+                className="w-full px-3 py-2 border rounded-md dark:bg-slate-800 dark:border-slate-600 dark:text-white"
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Código de actividad económica según tu registro SAT (opcional)
+              </p>
+            </div>
+          </>
+        )}
 
         {/* Phase 1: Advanced Transaction Classification Fields */}
         <div className="md:col-span-2 border-t pt-4 mt-4 dark:border-slate-700">

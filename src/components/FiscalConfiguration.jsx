@@ -21,6 +21,12 @@ export default function FiscalConfiguration() {
     tax_regime: 'persona_fisica_actividad_empresarial' // Default regime
   });
 
+  // Phase 17: State for UMA values and SAT accounts catalog
+  const [umaValues, setUmaValues] = useState({ daily: 0, monthly: 0, annual: 0 });
+  const [satAccounts, setSatAccounts] = useState([]);
+  const [showSATCatalog, setShowSATCatalog] = useState(false);
+  const [satSearchTerm, setSatSearchTerm] = useState('');
+
   // Tax regime options for Mexico
   const taxRegimes = [
     { value: 'persona_fisica_actividad_empresarial', label: 'Persona Física con Actividad Empresarial' },
@@ -35,6 +41,8 @@ export default function FiscalConfiguration() {
   useEffect(() => {
     loadAvailableYears();
     loadConfig();
+    loadUMAValues();
+    loadSATAccounts();
   }, [selectedYear]);
 
   const loadAvailableYears = async () => {
@@ -69,6 +77,69 @@ export default function FiscalConfiguration() {
       console.error('Error loading config:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Phase 17: Load UMA values from fiscal parameters
+  const loadUMAValues = async () => {
+    try {
+      const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
+      
+      // Load daily UMA
+      const dailyResponse = await fetch(`${API_URL}/api/fiscal-parameters?type=uma_value&period=permanent`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const dailyData = await dailyResponse.json();
+      
+      // Find the current year's UMA values
+      const currentYearParams = dailyData.parameters?.filter(p => 
+        p.effective_from.startsWith(selectedYear.toString())
+      ) || [];
+      
+      const daily = currentYearParams.find(p => p.id.includes('daily'))?.value || 0;
+      const monthly = currentYearParams.find(p => p.id.includes('monthly'))?.value || 0;
+      const annual = currentYearParams.find(p => p.id.includes('annual'))?.value || 0;
+      
+      setUmaValues({
+        daily: parseFloat(daily),
+        monthly: parseFloat(monthly),
+        annual: parseFloat(annual)
+      });
+    } catch (error) {
+      console.error('Error loading UMA values:', error);
+    }
+  };
+
+  // Phase 17: Load SAT accounts catalog
+  const loadSATAccounts = async () => {
+    try {
+      const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
+      const response = await fetch(`${API_URL}/api/sat-accounts-catalog?hierarchical=true`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      setSatAccounts(data.accounts || []);
+    } catch (error) {
+      console.error('Error loading SAT accounts:', error);
+    }
+  };
+
+  // Phase 17: Search SAT accounts
+  const searchSATAccounts = async (term) => {
+    if (!term || term.length < 2) {
+      loadSATAccounts();
+      return;
+    }
+    
+    try {
+      const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
+      const response = await fetch(`${API_URL}/api/sat-accounts-catalog/search?q=${encodeURIComponent(term)}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      setSatAccounts(data.accounts || []);
+    } catch (error) {
+      console.error('Error searching SAT accounts:', error);
     }
   };
 
@@ -332,12 +403,160 @@ export default function FiscalConfiguration() {
         </div>
 
         <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-900">
+          <p className="text-sm text-blue-900 dark:text-blue-300">
             <strong>Nota:</strong> Las tablas de ISR deben actualizarse cada año según las publicaciones oficiales del SAT. 
             La configuración actual se aplica para cálculos de impuestos provisionales y simulaciones fiscales.
           </p>
         </div>
       </div>
+
+      {/* Phase 17: UMA Values */}
+      <div className="mt-8">
+        <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Valores UMA {selectedYear}</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          Unidad de Medida y Actualización - Valores oficiales publicados por INEGI
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 p-6 rounded-lg border border-blue-200 dark:border-blue-700">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-blue-900 dark:text-blue-300">UMA Diaria</span>
+              <span className="text-xs px-2 py-1 bg-blue-200 dark:bg-blue-700 text-blue-900 dark:text-blue-100 rounded">Día</span>
+            </div>
+            <p className="text-3xl font-bold text-blue-900 dark:text-blue-100">
+              {formatCurrency(umaValues.daily)}
+            </p>
+            <p className="text-xs text-blue-700 dark:text-blue-400 mt-1">Por día</p>
+          </div>
+          
+          <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20 p-6 rounded-lg border border-green-200 dark:border-green-700">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-green-900 dark:text-green-300">UMA Mensual</span>
+              <span className="text-xs px-2 py-1 bg-green-200 dark:bg-green-700 text-green-900 dark:text-green-100 rounded">Mes</span>
+            </div>
+            <p className="text-3xl font-bold text-green-900 dark:text-green-100">
+              {formatCurrency(umaValues.monthly)}
+            </p>
+            <p className="text-xs text-green-700 dark:text-green-400 mt-1">30.4 días promedio</p>
+          </div>
+          
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/20 p-6 rounded-lg border border-purple-200 dark:border-purple-700">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-purple-900 dark:text-purple-300">UMA Anual</span>
+              <span className="text-xs px-2 py-1 bg-purple-200 dark:bg-purple-700 text-purple-900 dark:text-purple-100 rounded">Año</span>
+            </div>
+            <p className="text-3xl font-bold text-purple-900 dark:text-purple-100">
+              {formatCurrency(umaValues.annual)}
+            </p>
+            <p className="text-xs text-purple-700 dark:text-purple-400 mt-1">365 días</p>
+          </div>
+        </div>
+        
+        <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg">
+          <p className="text-sm text-yellow-900 dark:text-yellow-300">
+            <strong>Aplicación:</strong> Los valores UMA se utilizan para calcular límites de deducciones personales 
+            (15% de ingresos anuales o 5 veces la UMA anual, lo que sea menor) y otros límites fiscales establecidos por el SAT.
+          </p>
+        </div>
+      </div>
+
+      {/* Phase 17: SAT Accounts Catalog */}
+      <div className="mt-8">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Catálogo de Cuentas SAT (Anexo 24)</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Código agrupador oficial del SAT para Contabilidad Electrónica
+            </p>
+          </div>
+          <button
+            onClick={() => setShowSATCatalog(!showSATCatalog)}
+            className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+          >
+            {showSATCatalog ? 'Ocultar Catálogo' : 'Ver Catálogo'}
+          </button>
+        </div>
+
+        {showSATCatalog && (
+          <div className="border border-gray-200 dark:border-slate-700 rounded-lg p-6 bg-gray-50 dark:bg-slate-800/50">
+            {/* Search */}
+            <div className="mb-4">
+              <input
+                type="text"
+                value={satSearchTerm}
+                onChange={(e) => {
+                  setSatSearchTerm(e.target.value);
+                  searchSATAccounts(e.target.value);
+                }}
+                placeholder="Buscar por código o descripción..."
+                className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100"
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Ej: "101.02" para Bancos, o "gastos" para buscar cuentas de gastos
+              </p>
+            </div>
+
+            {/* SAT Accounts Tree */}
+            <div className="max-h-96 overflow-y-auto">
+              {satAccounts.length === 0 ? (
+                <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+                  No se encontraron cuentas. Asegúrate de que la migración 024 se haya ejecutado.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {satAccounts.map(account => (
+                    <SATAccountItem key={account.codigo_agrupador} account={account} level={0} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Phase 17: Helper component to render SAT account items recursively
+function SATAccountItem({ account, level }) {
+  const [expanded, setExpanded] = useState(false);
+  const hasChildren = account.children && account.children.length > 0;
+  
+  const levelColors = [
+    'text-gray-900 dark:text-gray-100 font-bold',
+    'text-blue-900 dark:text-blue-300 font-semibold',
+    'text-green-900 dark:text-green-300',
+    'text-purple-900 dark:text-purple-300 text-sm',
+    'text-gray-700 dark:text-gray-400 text-sm'
+  ];
+  
+  const paddingLeft = level * 24;
+  
+  return (
+    <div>
+      <div 
+        className={`flex items-center py-2 px-3 hover:bg-gray-100 dark:hover:bg-slate-700 rounded cursor-pointer ${levelColors[level] || levelColors[4]}`}
+        style={{ paddingLeft: `${paddingLeft}px` }}
+        onClick={() => hasChildren && setExpanded(!expanded)}
+      >
+        {hasChildren && (
+          <span className="mr-2 text-gray-500 dark:text-gray-400">
+            {expanded ? '▼' : '▶'}
+          </span>
+        )}
+        {!hasChildren && <span className="mr-2 w-4"></span>}
+        <span className="font-mono mr-3 min-w-[80px]">{account.codigo_agrupador}</span>
+        <span className="flex-1">{account.descripcion}</span>
+        <span className="text-xs px-2 py-1 bg-gray-200 dark:bg-slate-600 rounded ml-2">
+          Nivel {account.nivel}
+        </span>
+      </div>
+      {expanded && hasChildren && (
+        <div>
+          {account.children.map(child => (
+            <SATAccountItem key={child.codigo_agrupador} account={child} level={level + 1} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
