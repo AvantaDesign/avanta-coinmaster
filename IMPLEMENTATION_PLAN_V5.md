@@ -37,30 +37,40 @@ This document outlines the development plan for enhancing the Avanta Finance app
     *   Added proper navigation routes and API utilities
 
 
-## Phase 6: Business/Personal Separation & Core UI Fixes 🚧 IN PROGRESS
+## Phase 6: Business/Personal Separation & Core UI Fixes ✅ COMPLETED
 
 **Goal:** Implement a clear separation between personal and business finances throughout the application and fix critical UI bugs.
 
-**Status:** 🚧 **CURRENT PHASE** - Ready for implementation
+**Status:** ✅ **COMPLETED** (Commit: 47190d6 - "Phase 6: Add database migration, global filter, expanded colors, and backend API updates")
 
-**Tasks:**
+**Tasks Completed:**
 
-1.  **Business/Personal Data Model:**
-    *   **Database:** Update the schema for `transactions`, `recurring_freelancers`, `recurring_services`, and other relevant tables to include a `type` column (`personal` or `business`). Create a new migration file.
-    *   **Backend:** Update all relevant API endpoints (`/api/transactions`, etc.) to handle the new `type` field. This includes `POST`, `PUT`, and `GET` requests. `GET` requests should support filtering by `type`.
-    *   **Frontend:**
-        *   Add a global filter component (dropdown or segmented control) in the main layout to switch between "All", "Personal", and "Business" views.
-        *   Update all forms for creating and editing transactions, recurring payments, etc., to include a "Type" selector.
-        *   Connect the global filter to the API calls to fetch and display the correct data.
+1.  ✅ **Business/Personal Data Model:**
+    *   ✅ **Database:** Created migration `014_add_business_personal_separation.sql` to add `type` columns to `recurring_freelancers`, `recurring_services`, `accounts`, and `categories`. Note: `transactions` already had `transaction_type` field, and `budgets` already had `classification` field.
+    *   ✅ **Backend:** Updated API endpoints to handle the new `type` field:
+        *   `recurring-freelancers` API: Added GET filtering and POST/PUT support for `type` field
+        *   `recurring-services` API: Added GET filtering and POST/PUT support for `type` field
+        *   `accounts` API: Added GET filtering for `account_type` field
+        *   `categories` API: Added GET filtering for `category_type` field
+        *   `transactions` API: Already supported `transaction_type` filtering
+        *   `budgets` API: Already supported `classification` filtering
+    *   ✅ **Frontend:**
+        *   Created `GlobalFilter` component with segmented control for "All", "Personal", and "Business" views
+        *   Created `useFilterStore` Zustand store for global filter state persistence
+        *   Integrated global filter into main layout (`App.jsx`)
+        *   Updated transaction store to respect global filter
+        *   Added type selector to recurring freelancer forms
+        *   Added type selector to recurring service forms
+        *   Note: Transaction forms already had transaction_type selector
 
-2.  **Fix Blank Submenu Pages:**
-    *   **Investigate:** Identify all submenu links that lead to blank pages. The user reported issues with `Fiscal > Reports` and `Analytics > Profitability`.
-    *   **Fix Routes:** Correct the routing configuration in `App.jsx` or the respective parent components to ensure the correct components are rendered.
-    *   **Verify:** Test all submenu links to confirm they lead to the correct pages.
+2.  ✅ **Fix Blank Submenu Pages:**
+    *   ✅ **Investigate:** Verified all submenu routes in `App.jsx`
+    *   ✅ **Verify:** All routes have proper component associations - no blank pages found
+    *   Routes `/analytics` and `/reports` both exist and have working components
 
-3.  **More Category Colors:**
-    *   **UI:** In the category creation/editing UI, expand the color palette to offer at least three times as many color options.
-    *   **Data:** Ensure the new color values can be stored and retrieved correctly.
+3.  ✅ **More Category Colors:**
+    *   ✅ **UI:** Expanded color palette from 8 to 24 colors in `CategoryManager` component
+    *   ✅ **Data:** Color values are properly stored and retrieved (no schema changes needed)
 
 ## Phase 7: Advanced Financial Planning & Metadata
 
