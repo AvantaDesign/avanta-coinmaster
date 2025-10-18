@@ -117,7 +117,7 @@ export async function onRequestPut(context) {
     }
 
     const data = await request.json();
-    const { name, type, balance } = data;
+    const { name, type, balance, metadata } = data;
     
     // Build update query dynamically based on provided fields
     const updates = [];
@@ -153,6 +153,10 @@ export async function onRequestPut(context) {
       }
       updates.push('balance = ?');
       params.push(numBalance);
+    }
+    if (metadata !== undefined) {
+      updates.push('metadata = ?');
+      params.push(typeof metadata === 'string' ? metadata : JSON.stringify(metadata));
     }
     
     if (updates.length === 0) {
@@ -219,7 +223,7 @@ export async function onRequestPost(context) {
     }
 
     const data = await request.json();
-    const { name, type, balance } = data;
+    const { name, type, balance, metadata } = data;
     
     // Validate required fields
     if (!name || !type) {
@@ -254,9 +258,11 @@ export async function onRequestPost(context) {
       });
     }
     
+    const metadataStr = metadata ? (typeof metadata === 'string' ? metadata : JSON.stringify(metadata)) : null;
+    
     const result = await env.DB.prepare(
-      'INSERT INTO accounts (user_id, name, type, balance, is_active) VALUES (?, ?, ?, ?, 1)'
-    ).bind(userId, name, type, numBalance).run();
+      'INSERT INTO accounts (user_id, name, type, balance, metadata, is_active) VALUES (?, ?, ?, ?, ?, 1)'
+    ).bind(userId, name, type, numBalance, metadataStr).run();
     
     return new Response(JSON.stringify({ 
       success: true,

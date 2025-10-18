@@ -256,12 +256,14 @@ export async function onRequestPost(context) {
       });
     }
 
+    const metadataStr = data.metadata ? (typeof data.metadata === 'string' ? data.metadata : JSON.stringify(data.metadata)) : null;
+
     const result = await env.DB.prepare(`
       INSERT INTO investments (
         investment_name, investment_type, broker_platform, purchase_date,
         purchase_amount, quantity, current_value, current_price_per_unit,
-        currency, status, category, risk_level, description, notes, user_id
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        currency, status, category, risk_level, description, notes, user_id, metadata
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       data.investment_name,
       data.investment_type,
@@ -277,7 +279,8 @@ export async function onRequestPost(context) {
       data.risk_level || null,
       data.description || null,
       data.notes || null,
-      data.user_id || null
+      data.user_id || null,
+      metadataStr
     ).run();
 
     const investmentId = result.meta.last_row_id;
@@ -373,6 +376,11 @@ export async function onRequestPut(context) {
         updates.push(`${field} = ?`);
         params.push(data[field]);
       }
+    }
+
+    if (data.metadata !== undefined) {
+      updates.push('metadata = ?');
+      params.push(typeof data.metadata === 'string' ? data.metadata : JSON.stringify(data.metadata));
     }
 
     if (updates.length === 0) {
