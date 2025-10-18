@@ -3,6 +3,7 @@ import AddTransaction from '../components/AddTransaction';
 import TransactionTable from '../components/TransactionTable';
 import CSVImport from '../components/CSVImport';
 import ExportDialog from '../components/ExportDialog';
+import AdvancedFilter from '../components/AdvancedFilter';
 import { formatCurrency } from '../utils/calculations';
 import { showSuccess, showError } from '../utils/notifications';
 import useTransactionStore from '../stores/useTransactionStore';
@@ -25,12 +26,52 @@ export default function Transactions() {
   
   const [showCSVImport, setShowCSVImport] = useState(false);
   const [showExportDialog, setShowExportDialog] = useState(false);
+  const [advancedFilters, setAdvancedFilters] = useState({});
 
   // Load data on mount
   useEffect(() => {
     loadAccounts();
     loadTransactions();
   }, []);
+
+  // Apply advanced filters when they change
+  useEffect(() => {
+    applyAdvancedFilters();
+  }, [advancedFilters]);
+
+  const applyAdvancedFilters = () => {
+    // Apply each filter to the store
+    if (advancedFilters.search) {
+      setFilter('searchTerm', advancedFilters.search);
+    }
+    if (advancedFilters.transaction_type) {
+      setFilter('transactionType', advancedFilters.transaction_type);
+    }
+    if (advancedFilters.category) {
+      setFilter('category', advancedFilters.category);
+    }
+    if (advancedFilters.type) {
+      setFilter('type', advancedFilters.type);
+    }
+    if (advancedFilters.date_from) {
+      setFilter('dateFrom', advancedFilters.date_from);
+    }
+    if (advancedFilters.date_to) {
+      setFilter('dateTo', advancedFilters.date_to);
+    }
+    if (advancedFilters.account) {
+      setFilter('account', advancedFilters.account);
+    }
+  };
+
+  const handleAdvancedFilterChange = (newFilters) => {
+    setAdvancedFilters(newFilters);
+  };
+
+  const handleAdvancedFilterReset = () => {
+    setAdvancedFilters({});
+    clearStoreFilters();
+  };
 
   const handleFilterChange = (key, value) => {
     setFilter(key, value);
@@ -107,6 +148,12 @@ export default function Transactions() {
           </button>
         </div>
       </div>
+
+      {/* Advanced Filter Component */}
+      <AdvancedFilter 
+        onFilterChange={handleAdvancedFilterChange}
+        onReset={handleAdvancedFilterReset}
+      />
 
       {/* Advanced Filters */}
       <div className="bg-white dark:bg-slate-900 p-4 rounded-lg shadow-default border border-gray-200 dark:border-slate-700 space-y-4">

@@ -4,6 +4,7 @@ import { formatCurrency, formatDate } from '../utils/calculations';
 import { deleteTransaction, updateTransaction, restoreTransaction } from '../utils/api';
 import { showSuccess, showError, showWarning } from '../utils/notifications';
 import useTransactionStore from '../stores/useTransactionStore';
+import BulkEditModal from './BulkEditModal';
 
 export default function TransactionTable({ transactions: propTransactions, onUpdate }) {
   // Use store if available, otherwise fall back to props
@@ -15,9 +16,32 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
   const [editForm, setEditForm] = useState({});
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('desc');
+  const [showBulkEditModal, setShowBulkEditModal] = useState(false);
+  const [accounts, setAccounts] = useState([]);
   
   // Refs for virtualization
   const parentRef = useRef(null);
+
+  // Load accounts for bulk edit modal
+  useEffect(() => {
+    fetchAccounts();
+  }, []);
+
+  const fetchAccounts = async () => {
+    try {
+      const response = await fetch('/api/accounts', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setAccounts(data.accounts || []);
+      }
+    } catch (error) {
+      console.error('Error fetching accounts:', error);
+    }
+  };
 
   const handleDelete = async (id) => {
     if (confirm('¿Estás seguro de eliminar esta transacción? (Se puede restaurar después)')) {
@@ -185,7 +209,13 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
           <span className="text-sm font-medium text-blue-900">
             {selectedIds.length} transacción(es) seleccionada(s)
           </span>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            <button
+              onClick={() => setShowBulkEditModal(true)}
+              className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
+            >
+              ✏️ Editar
+            </button>
             <button
               onClick={() => handleBulkCategoryChange('personal')}
               className="px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700"
@@ -213,6 +243,20 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
           </div>
         </div>
       )}
+
+      {/* Bulk Edit Modal */}
+      <BulkEditModal
+        isOpen={showBulkEditModal}
+        onClose={() => {
+          setShowBulkEditModal(false);
+          setSelectedIds([]);
+        }}
+        selectedTransactions={transactions.filter(t => selectedIds.includes(t.id))}
+        onUpdate={() => {
+          if (onUpdate) onUpdate();
+        }}
+        accounts={accounts}
+      />
 
       {/* Desktop Table View - hidden on mobile */}
       <div className="hidden md:block overflow-x-auto">

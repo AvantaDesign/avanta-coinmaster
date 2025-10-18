@@ -37,6 +37,7 @@ const GlobalFilter = lazy(() => import('./components/GlobalFilter'));
 const SavingsGoals = lazy(() => import('./pages/SavingsGoals'));
 const Import = lazy(() => import('./pages/Import'));
 const Receipts = lazy(() => import('./pages/Receipts'));
+const AuditLog = lazy(() => import('./pages/AuditLog'));
 
 // Loading fallback component
 function LoadingFallback() {
@@ -174,7 +175,8 @@ function NavigationBar() {
         { name: 'Centro de Ayuda', icon: '📚', path: '/help' },
         { name: 'Tareas Financieras', icon: '📋', path: '/financial-tasks' },
         { name: 'Notificaciones', icon: '🔔', path: '/notifications' },
-        { name: 'Acciones Rápidas', icon: '⚡', path: '/quick-actions' }
+        { name: 'Acciones Rápidas', icon: '⚡', path: '/quick-actions' },
+        { name: 'Registro de Auditoría', icon: '🔒', path: '/audit-log' }
       ]
     }
   ];
@@ -415,6 +417,7 @@ function AuthenticatedApp() {
                 <Route path="/quick-actions" element={<QuickActions />} />
                 <Route path="/onboarding" element={<OnboardingGuide />} />
                 <Route path="/import" element={<Import />} />
+                <Route path="/audit-log" element={<AuditLog />} />
               </Routes>
             </Suspense>
           </div>
