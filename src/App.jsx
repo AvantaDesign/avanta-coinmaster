@@ -189,7 +189,7 @@ function NavigationBar() {
 
   return (
     <nav className="bg-white dark:bg-slate-900 shadow-lg dark:shadow-xl dark:shadow-black/20 border-b border-gray-200 dark:border-slate-800 sticky top-0 z-40 transition-colors duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full px-2 sm:px-4 lg:px-6">
         <div className="flex justify-between items-center h-16">
           {/* Logo and Brand */}
           <div className="flex items-center flex-shrink-0">
@@ -350,7 +350,9 @@ function NavigationBar() {
                             to={item.path}
                             className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-slate-700 rounded-md transition-colors touch-manipulation"
                             style={{ WebkitTapHighlightColor: 'rgba(59, 130, 246, 0.1)' }}
-                            onClick={() => {
+                            onClick={(e) => {
+                              // Prevent event bubbling to avoid closing dropdown
+                              e.stopPropagation();
                               setActiveDropdown(null);
                               setMobileMenuOpen(false);
                             }}
@@ -433,7 +435,7 @@ function AuthenticatedApp() {
         <footer className="bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 mt-12">
           <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
             <p className="text-center text-gray-500 dark:text-gray-400 text-sm">
-              © 2025 Avanta Design - Mateo Reyes González - San Andrés Cholula, Puebla
+              © 2025 Avanta Design
             </p>
           </div>
         </footer>
