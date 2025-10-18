@@ -35,6 +35,7 @@ const QuickActions = lazy(() => import('./components/QuickActions'));
 const OnboardingGuide = lazy(() => import('./components/OnboardingGuide'));
 const GlobalFilter = lazy(() => import('./components/GlobalFilter'));
 const SavingsGoals = lazy(() => import('./pages/SavingsGoals'));
+const Import = lazy(() => import('./pages/Import'));
 
 // Loading fallback component
 function LoadingFallback() {
@@ -120,6 +121,7 @@ function NavigationBar() {
       items: [
         { name: 'Fiscal', icon: '🧾', path: '/fiscal' },
         { name: 'Facturas', icon: '📑', path: '/invoices' },
+        { name: 'Importar Datos', icon: '📥', path: '/import' },
         { name: 'Cuentas por Cobrar', icon: '📈', path: '/receivables' },
         { name: 'Cuentas por Pagar', icon: '📉', path: '/payables' }
       ]
@@ -409,6 +411,7 @@ function AuthenticatedApp() {
                 <Route path="/help" element={<HelpCenter />} />
                 <Route path="/quick-actions" element={<QuickActions />} />
                 <Route path="/onboarding" element={<OnboardingGuide />} />
+                <Route path="/import" element={<Import />} />
               </Routes>
             </Suspense>
           </div>
