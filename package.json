@@ -11,6 +11,7 @@
     "deploy": "npm run build && wrangler pages deploy dist"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@tanstack/react-virtual": "^3.13.12",
     "decimal.js": "^10.6.0",
     "jose": "^6.1.0",
