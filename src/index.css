@@ -103,3 +103,79 @@ code {
 .animate-slide-in {
   animation: slide-in 0.3s ease-out;
 }
+
+/* Accessibility styles - WCAG 2.1 AA compliance */
+@layer utilities {
+  /* Screen reader only - visually hidden but accessible */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+  
+  /* Remove sr-only on focus for skip links */
+  .sr-only.focus\:not-sr-only:focus {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
+
+  /* Keyboard navigation focus styles */
+  body.keyboard-navigation *:focus {
+    outline: 2px solid theme('colors.primary.500');
+    outline-offset: 2px;
+  }
+
+  body.keyboard-navigation *:focus-visible {
+    outline: 2px solid theme('colors.primary.500');
+    outline-offset: 2px;
+  }
+
+  /* Enhanced focus indicators for interactive elements */
+  body.keyboard-navigation button:focus,
+  body.keyboard-navigation a:focus,
+  body.keyboard-navigation input:focus,
+  body.keyboard-navigation select:focus,
+  body.keyboard-navigation textarea:focus,
+  body.keyboard-navigation [role="button"]:focus,
+  body.keyboard-navigation [tabindex]:not([tabindex="-1"]):focus {
+    @apply ring-2 ring-primary-500 ring-offset-2 dark:ring-primary-400 dark:ring-offset-slate-900;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  body {
+    @apply font-semibold;
+  }
+  
+  .card,
+  .input-field,
+  button,
+  a {
+    @apply border-2;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

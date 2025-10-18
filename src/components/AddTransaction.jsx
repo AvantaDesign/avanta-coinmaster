@@ -5,6 +5,7 @@ import SmartSuggestions from './SmartSuggestions';
 import SmartInput from './SmartInput';
 import CurrencyInput from './CurrencyInput';
 import DatePicker from './DatePicker';
+import CFDISuggestions from './CFDISuggestions';
 import { getDescriptionSuggestions, getAccountSuggestions, validateTransactionData } from '../utils/smartFormUtils';
 
 export default function AddTransaction({ onSuccess }) {
@@ -24,7 +25,9 @@ export default function AddTransaction({ onSuccess }) {
     linked_invoice_id: null,
     notes: '',
     // Phase 7: Savings Goals
-    savings_goal_id: null
+    savings_goal_id: null,
+    // Phase 14: CFDI Usage Code
+    cfdi_usage_code: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -144,7 +147,8 @@ export default function AddTransaction({ onSuccess }) {
         category_id: null,
         linked_invoice_id: null,
         notes: '',
-        savings_goal_id: null
+        savings_goal_id: null,
+        cfdi_usage_code: ''
       });
       
       if (onSuccess) onSuccess();
@@ -407,6 +411,21 @@ export default function AddTransaction({ onSuccess }) {
             ))}
           </select>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Opcional: Vincular ingreso con meta de ahorro</p>
+        </div>
+
+        {/* Phase 14: CFDI Usage Code Selector */}
+        <div className="md:col-span-2">
+          <CFDISuggestions
+            transaction={{
+              category_name: categories.find(c => c.id === formData.category_id)?.name || '',
+              description: formData.description,
+              amount: parseFloat(formData.amount) || 0,
+              transaction_type: formData.type
+            }}
+            value={formData.cfdi_usage_code}
+            onChange={(code) => setFormData(prev => ({ ...prev, cfdi_usage_code: code }))}
+            disabled={formData.type === 'ingreso'}
+          />
         </div>
 
         <div className="md:col-span-2">

@@ -19,6 +19,7 @@ import AccountBreakdown from './AccountBreakdown';
 import BudgetSummaryWidget from './BudgetSummaryWidget';
 import UpcomingPayments from './UpcomingPayments';
 import FinancialHealthScore from './FinancialHealthScore';
+import IVAWidget from './IVAWidget';
 import Icon from './icons/IconLibrary';
 
 export default function FinancialDashboard() {
@@ -180,11 +181,14 @@ export default function FinancialDashboard() {
         transactionData={transactions}
       />
 
-      {/* Account Balances and Budget Summary */}
+      {/* IVA Widget and Budget Summary */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <AccountBreakdown accounts={accounts} />
+        <IVAWidget transactions={transactions} />
         <BudgetSummaryWidget />
       </div>
+
+      {/* Account Balances */}
+      <AccountBreakdown accounts={accounts} />
 
       {/* Notifications and Tasks Summary */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
