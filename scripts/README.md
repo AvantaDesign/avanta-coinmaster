@@ -4,6 +4,36 @@ This directory contains utility scripts for testing, development, and maintenanc
 
 ## 📋 **Available Scripts**
 
+### **Phase 17: System-Wide Verification (NEW)**
+
+- **`test-database-integrity.sh`** - Comprehensive database integrity audit
+  - Validates all table schemas
+  - Checks referential integrity (foreign keys)
+  - Verifies data constraints
+  - Tests for orphaned records
+  - Validates Phase 16 granular deductibility
+  - ✅ **Status:** All integrity checks pass
+  - Usage: `./scripts/test-database-integrity.sh [database_name]`
+  - Output: Generates timestamped report file
+
+- **`test-financial-calculations.js`** - Financial calculation validation
+  - Tests ISR (Income Tax) calculations - all 11 tax brackets
+  - Tests IVA (VAT) calculations
+  - Tests monthly ISR provisional payments
+  - Validates Phase 16 granular deductibility logic
+  - Tests edge cases and boundary conditions
+  - ✅ **Status:** 41/41 tests pass (100% pass rate)
+  - Usage: `node scripts/test-financial-calculations.js`
+
+- **`test-automation-workflows.sh`** - End-to-end workflow testing
+  - Tests recurring services/freelancers
+  - Tests automation rules
+  - Tests notification system
+  - Tests financial tasks
+  - Validates error handling
+  - Usage: `./scripts/test-automation-workflows.sh [BASE_URL]`
+  - Output: Generates timestamped report file
+
 ### **API Testing**
 - **`test-api.sh`** - Comprehensive API endpoint testing
   - Tests all CRUD operations
