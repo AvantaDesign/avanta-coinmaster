@@ -6,6 +6,10 @@ import FiscalReports from '../components/FiscalReports';
 import ReconciliationManager from '../components/ReconciliationManager';
 import FiscalConfiguration from '../components/FiscalConfiguration';
 import FiscalSimulation from '../components/FiscalSimulation';
+import ImportHistory from '../components/ImportHistory';
+import SATReconciliation from '../components/SATReconciliation';
+import DeclarationManager from '../components/DeclarationManager';
+import FiscalParametersManager from '../components/FiscalParametersManager';
 
 export default function Fiscal() {
   const [activeTab, setActiveTab] = useState('calculator');
@@ -78,6 +82,46 @@ export default function Fiscal() {
             >
               Vista Simple
             </button>
+            <button
+              onClick={() => setActiveTab('import-history')}
+              className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${
+                activeTab === 'import-history'
+                  ? 'border-b-2 border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300'
+              }`}
+            >
+              Historial
+            </button>
+            <button
+              onClick={() => setActiveTab('sat-reconciliation')}
+              className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${
+                activeTab === 'sat-reconciliation'
+                  ? 'border-b-2 border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300'
+              }`}
+            >
+              SAT
+            </button>
+            <button
+              onClick={() => setActiveTab('declarations')}
+              className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${
+                activeTab === 'declarations'
+                  ? 'border-b-2 border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300'
+              }`}
+            >
+              Declaraciones
+            </button>
+            <button
+              onClick={() => setActiveTab('parameters')}
+              className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${
+                activeTab === 'parameters'
+                  ? 'border-b-2 border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300'
+              }`}
+            >
+              Parámetros
+            </button>
           </div>
         </div>
       </div>
@@ -89,6 +133,10 @@ export default function Fiscal() {
       {activeTab === 'simulation' && <FiscalSimulation />}
       {activeTab === 'configuration' && <FiscalConfiguration />}
       {activeTab === 'simple' && <SimpleFiscalView />}
+      {activeTab === 'import-history' && <ImportHistory />}
+      {activeTab === 'sat-reconciliation' && <SATReconciliation />}
+      {activeTab === 'declarations' && <DeclarationManager />}
+      {activeTab === 'parameters' && <FiscalParametersManager />}
     </div>
   );
 }
