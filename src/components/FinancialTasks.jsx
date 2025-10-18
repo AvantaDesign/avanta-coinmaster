@@ -189,7 +189,7 @@ export default function FinancialTasks() {
                     </p>
                   </div>
                 </div>
-                {hasDefaultTasks && freqTasks.length === 0 && (
+                {freqTasks.length === 0 && (
                   <button
                     onClick={() => handleInitializeTasks(freq.key)}
                     className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white text-sm font-medium rounded-lg transition-colors"
@@ -221,14 +221,12 @@ export default function FinancialTasks() {
                       ? 'No hay tareas para esta frecuencia'
                       : 'No hay tareas pendientes'}
                   </p>
-                  {hasDefaultTasks && (
-                    <button
-                      onClick={() => handleInitializeTasks(freq.key)}
-                      className="mt-3 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white text-sm font-medium rounded-lg transition-colors"
-                    >
-                      Inicializar Tareas {freq.label}
-                    </button>
-                  )}
+                  <button
+                    onClick={() => handleInitializeTasks(freq.key)}
+                    className="mt-3 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white text-sm font-medium rounded-lg transition-colors"
+                  >
+                    Inicializar Tareas {freq.label}
+                  </button>
                 </div>
               ) : (
                 freqTasks.map(task => (
