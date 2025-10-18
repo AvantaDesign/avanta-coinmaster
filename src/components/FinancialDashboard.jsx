@@ -6,7 +6,9 @@ import {
   fetchAccounts,
   fetchDebts,
   fetchPortfolioSummary,
-  fetchCashFlowProjection
+  fetchCashFlowProjection,
+  fetchNotifications,
+  fetchFinancialTasks
 } from '../utils/api';
 import { calculateCollectionMetrics } from '../utils/receivables';
 import { calculatePaymentMetrics } from '../utils/payables';
@@ -25,6 +27,10 @@ export default function FinancialDashboard() {
   const [debts, setDebts] = useState([]);
   const [portfolio, setPortfolio] = useState(null);
   const [cashFlowSummary, setCashFlowSummary] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [tasks, setTasks] = useState([]);
+  const [taskStats, setTaskStats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [forecastDays, setForecastDays] = useState(30);
 
@@ -42,7 +48,9 @@ export default function FinancialDashboard() {
         accountsData,
         debtsData,
         portfolioData,
-        cashFlowData
+        cashFlowData,
+        notificationsData,
+        tasksData
       ] = await Promise.all([
         fetchReceivables(),
         fetchPayables(),
@@ -50,7 +58,9 @@ export default function FinancialDashboard() {
         fetchAccounts(),
         fetchDebts({ status: 'active' }).catch(() => []),
         fetchPortfolioSummary().catch(() => null),
-        fetchCashFlowProjection({ days: 30, scenario: 'realistic' }).catch(() => null)
+        fetchCashFlowProjection({ days: 30, scenario: 'realistic' }).catch(() => null),
+        fetchNotifications({ unread: true }).catch(() => ({ notifications: [], unreadCount: 0 })),
+        fetchFinancialTasks().catch(() => ({ tasks: [], stats: [] }))
       ]);
       setReceivables(receivablesData);
       setPayables(payablesData);
@@ -59,6 +69,10 @@ export default function FinancialDashboard() {
       setDebts(debtsData);
       setPortfolio(portfolioData);
       setCashFlowSummary(cashFlowData);
+      setNotifications(notificationsData.notifications || []);
+      setUnreadCount(notificationsData.unreadCount || 0);
+      setTasks(tasksData.tasks || []);
+      setTaskStats(tasksData.stats || []);
       
       // Extract credits from accounts (credit cards)
       const creditCards = Array.isArray(accountsData) 
@@ -119,18 +133,161 @@ export default function FinancialDashboard() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Dashboard Financiero</h1>
-        <button
-          onClick={loadData}
-          className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600"
-        >
-          🔄 Actualizar
-        </button>
+        <div className="flex items-center gap-3">
+          <a
+            href="/quick-actions"
+            className="bg-purple-600 dark:bg-purple-700 text-white px-4 py-2 rounded-md hover:bg-purple-700 dark:hover:bg-purple-600 flex items-center gap-2"
+          >
+            ⚡ Acciones Rápidas
+          </a>
+          <button
+            onClick={loadData}
+            className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600"
+          >
+            🔄 Actualizar
+          </button>
+        </div>
       </div>
 
       {/* Account Balances and Budget Summary */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <AccountBreakdown accounts={accounts} />
         <BudgetSummaryWidget />
+      </div>
+
+      {/* Notifications and Tasks Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Notifications Widget */}
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-bold text-blue-600 dark:text-blue-400">🔔 Notificaciones</h3>
+            <a 
+              href="/notifications"
+              className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
+            >
+              Ver todas →
+            </a>
+          </div>
+          
+          {unreadCount > 0 ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
+                <span className="text-sm font-medium text-primary-900 dark:text-primary-100">
+                  Tienes {unreadCount} {unreadCount === 1 ? 'notificación nueva' : 'notificaciones nuevas'}
+                </span>
+              </div>
+              
+              {notifications.slice(0, 3).map((notif, idx) => (
+                <div key={idx} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-lg">
+                  <span className="text-xl">
+                    {notif.type === 'payment_reminder' && '💰'}
+                    {notif.type === 'tax_deadline' && '📋'}
+                    {notif.type === 'financial_task' && '✅'}
+                    {notif.type === 'system_alert' && '⚠️'}
+                    {notif.type === 'low_cash_flow' && '📉'}
+                    {notif.type === 'budget_overrun' && '💸'}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                      {notif.title}
+                    </p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
+                      {notif.message}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-6">
+              <div className="text-4xl mb-2">✅</div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                No tienes notificaciones pendientes
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Tasks Summary Widget */}
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-bold text-green-600 dark:text-green-400">📋 Tareas Pendientes</h3>
+            <a 
+              href="/financial-tasks"
+              className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
+            >
+              Ver todas →
+            </a>
+          </div>
+          
+          {taskStats.length > 0 ? (
+            <div className="space-y-3">
+              {taskStats.map((stat, idx) => {
+                const pending = stat.total - stat.completed;
+                const percentage = stat.total > 0 ? Math.round((stat.completed / stat.total) * 100) : 0;
+                const frequencyLabels = {
+                  daily: { label: 'Diarias', icon: '📅' },
+                  weekly: { label: 'Semanales', icon: '📆' },
+                  monthly: { label: 'Mensuales', icon: '📊' },
+                  quarterly: { label: 'Trimestrales', icon: '📈' },
+                  annual: { label: 'Anuales', icon: '📋' }
+                };
+                const freqInfo = frequencyLabels[stat.frequency] || { label: stat.frequency, icon: '📌' };
+                
+                return (
+                  <div key={idx} className="p-3 bg-gray-50 dark:bg-slate-800 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {freqInfo.icon} {freqInfo.label}
+                      </span>
+                      <span className="text-xs text-gray-600 dark:text-gray-400">
+                        {stat.completed}/{stat.total} ({percentage}%)
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
+                      <div 
+                        className="bg-green-500 h-2 rounded-full transition-all"
+                        style={{ width: `${percentage}%` }}
+                      ></div>
+                    </div>
+                    {pending > 0 && (
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                        {pending} {pending === 1 ? 'tarea pendiente' : 'tareas pendientes'}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+              
+              {taskStats.length === 0 && (
+                <div className="text-center py-4">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    No hay tareas registradas
+                  </p>
+                  <a 
+                    href="/financial-tasks"
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium mt-2 inline-block"
+                  >
+                    Inicializar tareas →
+                  </a>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-6">
+              <div className="text-4xl mb-2">📋</div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                Organiza tus actividades financieras
+              </p>
+              <a 
+                href="/financial-tasks"
+                className="inline-block px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm rounded-lg transition-colors"
+              >
+                Ir al Centro de Tareas
+              </a>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* AP/AR Summary */}
