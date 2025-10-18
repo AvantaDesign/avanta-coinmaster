@@ -515,20 +515,35 @@ This document outlines the development plan for enhancing the Avanta Finance app
         *   Mobile-friendly expandable detail views
     *   ⏳ Swipe gestures for row actions - PENDING
 
-## Phase 14: Expert Features & Accessibility
+## Phase 14: Expert Features & Accessibility 🚧 **IN PROGRESS**
 
 **Goal:** To implement highly valuable, expert-driven features specific to the Mexican market and ensure the application is accessible to all users.
 
+**Status:** 🚧 **IN PROGRESS** - Mexican tax features and accessibility compliance
+
 **Tasks:**
 
-1.  **Create a "Declaración Anual" Simulator:**
-    *   **Description:** Build a dedicated "Annual Tax Declaration Simulator". This tool will guide users through a mock declaration, using their financial data to highlight potential deductions and estimate their annual ISR liability.
+1.  **Create a "Declaración Anual" Simulator:** ⚙️ **IN PROGRESS**
+    *   ✅ **Database:** Created migration `022_add_tax_simulation.sql` with simulation tables
+    *   ✅ **Backend:** Created `functions/api/tax-simulation.js` with CRUD operations
+    *   ✅ **Tax Engine:** Created `src/utils/taxCalculationEngine.js` with ISR calculations
+    *   ⏳ **Frontend:** Tax simulator component pending
+    *   ⏳ **Integration:** Navigation and routes pending
 
-2.  **Dashboard Widget for "IVA Favor/Contra":**
-    *   **Description:** Add a prominent widget to the main dashboard that clearly shows the current balance of `IVA Acreditable` vs. `IVA Trasladado`, resulting in a real-time "IVA a favor" or "IVA a pagar" calculation for the current period.
+2.  **Dashboard Widget for "IVA Favor/Contra":** ✅ **COMPLETED**
+    *   ✅ **Utilities:** Created `src/utils/ivaCalculation.js` with comprehensive IVA calculations
+    *   ✅ **Widget:** Created `src/components/IVAWidget.jsx` with real-time monitoring
+    *   ✅ **Integration:** Integrated into `FinancialDashboard.jsx`
+    *   ✅ **Features:** Real-time calculations, trends, payment deadlines, visual indicators
 
-3.  **Visual Cues for `Uso de CFDI`:**
-    *   **Description:** In transaction and invoice forms, automatically suggest the appropriate `Uso de CFDI` code based on the selected category, simplifying this mandatory step for Mexican invoicing.
+3.  **Visual Cues for `Uso de CFDI`:** ✅ **COMPLETED**
+    *   ✅ **Utilities:** Created `src/utils/cfdiUtils.js` with 25+ CFDI codes
+    *   ✅ **Component:** Created `src/components/CFDISuggestions.jsx` with intelligent suggestions
+    *   ✅ **Integration:** Added to `AddTransaction.jsx` with validation
+    *   ✅ **Features:** Auto-suggestions, search, history, validation, confidence scores
 
-4.  **Full Accessibility (a11y) Audit & Remediation:**
-    *   **Description:** Conduct a full WCAG 2.1 AA compliance audit. Remediate all identified issues, including adding `alt` tags, ensuring proper label associations for forms, enabling full keyboard navigation, and correctly using ARIA attributes.
+4.  **Full Accessibility (a11y) Audit & Remediation:** ⚙️ **IN PROGRESS**
+    *   ✅ **Utilities:** Created `src/utils/accessibilityUtils.js` with WCAG 2.1 AA tools
+    *   ⏳ **Components:** Accessible components pending
+    *   ⏳ **Audit:** Full component audit pending
+    *   ⏳ **Testing:** Screen reader testing pending
