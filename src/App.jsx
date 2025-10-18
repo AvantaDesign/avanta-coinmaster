@@ -303,10 +303,7 @@ function NavigationBar() {
                 ) : (
                   <>
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleDropdown(module.name);
-                      }}
+                      onClick={() => toggleDropdown(module.name)}
                       className="w-full flex items-center justify-between px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-slate-700 rounded-md transition-colors touch-manipulation"
                       style={{ WebkitTapHighlightColor: 'transparent' }}
                     >
@@ -327,7 +324,8 @@ function NavigationBar() {
                             className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-slate-700 rounded-md transition-colors touch-manipulation"
                             style={{ WebkitTapHighlightColor: 'rgba(59, 130, 246, 0.1)' }}
                             onClick={(e) => {
-                              e.stopPropagation();
+                              e.preventDefault();
+                              navigate(item.path);
                               setActiveDropdown(null);
                               setMobileMenuOpen(false);
                             }}
