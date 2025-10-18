@@ -64,8 +64,8 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Optionally cache successful API responses
-          if (response.status === 200) {
+          // Only cache GET requests, not POST/PUT/DELETE
+          if (response.status === 200 && request.method === 'GET') {
             const responseClone = response.clone();
             caches.open(RUNTIME_CACHE).then((cache) => {
               cache.put(request, responseClone);

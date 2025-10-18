@@ -231,9 +231,17 @@ export function calculateQuarterlySummaries(transactions) {
     { quarter: 4, months: [10, 11, 12], name: 'Q4 Octubre-Diciembre' }
   ];
 
+  // Get the year from the first valid transaction, or use current year as fallback
+  const currentYear = new Date().getFullYear();
+  const firstTransaction = transactions.find(tx => tx.date);
+  const year = firstTransaction ? new Date(firstTransaction.date).getFullYear() : currentYear;
+
   return quarters.map(q => {
     const quarterTransactions = transactions.filter(tx => {
+      if (!tx.date) return false;
       const txDate = new Date(tx.date);
+      // Check if the date is valid
+      if (isNaN(txDate.getTime())) return false;
       const txMonth = txDate.getMonth() + 1;
       return q.months.includes(txMonth);
     });
@@ -243,7 +251,7 @@ export function calculateQuarterlySummaries(transactions) {
     return {
       ...q,
       ...summary,
-      dueDate: getQuarterlyDueDate(new Date(transactions[0]?.date).getFullYear(), q.quarter)
+      dueDate: getQuarterlyDueDate(year, q.quarter)
     };
   });
 }
@@ -306,6 +314,13 @@ export function formatCurrency(amount) {
 export function formatDate(date) {
   if (!date) return '';
   const d = typeof date === 'string' ? new Date(date) : date;
+  
+  // Check if the date is valid
+  if (isNaN(d.getTime())) {
+    console.warn('Invalid date provided to formatDate:', date);
+    return '';
+  }
+  
   return new Intl.DateTimeFormat('es-MX', {
     year: 'numeric',
     month: 'long',
