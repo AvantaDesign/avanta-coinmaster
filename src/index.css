@@ -15,8 +15,8 @@
   .dark {
     color-scheme: dark;
     /* SVG and chart colors for dark mode */
-    --color-chart-grid: #475569;
-    --color-chart-text: #94a3b8;
+    --color-chart-grid: #64748b;
+    --color-chart-text: #cbd5e1;
     --color-chart-line: #60a5fa;
   }
 }
@@ -39,7 +39,7 @@ code {
 /* Card styles for dark mode */
 @layer components {
   .card {
-    @apply bg-white dark:bg-slate-900 rounded-lg shadow-md dark:shadow-lg dark:shadow-black/20 transition-colors duration-300;
+    @apply bg-white dark:bg-slate-800 rounded-lg shadow-md dark:shadow-lg dark:shadow-black/20 transition-colors duration-300;
   }
   
   .card-hover {
@@ -47,7 +47,7 @@ code {
   }
   
   .input-field {
-    @apply bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-slate-700 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 transition-colors duration-200;
+    @apply bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 transition-colors duration-200;
   }
   
   .btn-primary {
@@ -64,19 +64,19 @@ code {
   }
   
   .border-default {
-    @apply border-gray-200 dark:border-slate-700;
+    @apply border-gray-200 dark:border-slate-600;
   }
   
   .text-primary {
-    @apply text-gray-900 dark:text-white;
+    @apply text-gray-900 dark:text-gray-100;
   }
   
   .text-secondary {
-    @apply text-gray-600 dark:text-gray-400;
+    @apply text-gray-600 dark:text-gray-300;
   }
   
   .text-tertiary {
-    @apply text-gray-500 dark:text-gray-500;
+    @apply text-gray-500 dark:text-gray-400;
   }
   
   .shadow-default {
