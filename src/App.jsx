@@ -43,6 +43,7 @@ const DeductibilityRules = lazy(() => import('./pages/DeductibilityRules'));
 const Breadcrumbs = lazy(() => import('./components/Breadcrumbs'));
 const QuickAddFAB = lazy(() => import('./components/QuickAddFAB'));
 const CFDIManager = lazy(() => import('./components/CFDIManager'));
+const TaxCalculations = lazy(() => import('./components/TaxCalculations'));
 
 // Loading fallback component
 function LoadingFallback() {
@@ -152,6 +153,7 @@ function NavigationBar() {
       type: 'dropdown',
       items: [
         { name: 'Fiscal', icon: '🧾', path: '/fiscal' },
+        { name: 'Cálculos Fiscales', icon: '🧮', path: '/tax-calculations' },
         { name: 'Gestor de CFDI', icon: '📋', path: '/cfdi-manager' },
         { name: 'Facturas', icon: '📑', path: '/invoices' },
         { name: 'Recibos', icon: '🧾', path: '/receipts' },
@@ -516,6 +518,7 @@ function AuthenticatedApp() {
                 <Route path="/credits" element={<Credits />} />
                 <Route path="/budgets" element={<Budgets />} />
                 <Route path="/fiscal" element={<Fiscal />} />
+                <Route path="/tax-calculations" element={<TaxCalculations />} />
                 <Route path="/cfdi-manager" element={<CFDIManager />} />
                 <Route path="/invoices" element={<Invoices />} />
                 <Route path="/receipts" element={<Receipts />} />
