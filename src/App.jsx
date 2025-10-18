@@ -46,6 +46,8 @@ const CFDIManager = lazy(() => import('./components/CFDIManager'));
 const TaxCalculations = lazy(() => import('./components/TaxCalculations'));
 const BankReconciliation = lazy(() => import('./components/BankReconciliation'));
 const SATDeclarations = lazy(() => import('./components/SATDeclarations'));
+const AnnualDeclarations = lazy(() => import('./components/AnnualDeclarations'));
+const FiscalAnalytics = lazy(() => import('./components/FiscalAnalytics'));
 
 // Loading fallback component
 function LoadingFallback() {
@@ -156,6 +158,8 @@ function NavigationBar() {
       items: [
         { name: 'Fiscal', icon: '🧾', path: '/fiscal' },
         { name: 'Cálculos Fiscales', icon: '🧮', path: '/tax-calculations' },
+        { name: 'Declaración Anual', icon: '📊', path: '/annual-declarations' },
+        { name: 'Analytics Fiscales', icon: '📈', path: '/fiscal-analytics' },
         { name: 'Conciliación Bancaria', icon: '🏦', path: '/bank-reconciliation' },
         { name: 'Gestor de CFDI', icon: '📋', path: '/cfdi-manager' },
         { name: 'Declaraciones SAT', icon: '📄', path: '/sat-declarations' },
@@ -523,6 +527,8 @@ function AuthenticatedApp() {
                 <Route path="/budgets" element={<Budgets />} />
                 <Route path="/fiscal" element={<Fiscal />} />
                 <Route path="/tax-calculations" element={<TaxCalculations />} />
+                <Route path="/annual-declarations" element={<AnnualDeclarations />} />
+                <Route path="/fiscal-analytics" element={<FiscalAnalytics />} />
                 <Route path="/bank-reconciliation" element={<BankReconciliation />} />
                 <Route path="/cfdi-manager" element={<CFDIManager />} />
                 <Route path="/sat-declarations" element={<SATDeclarations />} />
