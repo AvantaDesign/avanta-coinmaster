@@ -45,6 +45,7 @@ const QuickAddFAB = lazy(() => import('./components/QuickAddFAB'));
 const CFDIManager = lazy(() => import('./components/CFDIManager'));
 const TaxCalculations = lazy(() => import('./components/TaxCalculations'));
 const BankReconciliation = lazy(() => import('./components/BankReconciliation'));
+const SATDeclarations = lazy(() => import('./components/SATDeclarations'));
 
 // Loading fallback component
 function LoadingFallback() {
@@ -157,6 +158,7 @@ function NavigationBar() {
         { name: 'Cálculos Fiscales', icon: '🧮', path: '/tax-calculations' },
         { name: 'Conciliación Bancaria', icon: '🏦', path: '/bank-reconciliation' },
         { name: 'Gestor de CFDI', icon: '📋', path: '/cfdi-manager' },
+        { name: 'Declaraciones SAT', icon: '📄', path: '/sat-declarations' },
         { name: 'Facturas', icon: '📑', path: '/invoices' },
         { name: 'Recibos', icon: '🧾', path: '/receipts' },
         { name: 'Reglas de Deducibilidad', icon: '⚖️', path: '/deductibility-rules' },
@@ -523,6 +525,7 @@ function AuthenticatedApp() {
                 <Route path="/tax-calculations" element={<TaxCalculations />} />
                 <Route path="/bank-reconciliation" element={<BankReconciliation />} />
                 <Route path="/cfdi-manager" element={<CFDIManager />} />
+                <Route path="/sat-declarations" element={<SATDeclarations />} />
                 <Route path="/invoices" element={<Invoices />} />
                 <Route path="/receipts" element={<Receipts />} />
                 <Route path="/automation" element={<Home />} />
