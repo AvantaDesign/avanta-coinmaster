@@ -662,3 +662,131 @@ export async function deleteInvestment(id) {
   if (!response.ok) throw new Error('Failed to delete investment');
   return response.json();
 }
+
+// Notifications API
+export async function fetchNotifications(params = {}) {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/notifications${queryString ? '?' + queryString : ''}`;
+  const response = await authFetch(url, {
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to fetch notifications');
+  return response.json();
+}
+
+export async function createNotification(data) {
+  const response = await authFetch(`${API_BASE}/notifications`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error('Failed to create notification');
+  return response.json();
+}
+
+export async function markNotificationAsRead(id) {
+  const response = await authFetch(`${API_BASE}/notifications?id=${id}&action=mark-read`, {
+    method: 'PUT',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    }
+  });
+  if (!response.ok) throw new Error('Failed to mark notification as read');
+  return response.json();
+}
+
+export async function dismissNotification(id) {
+  const response = await authFetch(`${API_BASE}/notifications?id=${id}&action=dismiss`, {
+    method: 'PUT',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    }
+  });
+  if (!response.ok) throw new Error('Failed to dismiss notification');
+  return response.json();
+}
+
+export async function snoozeNotification(id, snoozedUntil) {
+  const response = await authFetch(`${API_BASE}/notifications?id=${id}&action=snooze`, {
+    method: 'PUT',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify({ snoozed_until: snoozedUntil })
+  });
+  if (!response.ok) throw new Error('Failed to snooze notification');
+  return response.json();
+}
+
+export async function deleteNotification(id) {
+  const response = await authFetch(`${API_BASE}/notifications?id=${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to delete notification');
+  return response.json();
+}
+
+// Financial Tasks API
+export async function fetchFinancialTasks(params = {}) {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/financial-tasks${queryString ? '?' + queryString : ''}`;
+  const response = await authFetch(url, {
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to fetch financial tasks');
+  return response.json();
+}
+
+export async function createFinancialTask(data) {
+  const response = await authFetch(`${API_BASE}/financial-tasks`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error('Failed to create financial task');
+  return response.json();
+}
+
+export async function updateFinancialTask(id, data) {
+  const response = await authFetch(`${API_BASE}/financial-tasks?id=${id}`, {
+    method: 'PUT',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) throw new Error('Failed to update financial task');
+  return response.json();
+}
+
+export async function toggleTaskCompletion(id) {
+  const response = await authFetch(`${API_BASE}/financial-tasks?id=${id}&action=toggle`, {
+    method: 'PUT',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    }
+  });
+  if (!response.ok) throw new Error('Failed to toggle task completion');
+  return response.json();
+}
+
+export async function deleteFinancialTask(id) {
+  const response = await authFetch(`${API_BASE}/financial-tasks?id=${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error('Failed to delete financial task');
+  return response.json();
+}
