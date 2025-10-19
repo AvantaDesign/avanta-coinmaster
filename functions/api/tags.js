@@ -3,7 +3,24 @@
  * Handles CRUD operations for the flexible tagging system
  */
 
-import { verifyAuth } from './auth/middleware';
+import { getUserIdFromToken } from './auth.js';
+
+const corsHeaders = {
+  'Content-Type': 'application/json',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+/**
+ * OPTIONS handler for CORS
+ */
+export async function onRequestOptions() {
+  return new Response(null, {
+    status: 204,
+    headers: corsHeaders
+  });
+}
 
 /**
  * GET /api/tags - Get all tags for the current user
@@ -637,16 +654,20 @@ export async function onRequest(context) {
   const method = request.method;
 
   // Verify authentication
-  const authResult = await verifyAuth(request, env);
-  if (!authResult.valid) {
-    return new Response(JSON.stringify({ error: 'No autenticado' }), {
+  const userId = await getUserIdFromToken(request, env);
+  if (!userId) {
+    return new Response(JSON.stringify({ 
+      error: 'No autenticado',
+      message: 'Token de autenticación requerido',
+      code: 'AUTH_REQUIRED'
+    }), {
       status: 401,
-      headers: { 'Content-Type': 'application/json' }
+      headers: corsHeaders
     });
   }
 
   // Attach userId to request
-  request.userId = authResult.userId;
+  request.userId = userId;
 
   // Route based on path and method
   const pathParts = url.pathname.split('/').filter(p => p);
@@ -697,7 +718,7 @@ export async function onRequest(context) {
 
     return new Response(JSON.stringify({ error: 'Ruta no encontrada' }), {
       status: 404,
-      headers: { 'Content-Type': 'application/json' }
+      headers: corsHeaders
     });
   } catch (error) {
     console.error('Error in tags API:', error);
@@ -706,7 +727,7 @@ export async function onRequest(context) {
       details: error.message 
     }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
+      headers: corsHeaders
     });
   }
 }
