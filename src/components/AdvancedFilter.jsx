@@ -81,7 +81,7 @@ export default function AdvancedFilter({ onFilterChange, onReset }) {
 
   const saveCurrentFilter = () => {
     if (!filterName.trim()) {
-      alert('Please enter a name for this filter');
+      alert('Por favor ingrese un nombre para este filtro');
       return;
     }
 
@@ -114,25 +114,25 @@ export default function AdvancedFilter({ onFilterChange, onReset }) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md overflow-hidden">
       {/* Header */}
       <div 
-        className="px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 cursor-pointer hover:from-blue-100 hover:to-indigo-100 transition-colors"
+        className="px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-600 border-b border-gray-200 dark:border-slate-600 cursor-pointer hover:from-blue-100 hover:to-indigo-100 dark:hover:from-slate-600 dark:hover:to-slate-500 transition-colors"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-3">
             <span className="text-2xl">🔍</span>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Advanced Filters</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Filtros Avanzados</h3>
               {hasActiveFilters() && (
-                <p className="text-sm text-blue-600">
-                  {getActiveFilterCount()} active filter(s)
+                <p className="text-sm text-blue-600 dark:text-blue-400">
+                  {getActiveFilterCount()} filtro(s) activo(s)
                 </p>
               )}
             </div>
           </div>
-          <button className="text-gray-600 hover:text-gray-900">
+          <button className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">
             <svg 
               className={`w-6 h-6 transform transition-transform ${isExpanded ? 'rotate-180' : ''}`}
               fill="none" 
@@ -150,71 +150,71 @@ export default function AdvancedFilter({ onFilterChange, onReset }) {
         <div className="p-6 space-y-6">
           {/* Quick Search */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              🔎 Quick Search
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              🔎 Búsqueda Rápida
             </label>
             <input
               type="text"
               value={filters.search}
               onChange={(e) => handleFilterChange('search', e.target.value)}
-              placeholder="Search in descriptions..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Buscar en descripciones..."
+              className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
             />
           </div>
 
           {/* Basic Filters */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Transaction Type
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Tipo de Transacción
               </label>
               <select
                 value={filters.transaction_type}
                 onChange={(e) => handleFilterChange('transaction_type', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
               >
-                <option value="">All Types</option>
+                <option value="">Todos los Tipos</option>
                 <option value="personal">Personal</option>
-                <option value="business">Business</option>
-                <option value="transfer">Transfer</option>
+                <option value="business">Negocio</option>
+                <option value="transfer">Transferencia</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Category
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Categoría
               </label>
               <select
                 value={filters.category}
                 onChange={(e) => handleFilterChange('category', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
               >
-                <option value="">All Categories</option>
+                <option value="">Todas las Categorías</option>
                 <option value="personal">Personal</option>
                 <option value="avanta">Avanta</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Income/Expense
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Ingreso/Gasto
               </label>
               <select
                 value={filters.type}
                 onChange={(e) => handleFilterChange('type', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
               >
-                <option value="">All</option>
-                <option value="ingreso">Income</option>
-                <option value="gasto">Expense</option>
+                <option value="">Todos</option>
+                <option value="ingreso">Ingreso</option>
+                <option value="gasto">Gasto</option>
               </select>
             </div>
           </div>
 
           {/* Date Range */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              📅 Date Range
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              📅 Rango de Fechas
             </label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -222,8 +222,8 @@ export default function AdvancedFilter({ onFilterChange, onReset }) {
                   type="date"
                   value={filters.date_from}
                   onChange={(e) => handleFilterChange('date_from', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="From"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                  placeholder="Desde"
                 />
               </div>
               <div>
@@ -231,8 +231,8 @@ export default function AdvancedFilter({ onFilterChange, onReset }) {
                   type="date"
                   value={filters.date_to}
                   onChange={(e) => handleFilterChange('date_to', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="To"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                  placeholder="Hasta"
                 />
               </div>
             </div>
@@ -240,9 +240,9 @@ export default function AdvancedFilter({ onFilterChange, onReset }) {
 
           {/* Amount Range */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1.5">
-              <Icon name="currency" size="sm" className="text-gray-600" />
-              Amount Range
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
+              <Icon name="currency" size="sm" className="text-gray-600 dark:text-gray-400" />
+              Rango de Monto
             </label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -250,9 +250,9 @@ export default function AdvancedFilter({ onFilterChange, onReset }) {
                   type="number"
                   value={filters.amount_min}
                   onChange={(e) => handleFilterChange('amount_min', e.target.value)}
-                  placeholder="Min amount"
+                  placeholder="Monto mínimo"
                   step="0.01"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                 />
               </div>
               <div>
@@ -260,9 +260,9 @@ export default function AdvancedFilter({ onFilterChange, onReset }) {
                   type="number"
                   value={filters.amount_max}
                   onChange={(e) => handleFilterChange('amount_max', e.target.value)}
-                  placeholder="Max amount"
+                  placeholder="Monto máximo"
                   step="0.01"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                 />
               </div>
             </div>
@@ -270,34 +270,34 @@ export default function AdvancedFilter({ onFilterChange, onReset }) {
 
           {/* Deductible */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Deductible
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Deducible
             </label>
             <select
               value={filters.is_deductible}
               onChange={(e) => handleFilterChange('is_deductible', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
             >
-              <option value="">All</option>
-              <option value="1">Yes</option>
+              <option value="">Todos</option>
+              <option value="1">Sí</option>
               <option value="0">No</option>
             </select>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-200">
+          <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-200 dark:border-slate-600">
             <button
               onClick={handleReset}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+              className="px-4 py-2 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-600 transition-colors"
             >
-              Clear All Filters
+              Limpiar Todos los Filtros
             </button>
             {hasActiveFilters() && (
               <button
                 onClick={() => setShowSaveDialog(true)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
               >
-                💾 Save Filter
+                💾 Guardar Filtro
               </button>
             )}
           </div>
@@ -305,27 +305,27 @@ export default function AdvancedFilter({ onFilterChange, onReset }) {
           {/* Save Filter Dialog */}
           {showSaveDialog && (
             <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-              <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
-                <h3 className="text-lg font-semibold mb-4">Save Filter Preset</h3>
+              <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl p-6 max-w-md w-full">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Guardar Filtro Personalizado</h3>
                 <input
                   type="text"
                   value={filterName}
                   onChange={(e) => setFilterName(e.target.value)}
-                  placeholder="Enter filter name..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+                  placeholder="Ingrese nombre del filtro..."
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 mb-4"
                 />
                 <div className="flex justify-end space-x-3">
                   <button
                     onClick={() => setShowSaveDialog(false)}
-                    className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700"
                   >
-                    Cancel
+                    Cancelar
                   </button>
                   <button
                     onClick={saveCurrentFilter}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600"
                   >
-                    Save
+                    Guardar
                   </button>
                 </div>
               </div>
@@ -334,23 +334,23 @@ export default function AdvancedFilter({ onFilterChange, onReset }) {
 
           {/* Saved Filters */}
           {savedFilters.length > 0 && (
-            <div className="pt-4 border-t border-gray-200">
-              <h4 className="text-sm font-medium text-gray-700 mb-3">Saved Filter Presets</h4>
+            <div className="pt-4 border-t border-gray-200 dark:border-slate-600">
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Filtros Guardados</h4>
               <div className="space-y-2">
                 {savedFilters.map(savedFilter => (
                   <div 
                     key={savedFilter.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-700 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors"
                   >
                     <button
                       onClick={() => loadSavedFilter(savedFilter)}
-                      className="flex-1 text-left text-sm font-medium text-gray-900"
+                      className="flex-1 text-left text-sm font-medium text-gray-900 dark:text-gray-100"
                     >
                       📋 {savedFilter.name}
                     </button>
                     <button
                       onClick={() => deleteSavedFilter(savedFilter.id)}
-                      className="ml-2 text-red-600 hover:text-red-700"
+                      className="ml-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
                     >
                       <Icon name="trash" size="sm" />
                     </button>
