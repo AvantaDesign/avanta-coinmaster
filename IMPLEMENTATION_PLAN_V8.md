@@ -39,7 +39,7 @@ This document has been updated after a thorough system analysis. Critical areas 
 *   ✅ `functions/utils/monetary.js` - Monetary conversion utilities
 *   ✅ `PHASE_30_BACKEND_REFACTORING_GUIDE.md` - Complete refactoring documentation
 *   ✅ `PHASE_30_HARDENING_SUMMARY.md` - Phase completion summary
-*   🔄 API files refactored (2/~42 complete)
+*   🔄 API files refactored (9/~42 complete - 21%)
 
 **Tables Migrated (25):**
 transactions, accounts, invoices, fiscal_payments, credits, credit_movements, budgets, 
@@ -48,14 +48,32 @@ automation_rules, payment_schedules, receivable_payments, payable_payments,
 recurring_freelancers, recurring_services, debts, debt_payments, investments, 
 investment_transactions, investment_valuations, freelancer_timesheets, savings_goals
 
-**APIs Refactored (2/~42):**
-*   ✅ functions/api/transactions.js
-*   ✅ functions/api/accounts.js
-*   ⏳ functions/api/invoices.js (HIGH PRIORITY)
-*   ⏳ functions/api/budgets.js (HIGH PRIORITY)
-*   ⏳ functions/api/dashboard.js (HIGH PRIORITY)
-*   ⏳ functions/api/fiscal.js (HIGH PRIORITY)
-*   ⏳ ~36 additional API files (see PHASE_30_BACKEND_REFACTORING_GUIDE.md)
+**APIs Refactored (9/~42):**
+*   ✅ functions/api/transactions.js (Phase 30 initial work)
+*   ✅ functions/api/accounts.js (Phase 30 initial work)
+*   ✅ functions/api/invoices.js (HIGH PRIORITY - refactored GET/POST)
+*   ✅ functions/api/budgets.js (HIGH PRIORITY - refactored all endpoints)
+*   ✅ functions/api/dashboard.js (HIGH PRIORITY - refactored all aggregations)
+*   ✅ functions/api/receivables.js (HIGH PRIORITY - refactored GET/POST/PUT)
+*   ✅ functions/api/payables.js (HIGH PRIORITY - refactored GET/POST/PUT)
+*   ✅ functions/api/credits.js (MEDIUM PRIORITY - refactored GET/POST/PUT with movements)
+*   ✅ functions/api/debts.js (MEDIUM PRIORITY - refactored GET/POST/PUT with amortization)
+*   ⏳ functions/api/fiscal.js (HIGH PRIORITY - needs refactoring)
+*   ⏳ functions/api/fiscal-analytics.js (HIGH PRIORITY - needs refactoring)
+*   ⏳ functions/api/tax-calculations.js (HIGH PRIORITY - needs refactoring)
+*   ⏳ functions/api/savings-goals.js (MEDIUM PRIORITY - imports added, needs completion)
+*   ⏳ functions/api/investments.js (MEDIUM PRIORITY - needs refactoring)
+*   ⏳ functions/api/recurring-freelancers.js (MEDIUM PRIORITY - needs refactoring)
+*   ⏳ functions/api/recurring-services.js (MEDIUM PRIORITY - needs refactoring)
+*   ⏳ functions/api/cfdi-management.js (LOWER PRIORITY - needs refactoring)
+*   ⏳ functions/api/bank-reconciliation.js (LOWER PRIORITY - needs refactoring)
+*   ⏳ functions/api/sat-declarations.js (LOWER PRIORITY - needs refactoring)
+*   ⏳ functions/api/annual-declarations.js (LOWER PRIORITY - needs refactoring)
+*   ⏳ functions/api/reports.js (LOWER PRIORITY - needs refactoring)
+*   ⏳ functions/api/cash-flow-projection.js (LOWER PRIORITY - needs refactoring)
+*   ⏳ functions/api/analytics.js (LOWER PRIORITY - needs refactoring)
+*   ⏳ functions/api/tax-reports.js (LOWER PRIORITY - needs refactoring)
+*   ⏳ ~19 additional API files may require refactoring
 
 **Verification Status:**
 *   ✅ Migration script syntax validated

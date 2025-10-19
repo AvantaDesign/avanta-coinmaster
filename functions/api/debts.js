@@ -1,6 +1,16 @@
 // Debts API - Manage loans and financial obligations
+// Phase 30: Monetary values stored as INTEGER cents in database
 
 import Decimal from 'decimal.js';
+import { 
+  toCents, 
+  fromCents, 
+  fromCentsToDecimal,
+  convertArrayFromCents, 
+  convertObjectFromCents, 
+  parseMonetaryInput,
+  MONETARY_FIELDS 
+} from '../utils/monetary.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -124,14 +134,21 @@ export async function onRequestGet(context) {
         });
       }
 
+      // Phase 30: Convert debt fields from cents to decimal
+      const convertedDebt = convertObjectFromCents(debt, MONETARY_FIELDS.DEBTS);
+
       // Include amortization schedule if requested
       if (getAmortization === 'true') {
+        // Convert amounts from cents to decimal for calculation
+        const principalDecimal = parseFloat(fromCents(debt.principal_amount));
+        const monthlyPaymentDecimal = debt.monthly_payment ? parseFloat(fromCents(debt.monthly_payment)) : null;
+        
         const schedule = generateAmortizationSchedule(
-          debt.principal_amount,
+          principalDecimal,
           debt.interest_rate,
           debt.loan_term_months,
           debt.start_date,
-          debt.monthly_payment
+          monthlyPaymentDecimal
         );
         
         // Get payment history
@@ -139,11 +156,14 @@ export async function onRequestGet(context) {
           'SELECT * FROM debt_payments WHERE debt_id = ? ORDER BY payment_date ASC'
         ).bind(id).all();
         
-        debt.amortization_schedule = schedule;
-        debt.payment_history = payments.results || [];
+        // Phase 30: Convert payment amounts from cents
+        const convertedPayments = convertArrayFromCents(payments.results || [], MONETARY_FIELDS.PAYMENTS);
+        
+        convertedDebt.amortization_schedule = schedule;
+        convertedDebt.payment_history = convertedPayments;
       }
 
-      return new Response(JSON.stringify(debt), {
+      return new Response(JSON.stringify(convertedDebt), {
         headers: corsHeaders
       });
     }
@@ -161,7 +181,10 @@ export async function onRequestGet(context) {
 
     const result = await env.DB.prepare(query).bind(...params).all();
 
-    return new Response(JSON.stringify(result.results || []), {
+    // Phase 30: Convert debt fields from cents to decimal
+    const convertedDebts = convertArrayFromCents(result.results || [], MONETARY_FIELDS.DEBTS);
+
+    return new Response(JSON.stringify(convertedDebts), {
       headers: corsHeaders
     });
 
@@ -205,12 +228,52 @@ export async function onRequestPost(context) {
       });
     }
 
-    // Calculate monthly payment if not provided
-    const monthlyPayment = data.monthly_payment || calculateMonthlyPayment(
-      data.principal_amount,
-      data.interest_rate,
-      data.loan_term_months
-    );
+    // Phase 30: Parse and validate monetary inputs
+    const principalResult = parseMonetaryInput(data.principal_amount, 'principal_amount', true);
+    if (principalResult.error) {
+      return new Response(JSON.stringify({ 
+        error: principalResult.error,
+        code: 'VALIDATION_ERROR'
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
+
+    let monthlyPaymentResult = null;
+    if (data.monthly_payment) {
+      monthlyPaymentResult = parseMonetaryInput(data.monthly_payment, 'monthly_payment', false);
+      if (monthlyPaymentResult.error) {
+        return new Response(JSON.stringify({ 
+          error: monthlyPaymentResult.error,
+          code: 'VALIDATION_ERROR'
+        }), {
+          status: 400,
+          headers: corsHeaders
+        });
+      }
+    }
+
+    let currentBalanceResult = null;
+    if (data.current_balance) {
+      currentBalanceResult = parseMonetaryInput(data.current_balance, 'current_balance', false);
+      if (currentBalanceResult.error) {
+        return new Response(JSON.stringify({ 
+          error: currentBalanceResult.error,
+          code: 'VALIDATION_ERROR'
+        }), {
+          status: 400,
+          headers: corsHeaders
+        });
+      }
+    }
+
+    // Calculate monthly payment if not provided (use decimal for calculation)
+    const principalDecimal = parseFloat(fromCents(principalResult.value));
+    const monthlyPaymentDecimal = monthlyPaymentResult 
+      ? parseFloat(fromCents(monthlyPaymentResult.value))
+      : calculateMonthlyPayment(principalDecimal, data.interest_rate, data.loan_term_months);
+    const monthlyPaymentCents = toCents(monthlyPaymentDecimal);
 
     // Calculate next payment date
     const nextPaymentDate = calculateNextPaymentDate(
@@ -235,13 +298,13 @@ export async function onRequestPost(context) {
     `).bind(
       data.debt_name,
       data.lender,
-      data.principal_amount,
-      data.current_balance || data.principal_amount,
+      principalResult.value,  // Phase 30: stored as cents
+      currentBalanceResult ? currentBalanceResult.value : principalResult.value,  // Phase 30: stored as cents
       data.interest_rate,
       data.interest_type || 'fixed',
       data.loan_term_months,
       data.payment_frequency || 'monthly',
-      monthlyPayment,
+      monthlyPaymentCents,  // Phase 30: stored as cents
       data.start_date,
       endDate.toISOString().split('T')[0],
       nextPaymentDate,
@@ -298,6 +361,35 @@ export async function onRequestPut(context) {
         status: 400,
         headers: corsHeaders
       });
+    }
+
+    // Phase 30: Validate and convert monetary fields before update
+    if (data.current_balance !== undefined) {
+      const balanceResult = parseMonetaryInput(data.current_balance, 'current_balance', false);
+      if (balanceResult.error) {
+        return new Response(JSON.stringify({ 
+          error: balanceResult.error,
+          code: 'VALIDATION_ERROR'
+        }), {
+          status: 400,
+          headers: corsHeaders
+        });
+      }
+      data.current_balance = balanceResult.value;  // Replace with cents value
+    }
+
+    if (data.monthly_payment !== undefined) {
+      const paymentResult = parseMonetaryInput(data.monthly_payment, 'monthly_payment', false);
+      if (paymentResult.error) {
+        return new Response(JSON.stringify({ 
+          error: paymentResult.error,
+          code: 'VALIDATION_ERROR'
+        }), {
+          status: 400,
+          headers: corsHeaders
+        });
+      }
+      data.monthly_payment = paymentResult.value;  // Replace with cents value
     }
 
     // Build update query dynamically
