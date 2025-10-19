@@ -1,6 +1,15 @@
 // Payables API - Manage accounts payable and vendor payments
+// Phase 30: Monetary values stored as INTEGER cents in database
 
 import Decimal from 'decimal.js';
+import { 
+  toCents, 
+  fromCentsToDecimal,
+  convertArrayFromCents, 
+  convertObjectFromCents, 
+  parseMonetaryInput,
+  MONETARY_FIELDS 
+} from '../utils/monetary.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -54,9 +63,13 @@ export async function onRequestGet(context) {
         'SELECT * FROM payable_payments WHERE payable_id = ? ORDER BY payment_date DESC'
       ).bind(id).all();
 
+      // Phase 30: Convert monetary fields from cents to decimal
+      const convertedPayable = convertObjectFromCents(payable, MONETARY_FIELDS.PAYABLES);
+      const convertedPayments = convertArrayFromCents(payments.results || [], MONETARY_FIELDS.PAYMENTS);
+
       return new Response(JSON.stringify({
-        payable,
-        payments: payments.results || []
+        payable: convertedPayable,
+        payments: convertedPayments
       }), {
         headers: corsHeaders
       });
@@ -90,9 +103,12 @@ export async function onRequestGet(context) {
 
     const result = await stmt.all();
 
+    // Phase 30: Convert monetary fields from cents to decimal
+    const convertedResults = convertArrayFromCents(result.results || [], MONETARY_FIELDS.PAYABLES);
+
     // Update overdue status
     const today = new Date().toISOString().split('T')[0];
-    const payables = (result.results || []).map(p => {
+    const payables = convertedResults.map(p => {
       if (p.due_date < today && p.status !== 'paid' && p.status !== 'cancelled') {
         return { ...p, status: 'overdue' };
       }
@@ -155,10 +171,11 @@ export async function onRequestPost(context) {
       });
     }
 
-    // Validate amount
-    if (amount <= 0) {
+    // Phase 30: Parse and validate monetary input
+    const amountResult = parseMonetaryInput(amount, 'amount', true);
+    if (amountResult.error) {
       return new Response(JSON.stringify({ 
-        error: 'Amount must be positive',
+        error: amountResult.error,
         code: 'VALIDATION_ERROR'
       }), {
         status: 400,
@@ -177,7 +194,7 @@ export async function onRequestPost(context) {
       bill_number || null,
       bill_date,
       due_date,
-      amount,
+      amountResult.value,  // Phase 30: stored as cents
       payment_terms || 30,
       category || null,
       notes || null
@@ -248,12 +265,27 @@ export async function onRequestPut(context) {
 
     // If recording a payment
     if (amount_paid !== undefined && amount_paid > 0) {
-      // Update payable amount paid using Decimal for precision
-      const currentAmountPaid = new Decimal(payable.amount_paid || 0);
-      const paymentAmount = new Decimal(amount_paid);
+      // Phase 30: Parse and validate payment amount
+      const paymentResult = parseMonetaryInput(amount_paid, 'amount_paid', true);
+      if (paymentResult.error) {
+        return new Response(JSON.stringify({ 
+          error: paymentResult.error,
+          code: 'VALIDATION_ERROR'
+        }), {
+          status: 400,
+          headers: corsHeaders
+        });
+      }
+
+      // Phase 30: Update payable amount paid using Decimal for precision (in cents)
+      const currentAmountPaid = fromCentsToDecimal(payable.amount_paid || 0);
+      const paymentAmount = fromCentsToDecimal(paymentResult.value);
       const newAmountPaid = currentAmountPaid.plus(paymentAmount);
-      const payableAmount = new Decimal(payable.amount);
+      const payableAmount = fromCentsToDecimal(payable.amount);
       const newStatus = newAmountPaid.gte(payableAmount) ? 'paid' : 'partial';
+
+      // Convert back to cents for storage
+      const newAmountPaidCents = toCents(newAmountPaid.toNumber());
 
       // Use batch() for atomic operation - both statements succeed or fail together
       const insertPayment = env.DB.prepare(
@@ -263,7 +295,7 @@ export async function onRequestPut(context) {
       ).bind(
         id,
         payment_date || new Date().toISOString().split('T')[0],
-        amount_paid,
+        paymentResult.value,  // Phase 30: stored as cents
         payment_method || null,
         reference_number || null,
         notes || null
@@ -271,7 +303,7 @@ export async function onRequestPut(context) {
 
       const updatePayable = env.DB.prepare(
         'UPDATE payables SET amount_paid = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
-      ).bind(parseFloat(newAmountPaid.toFixed(2)), newStatus, id);
+      ).bind(newAmountPaidCents, newStatus, id);
 
       // Execute both operations atomically
       await env.DB.batch([insertPayment, updatePayable]);

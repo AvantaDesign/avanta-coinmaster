@@ -1,4 +1,5 @@
 // Credits API - Comprehensive credit management system
+// Phase 30: Monetary values stored as INTEGER cents in database
 // 
 // This API handles all credit operations including:
 // - Credit CRUD operations (Create, Read, Update, Delete)
@@ -18,6 +19,14 @@
 // - interest: Interest charges on balance
 
 import { getUserIdFromToken } from './auth.js';
+import { 
+  toCents, 
+  fromCents, 
+  convertArrayFromCents, 
+  convertObjectFromCents, 
+  parseMonetaryInput,
+  MONETARY_FIELDS 
+} from '../utils/monetary.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -115,26 +124,30 @@ export async function onRequestGet(context) {
 
       const result = await env.DB.prepare(query).bind(...params).all();
 
-      // Calculate summary
+      // Phase 30: Convert movement amounts from cents to decimal
+      const convertedMovements = convertArrayFromCents(result.results, MONETARY_FIELDS.CREDIT_MOVEMENTS);
+
+      // Calculate summary (now using converted decimal values)
       const summary = {
         total_payments: 0,
         total_charges: 0,
         total_interest: 0,
-        count: result.results.length
+        count: convertedMovements.length
       };
 
-      result.results.forEach(movement => {
+      convertedMovements.forEach(movement => {
+        const amount = parseFloat(movement.amount);
         if (movement.type === 'payment') {
-          summary.total_payments += movement.amount;
+          summary.total_payments += amount;
         } else if (movement.type === 'charge') {
-          summary.total_charges += movement.amount;
+          summary.total_charges += amount;
         } else if (movement.type === 'interest') {
-          summary.total_interest += movement.amount;
+          summary.total_interest += amount;
         }
       });
 
       return new Response(JSON.stringify({
-        movements: result.results,
+        movements: convertedMovements,  // Phase 30: return converted movements
         summary
       }), {
         headers: corsHeaders
@@ -162,22 +175,28 @@ export async function onRequestGet(context) {
         'SELECT type, SUM(amount) as total FROM credit_movements WHERE credit_id = ? GROUP BY type'
       ).bind(creditId).all();
 
-      let currentBalance = 0;
+      // Phase 30: Calculate balance in cents, then convert
+      let currentBalanceCents = 0;
       movements.results.forEach(row => {
         if (row.type === 'charge' || row.type === 'interest') {
-          currentBalance += row.total;
+          currentBalanceCents += row.total;
         } else if (row.type === 'payment') {
-          currentBalance -= row.total;
+          currentBalanceCents -= row.total;
         }
       });
 
-      // Calculate available credit
-      const availableCredit = credit.credit_limit ? credit.credit_limit - currentBalance : null;
+      // Convert credit limit and balances from cents to decimal
+      const creditLimitDecimal = credit.credit_limit ? parseFloat(fromCents(credit.credit_limit)) : null;
+      const currentBalanceDecimal = parseFloat(fromCents(currentBalanceCents));
+      const availableCredit = creditLimitDecimal ? creditLimitDecimal - currentBalanceDecimal : null;
+
+      // Phase 30: Convert credit fields from cents to decimal
+      const convertedCredit = convertObjectFromCents(credit, MONETARY_FIELDS.CREDITS);
 
       return new Response(JSON.stringify({
-        ...credit,
-        current_balance: currentBalance,
-        available_credit: availableCredit
+        ...convertedCredit,
+        current_balance: currentBalanceDecimal.toFixed(2),
+        available_credit: availableCredit !== null ? availableCredit.toFixed(2) : null
       }), {
         headers: corsHeaders
       });
@@ -203,21 +222,28 @@ export async function onRequestGet(context) {
             'SELECT type, SUM(amount) as total FROM credit_movements WHERE credit_id = ? GROUP BY type'
           ).bind(credit.id).all();
 
-          let currentBalance = 0;
+          // Phase 30: Calculate balance in cents, then convert
+          let currentBalanceCents = 0;
           movements.results.forEach(row => {
             if (row.type === 'charge' || row.type === 'interest') {
-              currentBalance += row.total;
+              currentBalanceCents += row.total;
             } else if (row.type === 'payment') {
-              currentBalance -= row.total;
+              currentBalanceCents -= row.total;
             }
           });
 
-          const availableCredit = credit.credit_limit ? credit.credit_limit - currentBalance : null;
+          // Convert credit limit and balances from cents to decimal
+          const creditLimitDecimal = credit.credit_limit ? parseFloat(fromCents(credit.credit_limit)) : null;
+          const currentBalanceDecimal = parseFloat(fromCents(currentBalanceCents));
+          const availableCredit = creditLimitDecimal ? creditLimitDecimal - currentBalanceDecimal : null;
+
+          // Phase 30: Convert credit fields from cents to decimal
+          const convertedCredit = convertObjectFromCents(credit, MONETARY_FIELDS.CREDITS);
 
           return {
-            ...credit,
-            current_balance: currentBalance,
-            available_credit: availableCredit
+            ...convertedCredit,
+            current_balance: currentBalanceDecimal.toFixed(2),
+            available_credit: availableCredit !== null ? availableCredit.toFixed(2) : null
           };
         })
       );
@@ -227,7 +253,10 @@ export async function onRequestGet(context) {
       });
     }
 
-    return new Response(JSON.stringify(result.results || []), {
+    // Phase 30: Convert credit fields from cents to decimal
+    const convertedCredits = convertArrayFromCents(result.results || [], MONETARY_FIELDS.CREDITS);
+
+    return new Response(JSON.stringify(convertedCredits), {
       headers: corsHeaders
     });
 
@@ -312,8 +341,10 @@ export async function onRequestPost(context) {
         errors.push('description must be 500 characters or less');
       }
 
-      if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
-        errors.push('amount must be a positive number');
+      // Phase 30: Parse and validate monetary input
+      const amountResult = parseMonetaryInput(amount, 'amount', true);
+      if (amountResult.error) {
+        errors.push(amountResult.error);
       }
 
       if (!type || !['payment', 'charge', 'interest'].includes(type)) {
@@ -342,7 +373,7 @@ export async function onRequestPost(context) {
       // Generate ID
       const id = `cm_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-      // Insert movement
+      // Insert movement (Phase 30: use cents value)
       await env.DB.prepare(
         `INSERT INTO credit_movements (id, credit_id, transaction_id, description, amount, type, date)
          VALUES (?, ?, ?, ?, ?, ?, ?)`
@@ -351,7 +382,7 @@ export async function onRequestPost(context) {
         creditId,
         transaction_id || null,
         description.trim(),
-        parseFloat(amount),
+        amountResult.value,  // Phase 30: stored as cents
         type,
         date
       ).run();
@@ -361,7 +392,10 @@ export async function onRequestPost(context) {
         'SELECT * FROM credit_movements WHERE id = ?'
       ).bind(id).first();
 
-      return new Response(JSON.stringify(movement), {
+      // Phase 30: Convert amount from cents to decimal
+      const convertedMovement = convertObjectFromCents(movement, MONETARY_FIELDS.CREDIT_MOVEMENTS);
+
+      return new Response(JSON.stringify(convertedMovement), {
         status: 201,
         headers: corsHeaders
       });
@@ -384,10 +418,14 @@ export async function onRequestPost(context) {
       errors.push('type must be credit_card, loan, or mortgage');
     }
 
+    // Phase 30: Parse and validate credit limit if provided
+    let creditLimitCents = null;
     if (credit_limit !== undefined && credit_limit !== null) {
-      const numLimit = parseFloat(credit_limit);
-      if (isNaN(numLimit) || numLimit <= 0) {
-        errors.push('credit_limit must be a positive number');
+      const limitResult = parseMonetaryInput(credit_limit, 'credit_limit', false);
+      if (limitResult.error) {
+        errors.push(limitResult.error);
+      } else {
+        creditLimitCents = limitResult.value;
       }
     }
 
@@ -428,7 +466,7 @@ export async function onRequestPost(context) {
 
     const metadataStr = metadata ? (typeof metadata === 'string' ? metadata : JSON.stringify(metadata)) : null;
 
-    // Insert credit
+    // Insert credit (Phase 30: use cents value for credit_limit)
     await env.DB.prepare(
       `INSERT INTO credits (id, user_id, name, type, credit_limit, interest_rate, statement_day, payment_due_day, metadata)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
@@ -437,7 +475,7 @@ export async function onRequestPost(context) {
       userId,
       name.trim(),
       type,
-      credit_limit ? parseFloat(credit_limit) : null,
+      creditLimitCents,  // Phase 30: stored as cents
       interest_rate ? parseFloat(interest_rate) : null,
       statement_day ? parseInt(statement_day) : null,
       payment_due_day ? parseInt(payment_due_day) : null,
@@ -449,7 +487,10 @@ export async function onRequestPost(context) {
       'SELECT * FROM credits WHERE id = ?'
     ).bind(id).first();
 
-    return new Response(JSON.stringify(credit), {
+    // Phase 30: Convert credit fields from cents to decimal
+    const convertedCredit = convertObjectFromCents(credit, MONETARY_FIELDS.CREDITS);
+
+    return new Response(JSON.stringify(convertedCredit), {
       status: 201,
       headers: corsHeaders
     });
@@ -547,11 +588,17 @@ export async function onRequestPut(context) {
       errors.push('type must be credit_card, loan, or mortgage');
     }
 
+    // Phase 30: Parse and validate credit limit if provided
+    let creditLimitCents = undefined;
     if (credit_limit !== undefined && credit_limit !== null) {
-      const numLimit = parseFloat(credit_limit);
-      if (isNaN(numLimit) || numLimit <= 0) {
-        errors.push('credit_limit must be a positive number');
+      const limitResult = parseMonetaryInput(credit_limit, 'credit_limit', false);
+      if (limitResult.error) {
+        errors.push(limitResult.error);
+      } else {
+        creditLimitCents = limitResult.value;
       }
+    } else if (credit_limit === null) {
+      creditLimitCents = null;  // Allow explicit null to clear credit limit
     }
 
     if (interest_rate !== undefined && interest_rate !== null) {
@@ -604,9 +651,9 @@ export async function onRequestPut(context) {
       params.push(type);
     }
 
-    if (credit_limit !== undefined) {
+    if (creditLimitCents !== undefined) {
       updates.push('credit_limit = ?');
-      params.push(credit_limit ? parseFloat(credit_limit) : null);
+      params.push(creditLimitCents);  // Phase 30: stored as cents
     }
 
     if (interest_rate !== undefined) {
@@ -658,7 +705,10 @@ export async function onRequestPut(context) {
       'SELECT * FROM credits WHERE id = ?'
     ).bind(creditId).first();
 
-    return new Response(JSON.stringify(updated), {
+    // Phase 30: Convert credit fields from cents to decimal
+    const convertedCredit = convertObjectFromCents(updated, MONETARY_FIELDS.CREDITS);
+
+    return new Response(JSON.stringify(convertedCredit), {
       headers: corsHeaders
     });
 

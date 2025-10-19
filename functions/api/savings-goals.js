@@ -1,6 +1,15 @@
 // Savings Goals API - Manage savings goals and contributions
+// Phase 30: Monetary values stored as INTEGER cents in database
 
 import { getUserIdFromToken } from './auth.js';
+import { 
+  toCents, 
+  fromCents, 
+  convertArrayFromCents, 
+  convertObjectFromCents, 
+  parseMonetaryInput,
+  MONETARY_FIELDS 
+} from '../utils/monetary.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',

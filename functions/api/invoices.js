@@ -1,6 +1,13 @@
 // Invoices API - Manage CFDI invoices
+// Phase 30: Monetary values stored as INTEGER cents in database
 
 import { getUserIdFromToken } from './auth.js';
+import { 
+  toCents, 
+  convertArrayFromCents, 
+  parseMonetaryInput, 
+  MONETARY_FIELDS 
+} from '../utils/monetary.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -54,7 +61,13 @@ export async function onRequestGet(context) {
     const stmt = env.DB.prepare(query);
     const result = await stmt.bind(...params).all();
     
-    return new Response(JSON.stringify(result.results || []), {
+    // Phase 30: Convert monetary fields from cents to decimal
+    const convertedResults = convertArrayFromCents(
+      result.results || [], 
+      MONETARY_FIELDS.INVOICES
+    );
+    
+    return new Response(JSON.stringify(convertedResults), {
       headers: corsHeaders
     });
   } catch (error) {
@@ -137,10 +150,19 @@ export async function onRequestPost(context) {
       });
     }
 
-    // Validate amounts are positive
-    if (subtotal < 0 || iva < 0 || total < 0) {
+    // Phase 30: Parse and validate monetary inputs
+    const subtotalResult = parseMonetaryInput(subtotal, 'subtotal', true);
+    const ivaResult = parseMonetaryInput(iva, 'iva', true);
+    const totalResult = parseMonetaryInput(total, 'total', true);
+
+    if (subtotalResult.error || ivaResult.error || totalResult.error) {
       return new Response(JSON.stringify({ 
-        error: 'Amounts must be positive',
+        error: 'Invalid monetary values',
+        details: {
+          subtotal: subtotalResult.error,
+          iva: ivaResult.error,
+          total: totalResult.error
+        },
         code: 'VALIDATION_ERROR'
       }), {
         status: 400,
@@ -161,10 +183,17 @@ export async function onRequestPost(context) {
     }
 
     try {
+      // Phase 30: Use converted cents values for database insertion
       const result = await env.DB.prepare(
         `INSERT INTO invoices (user_id, uuid, rfc_emisor, rfc_receptor, date, subtotal, iva, total, xml_url)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      ).bind(userId, uuid, rfc_emisor, rfc_receptor, date, subtotal, iva, total, xml_url || null).run();
+      ).bind(
+        userId, uuid, rfc_emisor, rfc_receptor, date, 
+        subtotalResult.value,  // stored as cents
+        ivaResult.value,       // stored as cents
+        totalResult.value,     // stored as cents
+        xml_url || null
+      ).run();
       
       return new Response(JSON.stringify({ 
         id: result.meta.last_row_id, 
