@@ -15,8 +15,11 @@
 // - GET /api/fiscal-analytics/optimization/:year - Get optimization suggestions
 // - POST /api/fiscal-analytics - Generate analytics for period
 // - DELETE /api/fiscal-analytics/:id - Delete analytics record
+//
+// Phase 30: Monetary values stored as INTEGER cents in database
 
 import { getUserIdFromToken } from './auth.js';
+import { fromCents } from '../utils/monetary.js';
 
 // CORS headers
 const corsHeaders = {
@@ -44,6 +47,7 @@ async function generateMonthlySummary(env, userId, year, month) {
   const endDate = `${year}-${String(month).padStart(2, '0')}-${new Date(year, month, 0).getDate()}`;
   
   // Get transaction counts and totals
+  // Phase 30: Amounts are stored as INTEGER cents, need conversion
   const transactionStats = await env.DB.prepare(`
     SELECT 
       COUNT(*) as total_transactions,
@@ -71,7 +75,7 @@ async function generateMonthlySummary(env, userId, year, month) {
       AND is_deleted = 0
   `).bind(userId, startDate, endDate).first();
   
-  // Get tax calculation for this month
+  // Get tax calculation for this month (already in cents)
   const taxCalc = await env.DB.prepare(`
     SELECT 
       isr_calculated,
@@ -90,7 +94,7 @@ async function generateMonthlySummary(env, userId, year, month) {
   
   // Calculate compliance score (0-100)
   let complianceScore = 100;
-  const totalExpenses = transactionStats.total_expenses || 0;
+  const totalExpenses = parseFloat(fromCents(transactionStats.total_expenses || 0));
   
   // Deduct points for missing CFDIs on expenses
   if (totalExpenses > 0) {
@@ -110,16 +114,17 @@ async function generateMonthlySummary(env, userId, year, month) {
   
   complianceScore = Math.max(0, Math.min(100, complianceScore));
   
+  // Phase 30: Convert all monetary values from cents to decimal
   const analyticsData = {
     transactions: {
       total: transactionStats.total_transactions || 0,
-      income: transactionStats.total_income || 0,
-      expenses: transactionStats.total_expenses || 0,
-      net: (transactionStats.total_income || 0) - (transactionStats.total_expenses || 0)
+      income: parseFloat(fromCents(transactionStats.total_income || 0)),
+      expenses: parseFloat(fromCents(transactionStats.total_expenses || 0)),
+      net: parseFloat(fromCents((transactionStats.total_income || 0) - (transactionStats.total_expenses || 0)))
     },
     deductibility: {
-      isrDeductible: deductibilityStats.isr_deductible || 0,
-      ivaDeductible: deductibilityStats.iva_deductible || 0,
+      isrDeductible: parseFloat(fromCents(deductibilityStats.isr_deductible || 0)),
+      ivaDeductible: parseFloat(fromCents(deductibilityStats.iva_deductible || 0)),
       cfdiCompliance: {
         withCFDI: deductibilityStats.transactions_with_cfdi || 0,
         withoutCFDI: deductibilityStats.transactions_without_cfdi || 0,
@@ -130,14 +135,14 @@ async function generateMonthlySummary(env, userId, year, month) {
     },
     taxes: taxCalc ? {
       isr: {
-        calculated: taxCalc.isr_calculated,
-        paid: taxCalc.isr_paid,
-        balance: taxCalc.isr_balance
+        calculated: parseFloat(fromCents(taxCalc.isr_calculated)),
+        paid: parseFloat(fromCents(taxCalc.isr_paid)),
+        balance: parseFloat(fromCents(taxCalc.isr_balance))
       },
       iva: {
-        collected: taxCalc.iva_collected,
-        paid: taxCalc.iva_paid,
-        balance: taxCalc.iva_balance
+        collected: parseFloat(fromCents(taxCalc.iva_collected)),
+        paid: parseFloat(fromCents(taxCalc.iva_paid)),
+        balance: parseFloat(fromCents(taxCalc.iva_balance))
       }
     } : null,
     compliance: {
@@ -160,8 +165,8 @@ async function generateMonthlySummary(env, userId, year, month) {
     analyticsData.compliance.issues.push({
       type: 'unpaid_isr',
       severity: 'warning',
-      amount: taxCalc.isr_balance,
-      message: `ISR pendiente de pago: $${taxCalc.isr_balance.toFixed(2)}`
+      amount: parseFloat(fromCents(taxCalc.isr_balance)),
+      message: `ISR pendiente de pago: $${fromCents(taxCalc.isr_balance)}`
     });
   }
   
@@ -175,7 +180,7 @@ async function generateAnnualSummary(env, userId, year) {
   const startDate = `${year}-01-01`;
   const endDate = `${year}-12-31`;
   
-  // Get annual transaction stats
+  // Get annual transaction stats (in cents)
   const annualStats = await env.DB.prepare(`
     SELECT 
       COUNT(*) as total_transactions,
@@ -187,7 +192,7 @@ async function generateAnnualSummary(env, userId, year) {
       AND is_deleted = 0
   `).bind(userId, startDate, endDate).first();
   
-  // Get monthly breakdown
+  // Get monthly breakdown (in cents)
   const monthlyBreakdown = await env.DB.prepare(`
     SELECT 
       strftime('%m', date) as month,
@@ -201,7 +206,7 @@ async function generateAnnualSummary(env, userId, year) {
     ORDER BY month ASC
   `).bind(userId, startDate, endDate).all();
   
-  // Get tax calculations summary
+  // Get tax calculations summary (in cents)
   const taxSummary = await env.DB.prepare(`
     SELECT 
       COALESCE(SUM(isr_calculated), 0) as total_isr,
@@ -213,25 +218,33 @@ async function generateAnnualSummary(env, userId, year) {
       AND period_year = ?
   `).bind(userId, year).first();
   
+  // Phase 30: Convert monthly breakdown from cents to decimal
+  const convertedMonthlyBreakdown = (monthlyBreakdown.results || []).map(m => ({
+    month: m.month,
+    income: parseFloat(fromCents(m.income)),
+    expenses: parseFloat(fromCents(m.expenses))
+  }));
+  
+  // Phase 30: Convert all monetary values from cents to decimal
   const analyticsData = {
     year,
     summary: {
       totalTransactions: annualStats.total_transactions || 0,
-      totalIncome: annualStats.total_income || 0,
-      totalExpenses: annualStats.total_expenses || 0,
-      netIncome: (annualStats.total_income || 0) - (annualStats.total_expenses || 0)
+      totalIncome: parseFloat(fromCents(annualStats.total_income || 0)),
+      totalExpenses: parseFloat(fromCents(annualStats.total_expenses || 0)),
+      netIncome: parseFloat(fromCents((annualStats.total_income || 0) - (annualStats.total_expenses || 0)))
     },
-    monthlyBreakdown: monthlyBreakdown.results || [],
+    monthlyBreakdown: convertedMonthlyBreakdown,
     taxes: {
       isr: {
-        calculated: taxSummary.total_isr || 0,
-        paid: taxSummary.total_isr_paid || 0,
-        balance: (taxSummary.total_isr || 0) - (taxSummary.total_isr_paid || 0)
+        calculated: parseFloat(fromCents(taxSummary.total_isr || 0)),
+        paid: parseFloat(fromCents(taxSummary.total_isr_paid || 0)),
+        balance: parseFloat(fromCents((taxSummary.total_isr || 0) - (taxSummary.total_isr_paid || 0)))
       },
       iva: {
-        collected: taxSummary.total_iva_collected || 0,
-        paid: taxSummary.total_iva_paid || 0,
-        balance: (taxSummary.total_iva_collected || 0) - (taxSummary.total_iva_paid || 0)
+        collected: parseFloat(fromCents(taxSummary.total_iva_collected || 0)),
+        paid: parseFloat(fromCents(taxSummary.total_iva_paid || 0)),
+        balance: parseFloat(fromCents((taxSummary.total_iva_collected || 0) - (taxSummary.total_iva_paid || 0)))
       }
     }
   };
@@ -262,7 +275,7 @@ async function generateComplianceStatus(env, userId, year, month) {
       AND is_deleted = 0
   `).bind(userId, startDate, endDate).first();
   
-  // Check for unpaid taxes
+  // Check for unpaid taxes (amounts in cents)
   const unpaidTaxes = await env.DB.prepare(`
     SELECT 
       COUNT(*) as count,
@@ -303,13 +316,14 @@ async function generateComplianceStatus(env, userId, year, month) {
     complianceScore -= 30;
   }
   
+  // Phase 30: Convert monetary values from cents to decimal
   if (unpaidTaxes.count > 0) {
     issues.push({
       type: 'unpaid_taxes',
       severity: 'critical',
       count: unpaidTaxes.count,
-      isrBalance: unpaidTaxes.isr_balance,
-      ivaBalance: unpaidTaxes.iva_balance,
+      isrBalance: parseFloat(fromCents(unpaidTaxes.isr_balance)),
+      ivaBalance: parseFloat(fromCents(unpaidTaxes.iva_balance)),
       message: `${unpaidTaxes.count} periodos con impuestos pendientes`,
       recommendation: 'Realiza el pago de impuestos para evitar recargos y multas'
     });
@@ -346,7 +360,7 @@ async function generateComplianceStatus(env, userId, year, month) {
  * Generate fiscal trends
  */
 async function generateFiscalTrends(env, userId, year) {
-  // Get monthly trends
+  // Get monthly trends (amounts in cents)
   const monthlyTrends = await env.DB.prepare(`
     SELECT 
       period_month,
@@ -363,7 +377,7 @@ async function generateFiscalTrends(env, userId, year) {
   
   const trends = monthlyTrends.results || [];
   
-  // Calculate growth rates
+  // Calculate growth rates (working with cents values)
   const growthRates = [];
   for (let i = 1; i < trends.length; i++) {
     const prev = trends[i - 1];
@@ -378,19 +392,34 @@ async function generateFiscalTrends(env, userId, year) {
     });
   }
   
-  // Calculate averages
-  const avgIncome = trends.reduce((sum, t) => sum + t.total_income, 0) / trends.length;
-  const avgExpenses = trends.reduce((sum, t) => sum + t.total_expenses, 0) / trends.length;
-  const avgISR = trends.reduce((sum, t) => sum + t.isr_calculated, 0) / trends.length;
+  // Calculate averages (in cents, then convert)
+  const avgIncomeCents = trends.reduce((sum, t) => sum + (t.total_income || 0), 0) / trends.length;
+  const avgExpensesCents = trends.reduce((sum, t) => sum + (t.total_expenses || 0), 0) / trends.length;
+  const avgISRCents = trends.reduce((sum, t) => sum + (t.isr_calculated || 0), 0) / trends.length;
+  
+  // Phase 30: Convert trends to decimal
+  const convertedTrends = trends.map(t => ({
+    period_month: t.period_month,
+    total_income: parseFloat(fromCents(t.total_income || 0)),
+    total_expenses: parseFloat(fromCents(t.total_expenses || 0)),
+    isr_calculated: parseFloat(fromCents(t.isr_calculated || 0)),
+    iva_collected: parseFloat(fromCents(t.iva_collected || 0)),
+    iva_paid: parseFloat(fromCents(t.iva_paid || 0))
+  }));
+  
+  // Phase 30: Convert averages and projections
+  const avgIncome = parseFloat(fromCents(avgIncomeCents || 0));
+  const avgExpenses = parseFloat(fromCents(avgExpensesCents || 0));
+  const avgISR = parseFloat(fromCents(avgISRCents || 0));
   
   return {
     year,
-    monthlyTrends: trends,
+    monthlyTrends: convertedTrends,
     growthRates,
     averages: {
-      income: avgIncome || 0,
-      expenses: avgExpenses || 0,
-      isr: avgISR || 0
+      income: avgIncome,
+      expenses: avgExpenses,
+      isr: avgISR
     },
     projections: {
       annualIncome: avgIncome * 12,
@@ -407,7 +436,7 @@ async function generateOptimizationSuggestions(env, userId, year) {
   const startDate = `${year}-01-01`;
   const endDate = `${year}-12-31`;
   
-  // Get deductibility analysis
+  // Get deductibility analysis (amounts in cents)
   const deductibilityAnalysis = await env.DB.prepare(`
     SELECT 
       COALESCE(SUM(CASE WHEN type = 'gasto' THEN amount ELSE 0 END), 0) as total_expenses,
@@ -419,7 +448,7 @@ async function generateOptimizationSuggestions(env, userId, year) {
       AND is_deleted = 0
   `).bind(userId, startDate, endDate).first();
   
-  // Get annual declaration if exists
+  // Get annual declaration if exists (amounts in cents)
   const annualDeclaration = await env.DB.prepare(`
     SELECT 
       total_income,
@@ -436,13 +465,15 @@ async function generateOptimizationSuggestions(env, userId, year) {
   const suggestions = [];
   
   // Suggestion: Improve CFDI compliance
-  if (deductibilityAnalysis.non_deductible_no_cfdi > 0) {
-    const potentialSavings = deductibilityAnalysis.non_deductible_no_cfdi * 0.30; // Approximate 30% ISR rate
+  // Phase 30: Convert amounts from cents to decimal
+  const nonDeductibleNoCFDI = parseFloat(fromCents(deductibilityAnalysis.non_deductible_no_cfdi || 0));
+  if (nonDeductibleNoCFDI > 0) {
+    const potentialSavings = nonDeductibleNoCFDI * 0.30; // Approximate 30% ISR rate
     suggestions.push({
       type: 'cfdi_compliance',
       priority: 'high',
       title: 'Solicita facturas para maximizar deducciones',
-      description: `Tienes $${deductibilityAnalysis.non_deductible_no_cfdi.toFixed(2)} en gastos sin CFDI que no son deducibles`,
+      description: `Tienes $${nonDeductibleNoCFDI.toFixed(2)} en gastos sin CFDI que no son deducibles`,
       potentialSavings: potentialSavings,
       action: 'Solicita facturas (CFDI) para todos tus gastos empresariales'
     });
@@ -471,19 +502,21 @@ async function generateOptimizationSuggestions(env, userId, year) {
       AND is_deleted = 0
   `).bind(userId, startDate, endDate).first();
   
+  const cashPaymentsTotal = parseFloat(fromCents(cashPayments.total || 0));
   if (cashPayments.count > 0) {
     suggestions.push({
       type: 'payment_method',
       priority: 'low',
       title: 'Prefiere pagos con tarjeta o transferencia',
-      description: `Tienes ${cashPayments.count} pagos en efectivo por $${cashPayments.total.toFixed(2)}`,
+      description: `Tienes ${cashPayments.count} pagos en efectivo por $${cashPaymentsTotal.toFixed(2)}`,
       action: 'Los pagos electrónicos facilitan la conciliación y comprobación de gastos'
     });
   }
   
   // Suggestion: Tax planning
   if (annualDeclaration && annualDeclaration.isr_calculated > 0) {
-    const monthlyPayment = annualDeclaration.isr_calculated / 12;
+    const isrCalculated = parseFloat(fromCents(annualDeclaration.isr_calculated));
+    const monthlyPayment = isrCalculated / 12;
     suggestions.push({
       type: 'tax_planning',
       priority: 'high',
