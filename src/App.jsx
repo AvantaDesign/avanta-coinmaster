@@ -48,6 +48,9 @@ const BankReconciliation = lazy(() => import('./components/BankReconciliation'))
 const SATDeclarations = lazy(() => import('./components/SATDeclarations'));
 const AnnualDeclarations = lazy(() => import('./components/AnnualDeclarations'));
 const FiscalAnalytics = lazy(() => import('./components/FiscalAnalytics'));
+const DigitalArchive = lazy(() => import('./components/DigitalArchive'));
+const ComplianceMonitoring = lazy(() => import('./components/ComplianceMonitoring'));
+const SystemAuditTrail = lazy(() => import('./components/SystemAuditTrail'));
 
 // Loading fallback component
 function LoadingFallback() {
@@ -163,6 +166,9 @@ function NavigationBar() {
         { name: 'Conciliación Bancaria', icon: '🏦', path: '/bank-reconciliation' },
         { name: 'Gestor de CFDI', icon: '📋', path: '/cfdi-manager' },
         { name: 'Declaraciones SAT', icon: '📄', path: '/sat-declarations' },
+        { name: 'Archivo Digital', icon: '🗄️', path: '/digital-archive' },
+        { name: 'Monitoreo de Cumplimiento', icon: '🔍', path: '/compliance-monitoring' },
+        { name: 'Auditoría del Sistema', icon: '📝', path: '/system-audit-trail' },
         { name: 'Facturas', icon: '📑', path: '/invoices' },
         { name: 'Recibos', icon: '🧾', path: '/receipts' },
         { name: 'Reglas de Deducibilidad', icon: '⚖️', path: '/deductibility-rules' },
@@ -532,6 +538,9 @@ function AuthenticatedApp() {
                 <Route path="/bank-reconciliation" element={<BankReconciliation />} />
                 <Route path="/cfdi-manager" element={<CFDIManager />} />
                 <Route path="/sat-declarations" element={<SATDeclarations />} />
+                <Route path="/digital-archive" element={<DigitalArchive />} />
+                <Route path="/compliance-monitoring" element={<ComplianceMonitoring />} />
+                <Route path="/system-audit-trail" element={<SystemAuditTrail />} />
                 <Route path="/invoices" element={<Invoices />} />
                 <Route path="/receipts" element={<Receipts />} />
                 <Route path="/automation" element={<Home />} />
