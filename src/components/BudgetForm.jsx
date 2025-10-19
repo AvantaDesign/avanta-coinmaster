@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { validateBudget, calculatePeriodDates } from '../utils/budgets';
+import { createCategory } from '../utils/api';
+import { showSuccess, showError } from '../utils/notifications';
+import SelectWithCreate from './SelectWithCreate';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -149,22 +152,36 @@ export default function BudgetForm({ budget, onSubmit, onCancel }) {
 
       {/* Category */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Categoría (opcional)
-        </label>
-        <select
-          name="category_id"
+        <SelectWithCreate
+          label="Categoría (opcional)"
           value={formData.category_id}
-          onChange={handleChange}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-        >
-          <option value="">Sin categoría específica (General)</option>
-          {filteredCategories.map(category => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
-          ))}
-        </select>
+          onChange={(value) => setFormData(prev => ({ ...prev, category_id: value }))}
+          options={filteredCategories.map(cat => ({ value: cat.id, label: cat.name }))}
+          onCreate={async (data) => {
+            const newCategory = await createCategory(data);
+            await loadCategories(); // Reload categories to include the new one
+            showSuccess(`Categoría "${data.name}" creada exitosamente`);
+            return newCategory;
+          }}
+          createLabel="Crear nueva categoría..."
+          createFields={[
+            { name: 'name', label: 'Nombre', type: 'text', required: true, placeholder: 'Ej: Tecnología, Marketing...' },
+            { name: 'description', label: 'Descripción', type: 'textarea', required: false, placeholder: 'Descripción opcional' },
+            { name: 'color', label: 'Color', type: 'color', required: false },
+            { 
+              name: 'is_deductible', 
+              label: 'Es deducible', 
+              type: 'select', 
+              required: false,
+              options: [
+                { value: '0', label: 'No' },
+                { value: '1', label: 'Sí' }
+              ]
+            }
+          ]}
+          placeholder="Sin categoría específica (General)"
+          emptyMessage="No hay categorías disponibles. Crea una nueva."
+        />
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
           Deja vacío para crear un presupuesto general que cubra todas las categorías
         </p>

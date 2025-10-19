@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { createTransaction, fetchTransactions, fetchCategories, fetchInvoices, fetchSavingsGoals, contributeSavingsGoal, fetchAccounts } from '../utils/api';
+import { createTransaction, fetchTransactions, fetchCategories, createCategory, fetchInvoices, fetchSavingsGoals, contributeSavingsGoal, fetchAccounts } from '../utils/api';
 import { showSuccess, showError } from '../utils/notifications';
 import SmartSuggestions from './SmartSuggestions';
 import SmartInput from './SmartInput';
 import CurrencyInput from './CurrencyInput';
 import DatePicker from './DatePicker';
 import CFDISuggestions from './CFDISuggestions';
+import SelectWithCreate from './SelectWithCreate';
 import { getDescriptionSuggestions, getAccountSuggestions, validateTransactionData } from '../utils/smartFormUtils';
 
 export default function AddTransaction({ onSuccess }) {
@@ -647,21 +648,39 @@ export default function AddTransaction({ onSuccess }) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Categoría Personalizada</label>
-          <select
-            name="category_id"
+          <SelectWithCreate
+            label="Categoría Personalizada"
             value={formData.category_id || ''}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border rounded-md"
-          >
-            <option value="">Sin categoría</option>
-            {categories.filter(cat => cat.is_active).map(cat => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Opcional: Categoría personalizada</p>
+            onChange={(value) => setFormData(prev => ({ ...prev, category_id: value }))}
+            options={categories
+              .filter(cat => cat.is_active)
+              .map(cat => ({ value: cat.id, label: cat.name }))}
+            onCreate={async (data) => {
+              const newCategory = await createCategory(data);
+              await loadCategories(); // Reload categories to include the new one
+              showSuccess(`Categoría "${data.name}" creada exitosamente`);
+              return newCategory;
+            }}
+            createLabel="Crear nueva categoría..."
+            createFields={[
+              { name: 'name', label: 'Nombre', type: 'text', required: true, placeholder: 'Ej: Tecnología, Marketing...' },
+              { name: 'description', label: 'Descripción', type: 'textarea', required: false, placeholder: 'Descripción opcional' },
+              { name: 'color', label: 'Color', type: 'color', required: false },
+              { 
+                name: 'is_deductible', 
+                label: 'Es deducible', 
+                type: 'select', 
+                required: false,
+                options: [
+                  { value: '0', label: 'No' },
+                  { value: '1', label: 'Sí' }
+                ]
+              }
+            ]}
+            placeholder="Sin categoría"
+            emptyMessage="No hay categorías disponibles. Crea una nueva."
+          />
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Opcional: Categoría personalizada para organizar tus transacciones</p>
         </div>
 
         <div>
