@@ -1,399 +1,300 @@
-# Phase 31: Backend Audit and Hardening
-
-**IMPORTANT**: This phase should only be started after Phase 30 is fully completed (100%). Currently, Phase 30 is at 70% completion with backend API refactoring still in progress. Please complete Phase 30 first.
-
-## Project Context
-
-You are working on the Avanta Finance application, a comprehensive financial management system built with React, Vite, and Cloudflare Workers. The project is located at the repository root.
-
-## Implementation Plan Reference
-
-**CRITICAL**: Always refer to the master implementation plan at `IMPLEMENTATION_PLAN_V8.md` for complete project context and progress tracking.
-
-### Previous Phases Status
-✅ **Phases 17-29**: COMPLETED (Comprehensive financial management system)
-🟡 **Phase 30**: PARTIALLY COMPLETE (70% - Critical Infrastructure and Data Hardening)
-  - ✅ Database migration script created (25 tables)
-  - ✅ Monetary utility functions implemented
-  - ✅ Environment isolation configured
-  - 🔄 Backend API refactoring in progress (2/42 files complete)
-  - See `PHASE_30_HARDENING_SUMMARY.md` for details
-
-🚧 **Phase 31**: CURRENT PHASE (Backend Audit and Hardening)
-
-## Current Task: Phase 31 - Backend Audit and Hardening
-
-### Goal
-
-Ensure the backend logic is atomic, secure, and fault-tolerant, guaranteeing no data leaks between users or inconsistent data states.
-
-### Prerequisites
-
-Before starting Phase 31, verify:
-- [ ] Phase 30 is 100% complete (all API files refactored for monetary cents)
-- [ ] Migration 033 has been successfully applied to database
-- [ ] All financial calculations tested and verified accurate
-- [ ] Build passes: `npm run build`
-
-### Context from Previous Phases
-
-Phase 30 established critical data integrity foundations:
-- ✅ Monetary values stored as INTEGER cents (eliminating floating-point errors)
-- ✅ Preview and production database environments separated
-- ✅ Comprehensive monetary conversion utilities in place
-
-Phase 31 builds on this foundation by ensuring:
-- 🎯 Complete user data isolation
-- 🎯 Atomic database transactions
-- 🎯 Secure file upload validation
-
-## Actionable Steps
-
-### 1. Data Isolation and Soft-Deletes Audit
-
-**Objective**: Ensure zero possibility of cross-user data leakage and proper handling of deleted records.
-
-#### Tasks:
-
-**A. User Data Isolation Audit**
-1. **Scan all API functions** in `/functions/api/`:
-   ```bash
-   grep -r "prepare(" functions/api/ --include="*.js"
-   ```
-
-2. **For each database query**, verify:
-   - ✅ Queries accessing user-specific data include `WHERE user_id = ?`
-   - ✅ User ID is bound from authenticated token, never from request
-   - ✅ No queries use user_id from request body/query params without validation
-   - ❌ Flag any query missing user_id filter
-
-3. **Create audit report**: `PHASE_31_USER_ISOLATION_AUDIT.md`
-   - List all queries reviewed
-   - Document any violations found
-   - Show before/after code for fixes
-   - Confirm 100% compliance
-
-**B. Soft-Delete Compliance Audit**
-1. **Identify all queries reading transactions table**:
-   ```bash
-   grep -r "FROM transactions" functions/api/ --include="*.js"
-   ```
-
-2. **For each query**, verify:
-   - ✅ Includes `WHERE is_deleted = 0` or `WHERE (is_deleted IS NULL OR is_deleted = 0)`
-   - ✅ Or explicitly handles deleted records (e.g., admin views)
-   - ❌ Flag any query not filtering soft-deleted records
-
-3. **Update queries** that fail compliance:
-   ```javascript
-   // BEFORE (WRONG):
-   SELECT * FROM transactions WHERE user_id = ?
-   
-   // AFTER (CORRECT):
-   SELECT * FROM transactions 
-   WHERE user_id = ? AND (is_deleted IS NULL OR is_deleted = 0)
-   ```
-
-**C. Other Soft-Delete Tables**
-Check if other tables use soft-delete pattern:
-- `accounts` (is_active flag)
-- `invoices` (status flag)
-- `budgets` (is_active flag)
-- `categories` (is_active flag)
-
-Ensure filtering is consistent.
-
-#### Verification:
-- [ ] All user data queries include user_id filter
-- [ ] All transaction queries filter soft-deleted records
-- [ ] Audit report created with 100% compliance
-- [ ] No cross-user data leakage possible
-
----
-
-### 2. Implementation of Atomic Transactions
-
-**Objective**: Ensure database consistency by wrapping multi-step operations in atomic transactions.
-
-#### Tasks:
-
-**A. Identify Multi-Write Operations**
-
-Scan codebase for operations that:
-1. Create/update multiple related records
-2. Update balances and create transactions
-3. Link invoices and update transaction status
-4. Create recurring items and schedules
-
-**Common patterns requiring atomicity**:
-```javascript
-// PATTERN 1: Create transaction + Update account balance
-// PATTERN 2: Create invoice + Link to transaction
-// PATTERN 3: Create payment + Update receivable/payable
-// PATTERN 4: Create recurring schedule + Generate instances
-```
-
-**B. Refactor to Use D1 Batch Transactions**
-
-Cloudflare D1 supports atomic batches via `db.batch()`:
-
-```javascript
-// BEFORE (NON-ATOMIC):
-await env.DB.prepare('INSERT INTO transactions ...').bind(...).run();
-await env.DB.prepare('UPDATE accounts SET balance = ...').bind(...).run();
-// ❌ If second query fails, first is committed (inconsistent state)
-
-// AFTER (ATOMIC):
-const batch = [
-  env.DB.prepare('INSERT INTO transactions ...').bind(...),
-  env.DB.prepare('UPDATE accounts SET balance = ...').bind(...)
-];
-const results = await env.DB.batch(batch);
-// ✅ Both succeed or both fail (consistent state)
-```
-
-**C. Critical Operations to Refactor**
-
-Priority list:
-1. **Transaction creation with account balance update**
-   - File: `functions/api/transactions.js`
-   - Operation: POST handler
-   - Add atomic batch for transaction + account update
-
-2. **Payment processing**
-   - Files: `functions/api/receivables.js`, `functions/api/payables.js`
-   - Operation: Record payment + update balance + link transaction
-   - Wrap in atomic batch
-
-3. **Invoice reconciliation**
-   - File: `functions/api/invoice-reconciliation.js`
-   - Operation: Link invoice + update transaction + update amounts
-   - Wrap in atomic batch
-
-4. **Recurring payment generation**
-   - Files: `functions/api/recurring-freelancers.js`, `functions/api/recurring-services.js`
-   - Operation: Create transactions + update schedules
-   - Wrap in atomic batch
-
-**D. Error Handling**
-
-Implement proper error handling for batch operations:
-```javascript
-try {
-  const results = await env.DB.batch(batch);
-  
-  // Check if all succeeded
-  const allSucceeded = results.every(r => r.success);
-  if (!allSucceeded) {
-    throw new Error('Batch operation partially failed');
-  }
-  
-  return { success: true, data: results };
-} catch (error) {
-  // All changes automatically rolled back
-  console.error('Atomic transaction failed:', error);
-  return { success: false, error: error.message };
-}
-```
-
-#### Verification:
-- [ ] All multi-write operations identified
-- [ ] Critical operations refactored to use batch()
-- [ ] Integration tests created for rollback scenarios
-- [ ] Manual testing of failure scenarios
-- [ ] No partial database updates possible
-
----
-
-### 3. Backend File Upload Validation
-
-**Objective**: Prevent malicious file uploads by validating before interacting with R2 storage.
-
-#### Tasks:
-
-**A. Locate Upload Endpoint**
-
-File: `functions/api/upload.js` or similar
-
-**B. Implement Validation Middleware**
-
-```javascript
-// Add validation BEFORE R2 interaction
-
-export async function onRequestPost(context) {
-  const { env, request } = context;
-  
-  try {
-    // 1. Extract file from request
-    const formData = await request.formData();
-    const file = formData.get('file');
-    
-    if (!file) {
-      return new Response(JSON.stringify({ error: 'No file provided' }), {
-        status: 400
-      });
-    }
-    
-    // 2. VALIDATE FILE SIZE (from env vars)
-    const maxSizeMB = parseInt(env.MAX_FILE_SIZE_MB || '10');
-    const maxSizeBytes = maxSizeMB * 1024 * 1024;
-    
-    if (file.size > maxSizeBytes) {
-      return new Response(JSON.stringify({ 
-        error: `File too large. Max size: ${maxSizeMB}MB`,
-        code: 'FILE_TOO_LARGE'
-      }), {
-        status: 400
-      });
-    }
-    
-    // 3. VALIDATE MIME TYPE (from env vars)
-    const allowedTypes = (env.ALLOWED_FILE_TYPES || '').split(',');
-    const fileType = file.type.toLowerCase();
-    
-    const isAllowed = allowedTypes.some(type => {
-      const cleanType = type.trim().toLowerCase();
-      return fileType === cleanType || fileType.includes(cleanType);
-    });
-    
-    if (!isAllowed) {
-      return new Response(JSON.stringify({ 
-        error: `File type not allowed: ${file.type}`,
-        allowed: allowedTypes,
-        code: 'INVALID_FILE_TYPE'
-      }), {
-        status: 400
-      });
-    }
-    
-    // 4. VALIDATE FILE NAME (prevent directory traversal)
-    const fileName = file.name;
-    if (fileName.includes('..') || fileName.includes('/') || fileName.includes('\\')) {
-      return new Response(JSON.stringify({ 
-        error: 'Invalid file name',
-        code: 'INVALID_FILE_NAME'
-      }), {
-        status: 400
-      });
-    }
-    
-    // 5. NOW safe to upload to R2
-    const key = `uploads/${Date.now()}-${fileName}`;
-    await env.RECEIPTS.put(key, file);
-    
-    return new Response(JSON.stringify({
-      success: true,
-      url: key
-    }), {
-      status: 200
-    });
-    
-  } catch (error) {
-    console.error('Upload error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500
-    });
-  }
-}
-```
-
-**C. Test Validation**
-
-Create test cases:
-1. Upload file larger than MAX_FILE_SIZE_MB → Should be rejected
-2. Upload file with disallowed MIME type → Should be rejected
-3. Upload file with path traversal in name (../../etc/passwd) → Should be rejected
-4. Upload valid file → Should succeed
-
-#### Verification:
-- [ ] File size validation implemented
-- [ ] MIME type validation implemented  
-- [ ] File name validation implemented
-- [ ] Validation occurs BEFORE R2 interaction
-- [ ] Error messages are clear and helpful
-- [ ] Test cases pass (manual or automated)
-
----
-
-## Progress Tracking
-
-**MANDATORY**: Update `IMPLEMENTATION_PLAN_V8.md` with checkmarks (✅) as you complete each task.
-
-**MANDATORY**: Create completion summary `PHASE_31_AUDIT_SUMMARY.md` when finished.
-
-## Technical Considerations
-
-- Follow existing code patterns and conventions
-- Implement comprehensive error handling
-- Use proper logging for audit trail
-- Consider performance implications
-- Test rollback scenarios thoroughly
-- Document all changes clearly
-
-## Security Considerations
-
-- Validate all user inputs
-- Never trust client-provided user IDs
-- Always use authenticated user ID from token
-- Implement proper access controls
-- Log security-relevant events
-- Follow principle of least privilege
-
-## Testing Requirements
-
-### Unit Tests
-- User isolation for each API function
-- Soft-delete filtering correctness
-- File validation edge cases
-
-### Integration Tests
-- Atomic transaction rollback scenarios
-- Multi-user data isolation
-- File upload validation
-
-### Security Tests
-- Cross-user data access attempts
-- Invalid file upload attempts
-- SQL injection attempts on user_id
-
-## Deliverables
-
-Upon completion of Phase 31:
-
-1. **Audit Reports**:
-   - `PHASE_31_USER_ISOLATION_AUDIT.md` - Complete user data isolation audit
-   - `PHASE_31_ATOMIC_OPERATIONS_AUDIT.md` - List of refactored operations
-
-2. **Code Changes**:
-   - All API files with user queries updated
-   - Critical operations refactored for atomicity
-   - Upload validation implemented
-
-3. **Documentation**:
-   - `PHASE_31_AUDIT_SUMMARY.md` - Phase completion summary
-   - Updated `IMPLEMENTATION_PLAN_V8.md`
-
-4. **Tests**:
-   - Integration tests for atomic transactions
-   - Security tests for data isolation
-   - Upload validation tests
-
-## Success Criteria
-
-- ✅ 100% of user data queries include user_id filter
-- ✅ 100% of transaction queries filter soft-deleted records
-- ✅ All multi-write operations are atomic
-- ✅ File uploads validated before R2 interaction
-- ✅ All tests passing
-- ✅ Security audit complete
-- ✅ No regression in existing functionality
-
-## Next Step
-
-Upon successful completion and verification of all Phase 31 tasks, generate and output the complete, self-contained prompt for **Phase 32: Performance and User Experience (UX) Optimization**, following this same instructional format and referencing the updated implementation plan.
-
----
-
-**Phase Status**: Ready to Start (Pending Phase 30 Completion)
-**Estimated Effort**: 6-8 hours
-**Priority**: HIGH - Critical for production security and data integrity
+# Phase 31: Backend Hardening and Security - Agent Prompt
+
+## 🎯 **MISSION: Complete Backend Hardening and Security Implementation**
+
+You are tasked with implementing **Phase 31: Backend Hardening and Security** of the Avanta Finance platform. This phase focuses on implementing robust security measures, error handling, and backend optimizations.
+
+## 📋 **CONTEXT & CURRENT STATUS**
+
+### **Phase 30 COMPLETE ✅**
+- **Environment Isolation:** ✅ COMPLETE - Dedicated preview database created and configured
+- **Monetary Data Migration:** ✅ COMPLETE - All 24 API files refactored, migration executed successfully
+- **Database Schema:** ✅ COMPLETE - All monetary columns converted to INTEGER (cents-based)
+
+### **System Architecture**
+- **Frontend:** React + Vite + Tailwind CSS
+- **Backend:** Cloudflare Workers Functions (JavaScript)
+- **Database:** Cloudflare D1 (SQLite) with INTEGER cents-based monetary storage
+- **Storage:** Cloudflare R2 for file storage
+- **Deployment:** Cloudflare Pages with Workers Functions
+
+## 🎯 **PHASE 31 OBJECTIVES**
+
+### **1. Security Hardening**
+- Implement comprehensive input validation and sanitization
+- Add rate limiting and abuse prevention
+- Implement proper authentication and authorization checks
+- Add security headers and CORS configuration
+- Implement SQL injection prevention
+
+### **2. Error Handling & Logging**
+- Implement centralized error handling
+- Add comprehensive logging system
+- Create error monitoring and alerting
+- Implement graceful degradation patterns
+
+### **3. Performance Optimization**
+- Implement database query optimization
+- Add caching strategies
+- Implement connection pooling
+- Add performance monitoring
+
+### **4. Data Validation & Integrity**
+- Implement comprehensive data validation schemas
+- Add data integrity checks
+- Implement backup and recovery procedures
+- Add data consistency validation
+
+## 📁 **KEY FILES TO WORK WITH**
+
+### **Backend API Functions** (functions/api/)
+- `transactions.js` - Transaction management
+- `accounts.js` - Account management  
+- `budgets.js` - Budget management
+- `dashboard.js` - Dashboard data aggregation
+- `invoices.js` - Invoice management
+- `receivables.js` - Receivables management
+- `payables.js` - Payables management
+- `fiscal-analytics.js` - Fiscal analytics
+- `tax-calculations.js` - Tax calculations
+- `reports.js` - Report generation
+- `analytics.js` - Analytics and insights
+
+### **Utility Functions** (functions/utils/)
+- `monetary.js` - Monetary conversion utilities (INTEGER cents ↔ decimal)
+- `validation.js` - Input validation utilities
+- `security.js` - Security utilities
+- `logging.js` - Logging utilities
+
+### **Configuration Files**
+- `wrangler.toml` - Cloudflare Workers configuration
+- `schema.sql` - Database schema
+- `migrations/` - Database migration scripts
+
+## 🔧 **IMPLEMENTATION REQUIREMENTS**
+
+### **Security Implementation**
+1. **Input Validation:**
+   - Validate all API inputs using comprehensive schemas
+   - Sanitize user inputs to prevent XSS and injection attacks
+   - Implement proper data type validation
+   - Add file upload validation and scanning
+
+2. **Authentication & Authorization:**
+   - Implement proper JWT token validation
+   - Add role-based access control (RBAC)
+   - Implement session management
+   - Add API key validation for external integrations
+
+3. **Rate Limiting:**
+   - Implement per-user rate limiting
+   - Add IP-based rate limiting
+   - Implement API endpoint-specific limits
+   - Add abuse detection and prevention
+
+4. **Security Headers:**
+   - Add comprehensive security headers
+   - Implement proper CORS configuration
+   - Add Content Security Policy (CSP)
+   - Implement HTTPS enforcement
+
+### **Error Handling & Logging**
+1. **Centralized Error Handling:**
+   - Create unified error response format
+   - Implement error categorization (client, server, validation)
+   - Add error context and debugging information
+   - Implement error recovery mechanisms
+
+2. **Logging System:**
+   - Implement structured logging
+   - Add request/response logging
+   - Implement audit logging for sensitive operations
+   - Add performance metrics logging
+
+3. **Monitoring & Alerting:**
+   - Implement error monitoring
+   - Add performance monitoring
+   - Create alerting for critical errors
+   - Implement health check endpoints
+
+### **Performance Optimization**
+1. **Database Optimization:**
+   - Optimize query performance
+   - Implement proper indexing strategies
+   - Add query result caching
+   - Implement connection optimization
+
+2. **Caching Strategy:**
+   - Implement Redis-like caching for D1
+   - Add API response caching
+   - Implement static asset caching
+   - Add database query result caching
+
+3. **Performance Monitoring:**
+   - Add response time monitoring
+   - Implement throughput monitoring
+   - Add resource usage monitoring
+   - Create performance dashboards
+
+### **Data Validation & Integrity**
+1. **Data Validation:**
+   - Implement comprehensive validation schemas
+   - Add business rule validation
+   - Implement data consistency checks
+   - Add data format validation
+
+2. **Data Integrity:**
+   - Implement referential integrity checks
+   - Add data consistency validation
+   - Implement backup procedures
+   - Add data recovery mechanisms
+
+## 🚀 **IMPLEMENTATION APPROACH**
+
+### **Phase 31A: Security Foundation (Priority 1)**
+1. **Input Validation System:**
+   - Create comprehensive validation schemas
+   - Implement validation middleware
+   - Add sanitization utilities
+   - Test validation coverage
+
+2. **Authentication & Authorization:**
+   - Implement JWT validation
+   - Add RBAC system
+   - Create session management
+   - Test security flows
+
+3. **Rate Limiting:**
+   - Implement rate limiting middleware
+   - Add abuse detection
+   - Create monitoring dashboards
+   - Test rate limiting effectiveness
+
+### **Phase 31B: Error Handling & Logging (Priority 2)**
+1. **Error Handling System:**
+   - Create centralized error handler
+   - Implement error categorization
+   - Add error recovery mechanisms
+   - Test error scenarios
+
+2. **Logging Infrastructure:**
+   - Implement structured logging
+   - Add audit logging
+   - Create log aggregation
+   - Test logging coverage
+
+### **Phase 31C: Performance & Monitoring (Priority 3)**
+1. **Performance Optimization:**
+   - Optimize database queries
+   - Implement caching strategies
+   - Add performance monitoring
+   - Test performance improvements
+
+2. **Monitoring & Alerting:**
+   - Implement monitoring dashboards
+   - Add alerting systems
+   - Create health checks
+   - Test monitoring coverage
+
+## 📊 **SUCCESS CRITERIA**
+
+### **Security Metrics**
+- ✅ All API endpoints have comprehensive input validation
+- ✅ Rate limiting prevents abuse (tested with load testing)
+- ✅ Authentication/authorization covers all sensitive operations
+- ✅ Security headers properly configured
+- ✅ No SQL injection vulnerabilities (verified with security testing)
+
+### **Error Handling Metrics**
+- ✅ Centralized error handling covers all API endpoints
+- ✅ Comprehensive logging captures all critical operations
+- ✅ Error monitoring detects issues within 5 minutes
+- ✅ Graceful degradation prevents system failures
+
+### **Performance Metrics**
+- ✅ API response times < 200ms for 95% of requests
+- ✅ Database query optimization reduces query time by 50%
+- ✅ Caching reduces database load by 30%
+- ✅ System handles 1000+ concurrent users
+
+### **Data Integrity Metrics**
+- ✅ Data validation prevents invalid data entry
+- ✅ Data consistency checks ensure referential integrity
+- ✅ Backup procedures tested and verified
+- ✅ Data recovery procedures tested
+
+## 🔍 **TESTING REQUIREMENTS**
+
+### **Security Testing**
+- Penetration testing on all API endpoints
+- Input validation testing with malicious payloads
+- Rate limiting testing with high load
+- Authentication bypass testing
+
+### **Error Handling Testing**
+- Error scenario testing (network failures, database errors)
+- Logging verification (all operations logged)
+- Monitoring alert testing
+- Graceful degradation testing
+
+### **Performance Testing**
+- Load testing (1000+ concurrent users)
+- Stress testing (system limits)
+- Database performance testing
+- Caching effectiveness testing
+
+## 📝 **DELIVERABLES**
+
+### **Code Deliverables**
+1. **Security Implementation:**
+   - Enhanced API functions with security measures
+   - Input validation schemas and utilities
+   - Authentication/authorization middleware
+   - Rate limiting implementation
+
+2. **Error Handling System:**
+   - Centralized error handling utilities
+   - Comprehensive logging system
+   - Error monitoring and alerting
+   - Graceful degradation patterns
+
+3. **Performance Optimization:**
+   - Database query optimization
+   - Caching implementation
+   - Performance monitoring
+   - Health check endpoints
+
+### **Documentation Deliverables**
+1. **Security Documentation:**
+   - Security implementation guide
+   - Authentication/authorization documentation
+   - Rate limiting configuration guide
+   - Security testing procedures
+
+2. **Error Handling Documentation:**
+   - Error handling architecture
+   - Logging system documentation
+   - Monitoring setup guide
+   - Troubleshooting procedures
+
+3. **Performance Documentation:**
+   - Performance optimization guide
+   - Caching strategy documentation
+   - Monitoring dashboard guide
+   - Performance testing procedures
+
+## 🎯 **FINAL GOAL**
+
+Complete Phase 31 with a **fully hardened, secure, and performant backend** that can handle production workloads with:
+- **Robust security** preventing all common attack vectors
+- **Comprehensive error handling** ensuring system reliability
+- **Optimized performance** supporting high user loads
+- **Complete monitoring** providing visibility into system health
+
+## 🚀 **READY TO START**
+
+You have everything needed to implement Phase 31. The system is ready for hardening and security implementation. Begin with Phase 31A (Security Foundation) and work through the priorities systematically.
+
+**Remember:** This is a hardening phase - focus on security, reliability, and performance. The monetary data migration from Phase 30 is complete and working perfectly, so build upon that solid foundation.
+
+Good luck! 🚀
