@@ -21,8 +21,13 @@
 // - Comprehensive error handling
 // - Input validation and sanitization
 // - Multi-tenancy with user isolation
+//
+// Phase 30: Monetary values stored as INTEGER cents in database
+// - Incoming amounts (decimal) converted to cents before storage
+// - Outgoing amounts (cents) converted to decimal for API responses
 
 import { getUserIdFromToken } from './auth.js';
+import { toCents, fromCents, convertArrayFromCents, convertObjectFromCents, parseMonetaryInput, MONETARY_FIELDS } from '../utils/monetary.js';
 
 /**
  * GET /api/transactions
@@ -231,12 +236,12 @@ export async function onRequestGet(context) {
     
     if (amountMin) {
       query += ' AND amount >= ?';
-      params.push(parseFloat(amountMin));
+      params.push(toCents(parseFloat(amountMin)));
     }
     
     if (amountMax) {
       query += ' AND amount <= ?';
-      params.push(parseFloat(amountMax));
+      params.push(toCents(parseFloat(amountMax)));
     }
     
     if (isDeductible !== null && isDeductible !== undefined) {
@@ -275,9 +280,12 @@ export async function onRequestGet(context) {
     const stmt = env.DB.prepare(query);
     const result = await stmt.bind(...params).all();
 
+    // Phase 30: Convert monetary values from cents to decimal for API response
+    const convertedResults = convertArrayFromCents(result.results || [], MONETARY_FIELDS.TRANSACTIONS);
+
     // Build response object
     const response = {
-      data: result.results || [],
+      data: convertedResults,
       pagination: {
         limit,
         offset,
@@ -336,11 +344,11 @@ export async function onRequestGet(context) {
         }
         if (amountMin) {
           statsQuery += ' AND amount >= ?';
-          statsParams.push(parseFloat(amountMin));
+          statsParams.push(toCents(parseFloat(amountMin)));
         }
         if (amountMax) {
           statsQuery += ' AND amount <= ?';
-          statsParams.push(parseFloat(amountMax));
+          statsParams.push(toCents(parseFloat(amountMax)));
         }
         if (isDeductible !== null && isDeductible !== undefined) {
           statsQuery += ' AND is_deductible = ?';
@@ -361,11 +369,12 @@ export async function onRequestGet(context) {
 
         const statsResult = await env.DB.prepare(statsQuery).bind(...statsParams).first();
         
+        // Phase 30: Convert stats amounts from cents to decimal
         response.statistics = {
           total_transactions: statsResult?.total || 0,
-          total_income: statsResult?.total_income || 0,
-          total_expenses: statsResult?.total_expenses || 0,
-          net: (statsResult?.total_income || 0) - (statsResult?.total_expenses || 0)
+          total_income: fromCents(statsResult?.total_income || 0),
+          total_expenses: fromCents(statsResult?.total_expenses || 0),
+          net: fromCents((statsResult?.total_income || 0) - (statsResult?.total_expenses || 0))
         };
         
         // Update pagination with total count
@@ -661,6 +670,10 @@ export async function onRequestPost(context) {
     // Sanitize and prepare data
     const sanitizedDescription = description.trim();
     const numAmount = parseFloat(amount);
+    
+    // Phase 30: Convert amount to cents for database storage
+    const amountInCents = toCents(numAmount);
+    
     const deductibleValue = is_deductible ? 1 : 0;
     const sanitizedAccount = account?.trim() || null;
     const sanitizedActivity = economic_activity?.trim() || null;
@@ -706,7 +719,7 @@ export async function onRequestPost(context) {
         userId,
         date,
         sanitizedDescription,
-        numAmount,
+        amountInCents,  // Phase 30: Store as cents
         type,
         category,
         sanitizedAccount,
@@ -739,10 +752,13 @@ export async function onRequestPost(context) {
         'SELECT * FROM transactions WHERE id = ? AND user_id = ?'
       ).bind(result.meta.last_row_id, userId).first();
 
+      // Phase 30: Convert monetary values from cents to decimal
+      const convertedTransaction = convertObjectFromCents(createdTransaction, MONETARY_FIELDS.TRANSACTIONS);
+
       // Prepare response
       const response = {
         success: true,
-        data: createdTransaction,
+        data: convertedTransaction,
         message: 'Transaction created successfully'
       };
 
@@ -1029,7 +1045,7 @@ export async function onRequestPut(context) {
     }
     if (amount !== undefined) {
       updates.push('amount = ?');
-      params.push(parseFloat(amount));
+      params.push(toCents(parseFloat(amount)));  // Phase 30: Convert to cents
     }
     if (type !== undefined) {
       updates.push('type = ?');
@@ -1157,9 +1173,12 @@ export async function onRequestPut(context) {
       'SELECT * FROM transactions WHERE id = ? AND user_id = ?'
     ).bind(id, userId).first();
 
+    // Phase 30: Convert monetary values from cents to decimal
+    const convertedTransaction = convertObjectFromCents(updatedTransaction, MONETARY_FIELDS.TRANSACTIONS);
+
     return new Response(JSON.stringify({
       success: true,
-      data: updatedTransaction,
+      data: convertedTransaction,
       message: 'Transaction updated successfully'
     }), {
       status: 200,
