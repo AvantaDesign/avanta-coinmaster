@@ -1,5 +1,14 @@
 // Bank Reconciliation API - Manage bank statements and reconciliation
+// Phase 30: Monetary values stored as INTEGER cents in database
 // Handles upload, parsing, matching, and reconciliation management
+
+import { 
+  toCents, 
+  fromCents,
+  convertArrayFromCents, 
+  convertObjectFromCents,
+  MONETARY_FIELDS 
+} from '../utils/monetary.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -172,16 +181,18 @@ async function autoMatchTransactions(env, userId, bankStatementId = null) {
   // Match logic
   for (const statement of bankStatements.results) {
     const statementDate = new Date(statement.transaction_date);
+    // Phase 30: amounts are stored as cents, compare directly
     const statementAmount = Math.abs(statement.amount);
     
     for (const transaction of transactions.results) {
       const transactionDate = new Date(transaction.date);
+      // Phase 30: amounts are stored as cents, compare directly
       const transactionAmount = Math.abs(transaction.amount);
       
       // Calculate date difference in days
       const dateDiff = Math.abs((statementDate - transactionDate) / (1000 * 60 * 60 * 24));
       
-      // Calculate amount difference
+      // Calculate amount difference (both in cents)
       const amountDiff = Math.abs(statementAmount - transactionAmount);
       const amountDiffPercent = amountDiff / Math.max(statementAmount, transactionAmount);
       
@@ -192,8 +203,8 @@ async function autoMatchTransactions(env, userId, bankStatementId = null) {
       let confidence = 0;
       const criteria = {};
       
-      // Exact amount match (high weight)
-      if (amountDiff < 0.01) {
+      // Exact amount match (high weight) - Phase 30: comparing cents, so < 1 cent is exact
+      if (amountDiff < 1) {
         confidence += 0.5;
         criteria.amount = 'exact';
       } else if (amountDiffPercent < 0.01) {
@@ -312,6 +323,10 @@ export async function onRequestGet(context) {
 
     const result = await env.DB.prepare(query).bind(...params).all();
 
+    // Phase 30: Convert monetary fields from cents to decimal
+    const BANK_STATEMENT_FIELDS = ['amount', 'balance'];
+    const convertedStatements = convertArrayFromCents(result.results || [], BANK_STATEMENT_FIELDS);
+
     // Get total count for pagination
     let countQuery = 'SELECT COUNT(*) as total FROM bank_statements WHERE user_id = ?';
     const countParams = [userId];
@@ -336,7 +351,7 @@ export async function onRequestGet(context) {
     const countResult = await env.DB.prepare(countQuery).bind(...countParams).first();
 
     return new Response(JSON.stringify({
-      statements: result.results || [],
+      statements: convertedStatements,
       pagination: {
         page,
         limit,
@@ -406,6 +421,10 @@ export async function onRequestPost(context) {
     // Insert bank statements
     const insertedStatements = [];
     for (const transaction of transactions) {
+      // Phase 30: Convert monetary values to cents before storing
+      const amountInCents = toCents(transaction.amount);
+      const balanceInCents = transaction.balance !== null ? toCents(transaction.balance) : null;
+
       const result = await env.DB.prepare(`
         INSERT INTO bank_statements (
           user_id, bank_name, account_number,
@@ -420,8 +439,8 @@ export async function onRequestPost(context) {
         transaction.transaction_date,
         transaction.transaction_date,
         transaction.description,
-        transaction.amount,
-        transaction.balance,
+        amountInCents,     // stored as cents
+        balanceInCents,    // stored as cents
         transaction.reference_number || null,
         transaction.transaction_type || 'withdrawal',
         importBatchId
@@ -468,6 +487,11 @@ export async function onRequestPost(context) {
       }
     }
 
+    // Phase 30: Convert monetary fields from cents to decimal for response
+    // Note: insertedStatements already has decimal values from transaction object,
+    // but we should ensure consistency with what's stored in DB
+    const BANK_STATEMENT_FIELDS = ['amount', 'balance'];
+    
     return new Response(JSON.stringify({
       success: true,
       importBatchId,
