@@ -1,6 +1,7 @@
 /**
  * Budgets API
  * Handles budget management for business and personal finances
+ * Phase 30: Monetary values stored as INTEGER cents in database
  * 
  * Endpoints:
  * - GET    /api/budgets                 - List all budgets with optional filters
@@ -14,6 +15,15 @@
 
 import { getUserIdFromToken, authenticateRequest, validateRequired, generateId, getApiResponse } from './auth.js';
 import Decimal from 'decimal.js';
+import { 
+  toCents, 
+  fromCents, 
+  fromCentsToDecimal,
+  convertArrayFromCents, 
+  convertObjectFromCents, 
+  parseMonetaryInput,
+  MONETARY_FIELDS 
+} from '../utils/monetary.js';
 
 /**
  * Main request handler
@@ -100,7 +110,10 @@ async function listBudgets(env, userId, url) {
 
   const { results } = await env.DB.prepare(query).bind(...params).all();
 
-  return getApiResponse({ budgets: results });
+  // Phase 30: Convert monetary fields from cents to decimal
+  const convertedResults = convertArrayFromCents(results, MONETARY_FIELDS.BUDGETS);
+
+  return getApiResponse({ budgets: convertedResults });
 }
 
 /**
@@ -123,7 +136,10 @@ async function getBudget(env, userId, budgetId) {
     return getApiResponse(null, 'Budget not found', 404);
   }
 
-  return getApiResponse({ budget: results[0] });
+  // Phase 30: Convert monetary fields from cents to decimal
+  const convertedBudget = convertObjectFromCents(results[0], MONETARY_FIELDS.BUDGETS);
+
+  return getApiResponse({ budget: convertedBudget });
 }
 
 /**
@@ -144,8 +160,10 @@ async function createBudget(env, userId, request) {
     return getApiResponse(null, 'Invalid period. Must be "monthly", "quarterly", or "yearly"', 400);
   }
 
-  if (data.amount <= 0) {
-    return getApiResponse(null, 'Amount must be greater than 0', 400);
+  // Phase 30: Parse and validate monetary input
+  const amountResult = parseMonetaryInput(data.amount, 'amount', true);
+  if (amountResult.error) {
+    return getApiResponse(null, amountResult.error, 400);
   }
 
   // Validate category if provided
@@ -169,12 +187,13 @@ async function createBudget(env, userId, request) {
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
+  // Phase 30: Use cents value for database insertion
   await env.DB.prepare(query).bind(
     budgetId,
     userId,
     data.category_id || null,
     data.classification,
-    data.amount,
+    amountResult.value,  // stored as cents
     data.period,
     data.start_date,
     data.end_date || null,
@@ -195,7 +214,10 @@ async function createBudget(env, userId, request) {
     WHERE b.id = ?
   `).bind(budgetId).all();
 
-  return getApiResponse({ budget: results[0] }, 'Budget created successfully', 201);
+  // Phase 30: Convert monetary fields from cents to decimal
+  const convertedBudget = convertObjectFromCents(results[0], MONETARY_FIELDS.BUDGETS);
+
+  return getApiResponse({ budget: convertedBudget }, 'Budget created successfully', 201);
 }
 
 /**
@@ -222,8 +244,13 @@ async function updateBudget(env, userId, budgetId, request) {
     return getApiResponse(null, 'Invalid period', 400);
   }
 
-  if (data.amount !== undefined && data.amount <= 0) {
-    return getApiResponse(null, 'Amount must be greater than 0', 400);
+  // Phase 30: Parse and validate monetary input if provided
+  if (data.amount !== undefined) {
+    const amountResult = parseMonetaryInput(data.amount, 'amount', false);
+    if (amountResult.error) {
+      return getApiResponse(null, amountResult.error, 400);
+    }
+    data.amountInCents = amountResult.value;
   }
 
   // Validate category if provided
@@ -251,7 +278,7 @@ async function updateBudget(env, userId, budgetId, request) {
   }
   if (data.amount !== undefined) {
     updates.push('amount = ?');
-    params.push(data.amount);
+    params.push(data.amountInCents);  // Phase 30: Use cents value
   }
   if (data.period) {
     updates.push('period = ?');
@@ -297,7 +324,10 @@ async function updateBudget(env, userId, budgetId, request) {
     WHERE b.id = ?
   `).bind(budgetId).all();
 
-  return getApiResponse({ budget: results[0] }, 'Budget updated successfully');
+  // Phase 30: Convert monetary fields from cents to decimal
+  const convertedBudget = convertObjectFromCents(results[0], MONETARY_FIELDS.BUDGETS);
+
+  return getApiResponse({ budget: convertedBudget }, 'Budget updated successfully');
 }
 
 /**
@@ -356,8 +386,11 @@ async function getBudgetProgress(env, userId, url) {
 
   const { results: budgets } = await env.DB.prepare(budgetQuery).bind(...budgetParams).all();
 
+  // Phase 30: Convert budget amounts from cents to decimal for calculations
+  const convertedBudgets = convertArrayFromCents(budgets, MONETARY_FIELDS.BUDGETS);
+
   // For each budget, calculate actual spending
-  const progress = await Promise.all(budgets.map(async (budget) => {
+  const progress = await Promise.all(convertedBudgets.map(async (budget) => {
     let actualQuery = `
       SELECT 
         COALESCE(SUM(CASE WHEN type = 'ingreso' THEN amount ELSE 0 END), 0) as total_income,
@@ -386,7 +419,8 @@ async function getBudgetProgress(env, userId, url) {
 
     const actual = await env.DB.prepare(actualQuery).bind(...actualParams).first();
 
-    const actualAmount = new Decimal(actual.total_expense || 0);
+    // Phase 30: Convert amounts from cents to Decimal for calculations
+    const actualAmount = fromCentsToDecimal(actual.total_expense || 0);
     const budgetAmount = new Decimal(budget.amount);
     const percentUsed = budgetAmount.gt(0) ? actualAmount.div(budgetAmount).times(new Decimal(100)) : new Decimal(0);
     const remaining = budgetAmount.minus(actualAmount);
@@ -396,7 +430,7 @@ async function getBudgetProgress(env, userId, url) {
     return {
       ...budget,
       actual: parseFloat(actualAmount.toFixed(2)),
-      income: parseFloat(new Decimal(actual.total_income || 0).toFixed(2)),
+      income: parseFloat(fromCentsToDecimal(actual.total_income || 0).toFixed(2)),
       percent_used: percentUsedNum,
       remaining: parseFloat(remaining.toFixed(2)),
       status: status,
@@ -442,6 +476,12 @@ async function getBudgetSummary(env, userId, url) {
     GROUP BY classification, period
   `).bind(userId, year.toString()).all();
 
+  // Phase 30: Convert aggregated budget amounts from cents
+  const convertedBudgets = budgets.map(b => ({
+    ...b,
+    total_amount: fromCents(b.total_amount)
+  }));
+
   // Get actual spending for the year
   const actual = await env.DB.prepare(`
     SELECT 
@@ -456,14 +496,21 @@ async function getBudgetSummary(env, userId, url) {
     GROUP BY transaction_type
   `).bind(userId, year.toString()).all();
 
+  // Phase 30: Convert aggregated transaction amounts from cents
+  const convertedActual = (actual.results || []).map(a => ({
+    ...a,
+    total_expense: fromCents(a.total_expense),
+    total_income: fromCents(a.total_income)
+  }));
+
   return getApiResponse({
     year,
-    budgets,
-    actual: actual.results || [],
+    budgets: convertedBudgets,
+    actual: convertedActual,
     summary: {
-      total_budgets: budgets.length,
-      business_budgets: budgets.filter(b => b.classification === 'business').length,
-      personal_budgets: budgets.filter(b => b.classification === 'personal').length
+      total_budgets: convertedBudgets.length,
+      business_budgets: convertedBudgets.filter(b => b.classification === 'business').length,
+      personal_budgets: convertedBudgets.filter(b => b.classification === 'personal').length
     }
   });
 }

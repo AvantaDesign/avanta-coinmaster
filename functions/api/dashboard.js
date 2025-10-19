@@ -7,8 +7,10 @@
 // - Category breakdowns
 // - Spending trends
 // - Account summaries
+// Phase 30: Monetary values stored as INTEGER cents in database
 
 import { getUserIdFromToken } from './auth.js';
+import { fromCents, convertArrayFromCents, MONETARY_FIELDS } from '../utils/monetary.js';
 
 /**
  * GET /api/dashboard
@@ -83,10 +85,11 @@ export async function onRequestGet(context) {
         'SELECT SUM(CASE WHEN type = "banco" THEN balance ELSE -balance END) as totalBalance FROM accounts WHERE user_id = ?'
       ).bind(userId).first();
       
-      dashboardData.totalBalance = accountsResult?.totalBalance || 0;
+      // Phase 30: Convert balance from cents to decimal
+      dashboardData.totalBalance = fromCents(accountsResult?.totalBalance || 0);
     } catch (error) {
       console.error('Error fetching account balance:', error);
-      dashboardData.totalBalance = 0;
+      dashboardData.totalBalance = "0.00";
       dashboardData.warnings = dashboardData.warnings || [];
       dashboardData.warnings.push('Could not fetch account balance');
     }
@@ -117,9 +120,12 @@ export async function onRequestGet(context) {
         WHERE user_id = ? AND date >= ? AND date <= ?
       `).bind(userId, startDate, endDate).first();
       
-      dashboardData.thisMonth.income = monthSummary?.income || 0;
-      dashboardData.thisMonth.expenses = monthSummary?.expenses || 0;
-      dashboardData.thisMonth.net = dashboardData.thisMonth.income - dashboardData.thisMonth.expenses;
+      // Phase 30: Convert amounts from cents to decimal
+      const income = parseFloat(fromCents(monthSummary?.income || 0));
+      const expenses = parseFloat(fromCents(monthSummary?.expenses || 0));
+      dashboardData.thisMonth.income = income;
+      dashboardData.thisMonth.expenses = expenses;
+      dashboardData.thisMonth.net = income - expenses;
       dashboardData.thisMonth.transaction_count = monthSummary?.transaction_count || 0;
     } catch (error) {
       console.error('Error fetching period summary:', error);
@@ -142,7 +148,11 @@ export async function onRequestGet(context) {
           ORDER BY total DESC
         `).bind(userId, startDate, endDate).all();
         
-        dashboardData.categoryBreakdown = categoryBreakdown.results || [];
+        // Phase 30: Convert aggregated amounts from cents to decimal
+        dashboardData.categoryBreakdown = (categoryBreakdown.results || []).map(item => ({
+          ...item,
+          total: fromCents(item.total)
+        }));
       } catch (error) {
         console.error('Error fetching category breakdown:', error);
         dashboardData.warnings = dashboardData.warnings || [];
@@ -157,7 +167,8 @@ export async function onRequestGet(context) {
           'SELECT id, name, type, balance, updated_at FROM accounts WHERE user_id = ? ORDER BY type, name'
         ).bind(userId).all();
         
-        dashboardData.accounts = accounts.results || [];
+        // Phase 30: Convert balance from cents to decimal
+        dashboardData.accounts = convertArrayFromCents(accounts.results || [], MONETARY_FIELDS.ACCOUNTS);
       } catch (error) {
         console.error('Error fetching accounts:', error);
         dashboardData.warnings = dashboardData.warnings || [];
@@ -182,11 +193,14 @@ export async function onRequestGet(context) {
             WHERE user_id = ? AND date >= ? AND date <= ?
           `).bind(userId, trendStart, trendEnd).first();
           
+          // Phase 30: Convert amounts from cents to decimal
+          const income = parseFloat(fromCents(trendSummary?.income || 0));
+          const expenses = parseFloat(fromCents(trendSummary?.expenses || 0));
           trendsData.push({
             month: trendMonth.toISOString().slice(0, 7), // YYYY-MM format
-            income: trendSummary?.income || 0,
-            expenses: trendSummary?.expenses || 0,
-            net: (trendSummary?.income || 0) - (trendSummary?.expenses || 0)
+            income,
+            expenses,
+            net: income - expenses
           });
         }
         
@@ -204,7 +218,11 @@ export async function onRequestGet(context) {
         'SELECT * FROM transactions WHERE user_id = ? ORDER BY date DESC, created_at DESC LIMIT ?'
       ).bind(userId, recentLimit).all();
       
-      dashboardData.recentTransactions = recentTransactions.results || [];
+      // Phase 30: Convert amounts from cents to decimal
+      dashboardData.recentTransactions = convertArrayFromCents(
+        recentTransactions.results || [], 
+        MONETARY_FIELDS.TRANSACTIONS
+      );
     } catch (error) {
       console.error('Error fetching recent transactions:', error);
       dashboardData.warnings = dashboardData.warnings || [];
@@ -221,8 +239,9 @@ export async function onRequestGet(context) {
         WHERE user_id = ? AND date >= ? AND date <= ? AND type = 'gasto'
       `).bind(userId, startDate, endDate).first();
       
+      // Phase 30: Convert amount from cents to decimal
       dashboardData.deductible = {
-        amount: deductibleSummary?.deductible || 0,
+        amount: fromCents(deductibleSummary?.deductible || 0),
         count: deductibleSummary?.deductible_count || 0
       };
     } catch (error) {
