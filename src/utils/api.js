@@ -1292,3 +1292,97 @@ export async function getTagSuggestions(query, entityType = null, limit = 10) {
   if (!response.ok) throw new Error('Failed to get tag suggestions');
   return response.json();
 }
+
+// ============================================================================
+// Compliance Engine API Functions
+// ============================================================================
+
+/**
+ * Validate transaction compliance against SAT rules
+ * @param {Object} transactionData - Transaction data to validate
+ * @returns {Promise<Object>} Validation result with compliance status and suggestions
+ */
+export async function validateTransactionCompliance(transactionData) {
+  const response = await authFetch(`${API_BASE}/compliance-engine/validate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify(transactionData)
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to validate transaction compliance');
+  }
+  return response.json();
+}
+
+/**
+ * Evaluate transaction compliance in real-time (without logging)
+ * @param {Object} transactionData - Transaction data to evaluate
+ * @returns {Promise<Object>} Evaluation result with compliance feedback
+ */
+export async function evaluateTransactionCompliance(transactionData) {
+  const response = await authFetch(`${API_BASE}/compliance-engine/evaluate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify(transactionData)
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to evaluate transaction compliance');
+  }
+  return response.json();
+}
+
+/**
+ * Get compliance suggestions for user
+ * @param {Object} params - Query parameters (resolved, entity_type, entity_id, limit, offset)
+ * @returns {Promise<Object>} Suggestions list with pagination
+ */
+export async function getComplianceSuggestions(params = {}) {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/compliance-engine/suggestions${queryString ? '?' + queryString : ''}`;
+  const response = await authFetch(url);
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to get compliance suggestions');
+  }
+  return response.json();
+}
+
+/**
+ * Get active compliance rules
+ * @param {Object} params - Query parameters (type, active)
+ * @returns {Promise<Object>} Rules list
+ */
+export async function getComplianceRules(params = {}) {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/compliance-engine/rules${queryString ? '?' + queryString : ''}`;
+  const response = await authFetch(url);
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to get compliance rules');
+  }
+  return response.json();
+}
+
+/**
+ * Get rule execution log
+ * @param {Object} params - Query parameters (entity_type, entity_id, limit, offset)
+ * @returns {Promise<Object>} Execution log with pagination
+ */
+export async function getRuleExecutionLog(params = {}) {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/compliance-engine/execution-log${queryString ? '?' + queryString : ''}`;
+  const response = await authFetch(url);
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to get rule execution log');
+  }
+  return response.json();
+}

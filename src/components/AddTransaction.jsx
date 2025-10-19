@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { createTransaction, fetchTransactions, fetchCategories, createCategory, fetchInvoices, fetchSavingsGoals, contributeSavingsGoal, fetchAccounts } from '../utils/api';
+import { createTransaction, fetchTransactions, fetchCategories, createCategory, fetchInvoices, fetchSavingsGoals, contributeSavingsGoal, fetchAccounts, evaluateTransactionCompliance } from '../utils/api';
 import { showSuccess, showError } from '../utils/notifications';
 import SmartSuggestions from './SmartSuggestions';
 import SmartInput from './SmartInput';
@@ -55,6 +55,9 @@ export default function AddTransaction({ onSuccess }) {
   const [savingsGoals, setSavingsGoals] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [validationErrors, setValidationErrors] = useState({});
+  // Phase 28: Compliance feedback
+  const [complianceStatus, setComplianceStatus] = useState(null);
+  const [complianceLoading, setComplianceLoading] = useState(false);
 
   // Load transaction history for smart suggestions
   useEffect(() => {
@@ -126,6 +129,63 @@ export default function AddTransaction({ onSuccess }) {
       }));
     }
   }, [formData.is_isr_deductible, formData.is_iva_deductible]);
+
+  // Phase 28: Real-time compliance evaluation
+  useEffect(() => {
+    const evaluateCompliance = async () => {
+      // Only evaluate if we have minimum required data
+      if (!formData.amount || !formData.type || !formData.description) {
+        setComplianceStatus(null);
+        return;
+      }
+
+      setComplianceLoading(true);
+      try {
+        const transactionData = {
+          type: formData.type,
+          amount: parseFloat(formData.amount),
+          description: formData.description,
+          payment_method: formData.account?.toLowerCase().includes('efectivo') ? 'cash' : 'card',
+          has_cfdi: !!formData.cfdi_uuid,
+          cfdi_uuid: formData.cfdi_uuid,
+          client_type: formData.client_type,
+          transaction_type: formData.transaction_type,
+          is_isr_deductible: formData.is_isr_deductible,
+          is_iva_deductible: formData.is_iva_deductible,
+          expense_type: formData.expense_type,
+          category: formData.description,
+          iva_amount: formData.type === 'gasto' && formData.iva_rate === '16' ? parseFloat(formData.amount) * 0.16 : 0
+        };
+
+        const result = await evaluateTransactionCompliance(transactionData);
+        setComplianceStatus(result);
+      } catch (err) {
+        console.error('Compliance evaluation error:', err);
+        setComplianceStatus(null);
+      } finally {
+        setComplianceLoading(false);
+      }
+    };
+
+    // Debounce the evaluation
+    const timer = setTimeout(() => {
+      evaluateCompliance();
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [
+    formData.amount,
+    formData.type,
+    formData.description,
+    formData.account,
+    formData.cfdi_uuid,
+    formData.client_type,
+    formData.transaction_type,
+    formData.is_isr_deductible,
+    formData.is_iva_deductible,
+    formData.expense_type,
+    formData.iva_rate
+  ]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -358,6 +418,99 @@ export default function AddTransaction({ onSuccess }) {
               onSelect={handleSuggestionSelect}
               currentCategory={formData.category}
             />
+          </div>
+        )}
+
+        {/* Phase 28: Real-time Compliance Feedback */}
+        {complianceStatus && (formData.description && formData.amount) && (
+          <div className="md:col-span-2">
+            <div className={`border rounded-lg p-4 ${
+              complianceStatus.compliance_status === 'compliant' 
+                ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800'
+                : complianceStatus.compliance_status === 'needs_review'
+                ? 'bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800'
+                : 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800'
+            }`}>
+              <div className="flex items-start space-x-3">
+                <div className="flex-shrink-0">
+                  {complianceStatus.compliance_status === 'compliant' ? (
+                    <svg className="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  ) : complianceStatus.compliance_status === 'needs_review' ? (
+                    <svg className="h-5 w-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  ) : (
+                    <svg className="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className={`text-sm font-semibold mb-2 ${
+                    complianceStatus.compliance_status === 'compliant' 
+                      ? 'text-green-800 dark:text-green-300'
+                      : complianceStatus.compliance_status === 'needs_review'
+                      ? 'text-yellow-800 dark:text-yellow-300'
+                      : 'text-red-800 dark:text-red-300'
+                  }`}>
+                    {complianceStatus.compliance_status === 'compliant' 
+                      ? '✓ Cumplimiento SAT'
+                      : complianceStatus.compliance_status === 'needs_review'
+                      ? '⚠ Requiere Revisión'
+                      : '✗ No Cumple'}
+                  </h4>
+                  
+                  {/* Show errors */}
+                  {complianceStatus.errors?.length > 0 && (
+                    <div className="space-y-1 mb-2">
+                      {complianceStatus.errors.map((error, idx) => (
+                        <p key={idx} className="text-xs text-red-700 dark:text-red-300">
+                          {error}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Show warnings */}
+                  {complianceStatus.warnings?.length > 0 && (
+                    <div className="space-y-1 mb-2">
+                      {complianceStatus.warnings.map((warning, idx) => (
+                        <p key={idx} className="text-xs text-yellow-700 dark:text-yellow-300">
+                          {warning}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Show info */}
+                  {complianceStatus.info?.length > 0 && (
+                    <div className="space-y-1">
+                      {complianceStatus.info.map((info, idx) => (
+                        <p key={idx} className="text-xs text-gray-700 dark:text-gray-300">
+                          {info}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {complianceStatus.matched_rules?.length > 0 && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      {complianceStatus.matched_rules.length} regla(s) aplicada(s)
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {complianceLoading && formData.description && formData.amount && (
+          <div className="md:col-span-2">
+            <div className="text-center py-2 text-sm text-gray-500 dark:text-gray-400">
+              🔍 Evaluando cumplimiento fiscal...
+            </div>
           </div>
         )}
 

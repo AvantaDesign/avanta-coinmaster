@@ -52,6 +52,7 @@ const DigitalArchive = lazy(() => import('./components/DigitalArchive'));
 const ComplianceMonitoring = lazy(() => import('./components/ComplianceMonitoring'));
 const SystemAuditTrail = lazy(() => import('./components/SystemAuditTrail'));
 const TagManager = lazy(() => import('./components/TagManager'));
+const ComplianceDashboard = lazy(() => import('./components/ComplianceDashboard'));
 
 // Loading fallback component
 function LoadingFallback() {
@@ -170,6 +171,7 @@ function NavigationBar() {
         { name: 'Declaraciones SAT', icon: '📄', path: '/sat-declarations' },
         { name: 'Archivo Digital', icon: '🗄️', path: '/digital-archive' },
         { name: 'Monitoreo de Cumplimiento', icon: '🔍', path: '/compliance-monitoring' },
+        { name: 'Panel de Cumplimiento', icon: '🛡️', path: '/compliance-dashboard' },
         { name: 'Auditoría del Sistema', icon: '📝', path: '/system-audit-trail' },
         { name: 'Facturas', icon: '📑', path: '/invoices' },
         { name: 'Recibos', icon: '🧾', path: '/receipts' },
@@ -544,6 +546,7 @@ function AuthenticatedApp() {
                 <Route path="/compliance-monitoring" element={<ComplianceMonitoring />} />
                 <Route path="/system-audit-trail" element={<SystemAuditTrail />} />
                 <Route path="/tags" element={<TagManager />} />
+                <Route path="/compliance-dashboard" element={<ComplianceDashboard />} />
                 <Route path="/invoices" element={<Invoices />} />
                 <Route path="/receipts" element={<Receipts />} />
                 <Route path="/automation" element={<Home />} />
