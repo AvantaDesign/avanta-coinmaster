@@ -1,6 +1,12 @@
 // Cash Flow Projection API - Generate 60-day cash flow forecasts
+// Phase 30: Monetary values stored as INTEGER cents in database
 
 import Decimal from 'decimal.js';
+import { 
+  fromCents, 
+  fromCentsToDecimal,
+  MONETARY_FIELDS 
+} from '../utils/monetary.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -61,9 +67,10 @@ function generateRecurringOccurrences(item, startDate, endDate, type) {
   
   while (currentDate <= end) {
     if (currentDate >= startDate) {
+      // Phase 30: Convert amount from cents to decimal
       occurrences.push({
         date: currentDate.toISOString().split('T')[0],
-        amount: item.amount,
+        amount: parseFloat(fromCents(item.amount)),
         type: type,
         description: type === 'recurring_freelancer' 
           ? `${item.freelancer_name} (Freelancer)` 
@@ -88,7 +95,8 @@ function calculateHistoricalAverage(transactions, category = null, days = 30) {
   
   if (filtered.length === 0) return 0;
   
-  const total = filtered.reduce((sum, t) => sum + (t.amount || 0), 0);
+  // Phase 30: Convert amounts from cents to decimal
+  const total = filtered.reduce((sum, t) => sum + parseFloat(fromCents(t.amount || 0)), 0);
   return total / Math.max(1, days);
 }
 
@@ -125,9 +133,10 @@ export async function onRequestGet(context) {
       'SELECT id, name, type, balance FROM accounts WHERE is_active = 1'
     ).all();
 
+    // Phase 30: Convert balances from cents to Decimal
     let currentBalance = new Decimal(0);
     for (const account of accounts.results || []) {
-      currentBalance = currentBalance.plus(account.balance || 0);
+      currentBalance = currentBalance.plus(fromCentsToDecimal(account.balance || 0));
     }
 
     // Get recurring freelancer payments (outflows)
@@ -203,7 +212,8 @@ export async function onRequestGet(context) {
     // Add debt payments
     for (const debt of debts.results || []) {
       let currentDate = new Date(debt.next_payment_date);
-      const amount = debt.monthly_payment || 0;
+      // Phase 30: Convert amount from cents to decimal
+      const amount = parseFloat(fromCents(debt.monthly_payment || 0));
       
       while (currentDate <= endDate) {
         if (currentDate >= today) {
@@ -223,7 +233,9 @@ export async function onRequestGet(context) {
 
     // Add payables
     for (const payable of payables.results || []) {
-      const remainingAmount = (payable.amount || 0) - (payable.amount_paid || 0);
+      // Phase 30: amounts in cents, calculate remaining and convert
+      const remainingAmountCents = (payable.amount || 0) - (payable.amount_paid || 0);
+      const remainingAmount = parseFloat(fromCents(remainingAmountCents));
       if (remainingAmount > 0) {
         projectedTransactions.push({
           date: payable.due_date,
@@ -239,7 +251,9 @@ export async function onRequestGet(context) {
 
     // Add receivables
     for (const receivable of receivables.results || []) {
-      const remainingAmount = (receivable.amount || 0) - (receivable.amount_paid || 0);
+      // Phase 30: amounts in cents, calculate remaining and convert
+      const remainingAmountCents = (receivable.amount || 0) - (receivable.amount_paid || 0);
+      const remainingAmount = parseFloat(fromCents(remainingAmountCents));
       if (remainingAmount > 0) {
         // Apply scenario-based probability
         let adjustedAmount = remainingAmount;
