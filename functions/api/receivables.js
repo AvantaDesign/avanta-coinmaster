@@ -1,6 +1,15 @@
 // Receivables API - Manage accounts receivable and payments
+// Phase 30: Monetary values stored as INTEGER cents in database
 
 import Decimal from 'decimal.js';
+import { 
+  toCents, 
+  fromCentsToDecimal,
+  convertArrayFromCents, 
+  convertObjectFromCents, 
+  parseMonetaryInput,
+  MONETARY_FIELDS 
+} from '../utils/monetary.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -54,9 +63,13 @@ export async function onRequestGet(context) {
         'SELECT * FROM receivable_payments WHERE receivable_id = ? ORDER BY payment_date DESC'
       ).bind(id).all();
 
+      // Phase 30: Convert monetary fields from cents to decimal
+      const convertedReceivable = convertObjectFromCents(receivable, MONETARY_FIELDS.RECEIVABLES);
+      const convertedPayments = convertArrayFromCents(payments.results || [], MONETARY_FIELDS.PAYMENTS);
+
       return new Response(JSON.stringify({
-        receivable,
-        payments: payments.results || []
+        receivable: convertedReceivable,
+        payments: convertedPayments
       }), {
         headers: corsHeaders
       });
@@ -90,9 +103,12 @@ export async function onRequestGet(context) {
 
     const result = await stmt.all();
 
+    // Phase 30: Convert monetary fields from cents to decimal
+    const convertedResults = convertArrayFromCents(result.results || [], MONETARY_FIELDS.RECEIVABLES);
+
     // Update overdue status
     const today = new Date().toISOString().split('T')[0];
-    const receivables = (result.results || []).map(r => {
+    const receivables = convertedResults.map(r => {
       if (r.due_date < today && r.status !== 'paid' && r.status !== 'cancelled') {
         return { ...r, status: 'overdue' };
       }
@@ -155,10 +171,11 @@ export async function onRequestPost(context) {
       });
     }
 
-    // Validate amount
-    if (amount <= 0) {
+    // Phase 30: Parse and validate monetary input
+    const amountResult = parseMonetaryInput(amount, 'amount', true);
+    if (amountResult.error) {
       return new Response(JSON.stringify({ 
-        error: 'Amount must be positive',
+        error: amountResult.error,
         code: 'VALIDATION_ERROR'
       }), {
         status: 400,
@@ -178,7 +195,7 @@ export async function onRequestPost(context) {
       invoice_number || null,
       invoice_date,
       due_date,
-      amount,
+      amountResult.value,  // Phase 30: stored as cents
       payment_terms || 30,
       notes || null
     ).run();
@@ -248,12 +265,27 @@ export async function onRequestPut(context) {
 
     // If recording a payment
     if (amount_paid !== undefined && amount_paid > 0) {
-      // Update receivable amount paid using Decimal for precision
-      const currentAmountPaid = new Decimal(receivable.amount_paid || 0);
-      const paymentAmount = new Decimal(amount_paid);
+      // Phase 30: Parse and validate payment amount
+      const paymentResult = parseMonetaryInput(amount_paid, 'amount_paid', true);
+      if (paymentResult.error) {
+        return new Response(JSON.stringify({ 
+          error: paymentResult.error,
+          code: 'VALIDATION_ERROR'
+        }), {
+          status: 400,
+          headers: corsHeaders
+        });
+      }
+
+      // Phase 30: Update receivable amount paid using Decimal for precision (in cents)
+      const currentAmountPaid = fromCentsToDecimal(receivable.amount_paid || 0);
+      const paymentAmount = fromCentsToDecimal(paymentResult.value);
       const newAmountPaid = currentAmountPaid.plus(paymentAmount);
-      const receivableAmount = new Decimal(receivable.amount);
+      const receivableAmount = fromCentsToDecimal(receivable.amount);
       const newStatus = newAmountPaid.gte(receivableAmount) ? 'paid' : 'partial';
+
+      // Convert back to cents for storage
+      const newAmountPaidCents = toCents(newAmountPaid.toNumber());
 
       // Use batch() for atomic operation - both statements succeed or fail together
       const insertPayment = env.DB.prepare(
@@ -263,7 +295,7 @@ export async function onRequestPut(context) {
       ).bind(
         id,
         payment_date || new Date().toISOString().split('T')[0],
-        amount_paid,
+        paymentResult.value,  // Phase 30: stored as cents
         payment_method || null,
         reference_number || null,
         notes || null
@@ -271,7 +303,7 @@ export async function onRequestPut(context) {
 
       const updateReceivable = env.DB.prepare(
         'UPDATE receivables SET amount_paid = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
-      ).bind(parseFloat(newAmountPaid.toFixed(2)), newStatus, id);
+      ).bind(newAmountPaidCents, newStatus, id);
 
       // Execute both operations atomically
       await env.DB.batch([insertPayment, updateReceivable]);
