@@ -386,7 +386,7 @@ export default function FiscalReports() {
                 {reportData.data.map((cat, idx) => {
                   const deductiblePct = cat.total > 0 ? (cat.deductible / cat.total) * 100 : 0;
                   return (
-                    <tr key={idx} className="border-b hover:bg-gray-50">
+                    <tr key={idx} className="border-b hover:bg-gray-50 dark:hover:bg-slate-800">
                       <td className="py-3 px-2">
                         <div className="font-medium">{cat.category}</div>
                         {cat.isDeductible && (

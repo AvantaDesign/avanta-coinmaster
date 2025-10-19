@@ -289,7 +289,7 @@ export default function ExportDialog({ transactions, filters, onClose }) {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto p-2 border rounded-lg">
               {availableFields.map(field => (
-                <label key={field.key} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
+                <label key={field.key} className="flex items-center gap-2 p-2 hover:bg-gray-50 dark:hover:bg-slate-800 rounded">
                   <input
                     type="checkbox"
                     checked={selectedFields[field.key]}

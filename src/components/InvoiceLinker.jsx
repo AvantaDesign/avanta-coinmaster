@@ -204,7 +204,7 @@ export default function InvoiceLinker({ transaction, onClose, onLinked }) {
                       className={`border rounded-lg p-4 cursor-pointer transition-colors ${
                         selectedInvoice?.id === invoice.id
                           ? 'border-blue-600 bg-blue-50'
-                          : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                          : 'border-gray-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-gray-50 dark:hover:bg-slate-800'
                       }`}
                       onClick={() => setSelectedInvoice(invoice)}
                     >

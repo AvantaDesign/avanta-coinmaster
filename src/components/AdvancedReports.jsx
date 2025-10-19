@@ -208,7 +208,7 @@ export default function AdvancedReports({ data = {} }) {
               className={`p-4 rounded-lg border-2 text-left transition-all ${
                 selectedTemplate?.id === template.id
                   ? 'border-blue-500 bg-blue-50 shadow-md'
-                  : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                  : 'border-gray-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-gray-50 dark:hover:bg-slate-800'
               }`}
             >
               <div className="flex items-start gap-3">

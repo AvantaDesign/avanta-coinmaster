@@ -452,7 +452,7 @@ export default function AccountsPayable() {
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
                   {payables.map((payable) => (
-                    <tr key={payable.id} className="hover:bg-gray-50">
+                    <tr key={payable.id} className="hover:bg-gray-50 dark:hover:bg-slate-800">
                       <td className="px-4 py-3 text-sm">{payable.vendor_name}</td>
                       <td className="px-4 py-3 text-sm">{payable.bill_number || '-'}</td>
                       <td className="px-4 py-3 text-sm">{formatDate(payable.due_date)}</td>
@@ -553,7 +553,7 @@ export default function AccountsPayable() {
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
                   {vendors.map((vendor, idx) => (
-                    <tr key={idx} className="hover:bg-gray-50">
+                    <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-slate-800">
                       <td className="px-4 py-3 text-sm font-medium">{vendor.vendor_name}</td>
                       <td className="px-4 py-3 text-sm text-right">{formatCurrency(vendor.totalAmount)}</td>
                       <td className="px-4 py-3 text-sm text-right text-green-600">{formatCurrency(vendor.paidAmount)}</td>

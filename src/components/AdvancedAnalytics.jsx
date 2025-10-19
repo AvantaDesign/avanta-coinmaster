@@ -387,7 +387,7 @@ function CashFlowForecastTab({ forecast }) {
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
               {forecast.forecasts.map((f, index) => (
-                <tr key={index} className="hover:bg-gray-50">
+                <tr key={index} className="hover:bg-gray-50 dark:hover:bg-slate-800">
                   <td className="px-4 py-3 text-sm font-medium">{f.month}</td>
                   <td className="px-4 py-3 text-sm text-right text-green-600">
                     {formatCurrency(f.income)}

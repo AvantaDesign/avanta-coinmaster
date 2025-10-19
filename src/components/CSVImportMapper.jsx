@@ -245,7 +245,7 @@ export default function CSVImportMapper({ file, onMappingComplete, onCancel }) {
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
                   {previewRows.map((row, idx) => (
-                    <tr key={idx} className="hover:bg-gray-50">
+                    <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-slate-800">
                       {headers.map(header => (
                         <td key={header} className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400 max-w-xs truncate">
                           {row[header]}
@@ -277,7 +277,7 @@ export default function CSVImportMapper({ file, onMappingComplete, onCancel }) {
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
                     {previewRows.map((row, idx) => (
-                      <tr key={idx} className="hover:bg-gray-50">
+                      <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-slate-800">
                         {Object.entries(mapping).map(([field, csvColumn]) => (
                           <td key={field} className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400 max-w-xs truncate">
                             {row[csvColumn]}
@@ -309,7 +309,7 @@ export default function CSVImportMapper({ file, onMappingComplete, onCancel }) {
       <div className="flex gap-3 pt-4 border-t">
         <button
           onClick={onCancel}
-          className="px-6 py-2 border border-gray-300 dark:border-slate-600 rounded-md hover:bg-gray-50"
+          className="px-6 py-2 border border-gray-300 dark:border-slate-600 rounded-md hover:bg-gray-50 dark:hover:bg-slate-800"
         >
           Cancelar
         </button>

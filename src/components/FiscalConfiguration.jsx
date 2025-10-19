@@ -231,7 +231,7 @@ export default function FiscalConfiguration() {
             <div className="space-x-2">
               <button
                 onClick={handleCancel}
-                className="px-6 py-2 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50"
+                className="px-6 py-2 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800"
               >
                 Cancelar
               </button>
@@ -383,7 +383,7 @@ export default function FiscalConfiguration() {
             </thead>
             <tbody className="bg-white dark:bg-slate-900 divide-y divide-gray-200 dark:divide-slate-700">
               {formData.isr_brackets.map((bracket, index) => (
-                <tr key={index} className="hover:bg-gray-50">
+                <tr key={index} className="hover:bg-gray-50 dark:hover:bg-slate-800">
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     {formatCurrency(bracket.lowerLimit)}
                   </td>

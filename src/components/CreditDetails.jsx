@@ -233,7 +233,7 @@ export default function CreditDetails({ credit, movements = [], onClose, onAddMo
                   </div>
                 ) : (
                   filteredMovements.map((movement) => (
-                    <div key={movement.id} className="px-4 py-3 hover:bg-gray-50">
+                    <div key={movement.id} className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-800">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center">
