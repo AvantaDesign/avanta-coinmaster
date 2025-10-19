@@ -98,12 +98,18 @@ export async function onRequestGet(context) {
         });
       }
 
-      // Add calculated fields
-      goal.progress_percentage = calculateProgress(goal.current_amount, goal.target_amount);
-      goal.amount_remaining = goal.target_amount - goal.current_amount;
-      goal.days_remaining = calculateDaysRemaining(goal.target_date);
+      // Phase 30: Convert monetary fields from cents to decimal
+      const convertedGoal = convertObjectFromCents(goal, MONETARY_FIELDS.SAVINGS_GOALS);
 
-      return new Response(JSON.stringify(goal), {
+      // Add calculated fields (use string values for calculations after conversion)
+      convertedGoal.progress_percentage = calculateProgress(
+        parseFloat(convertedGoal.current_amount), 
+        parseFloat(convertedGoal.target_amount)
+      );
+      convertedGoal.amount_remaining = (parseFloat(convertedGoal.target_amount) - parseFloat(convertedGoal.current_amount)).toFixed(2);
+      convertedGoal.days_remaining = calculateDaysRemaining(convertedGoal.target_date);
+
+      return new Response(JSON.stringify(convertedGoal), {
         headers: corsHeaders
       });
     }
@@ -133,10 +139,15 @@ export async function onRequestGet(context) {
     const result = await env.DB.prepare(query).bind(...params).all();
     let goals = result.results || [];
 
+    // Phase 30: Convert monetary fields from cents to decimal
+    goals = convertArrayFromCents(goals, MONETARY_FIELDS.SAVINGS_GOALS);
+
     // Add calculated fields and filter by status
     goals = goals.map(goal => {
-      const progressPercentage = calculateProgress(goal.current_amount, goal.target_amount);
-      const amountRemaining = goal.target_amount - goal.current_amount;
+      const currentAmt = parseFloat(goal.current_amount);
+      const targetAmt = parseFloat(goal.target_amount);
+      const progressPercentage = calculateProgress(currentAmt, targetAmt);
+      const amountRemaining = (targetAmt - currentAmt).toFixed(2);
       const daysRemaining = calculateDaysRemaining(goal.target_date);
       
       return {
@@ -220,7 +231,19 @@ export async function onRequestPost(context) {
       const data = await request.json();
       const { amount } = data;
 
-      if (!amount || amount <= 0) {
+      // Phase 30: Parse and validate monetary input
+      const amountResult = parseMonetaryInput(amount, 'amount', true);
+      if (amountResult.error) {
+        return new Response(JSON.stringify({ 
+          error: amountResult.error,
+          code: 'INVALID_INPUT'
+        }), {
+          status: 400,
+          headers: corsHeaders
+        });
+      }
+
+      if (amountResult.value <= 0) {
         return new Response(JSON.stringify({ 
           error: 'Invalid contribution amount',
           code: 'INVALID_INPUT'
@@ -245,22 +268,28 @@ export async function onRequestPost(context) {
         });
       }
 
-      // Update current amount
-      const newAmount = goal.current_amount + parseFloat(amount);
+      // Update current amount (add cents to cents)
+      const newAmountCents = goal.current_amount + amountResult.value;
       await env.DB.prepare(
         'UPDATE savings_goals SET current_amount = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
-      ).bind(newAmount, goalId).run();
+      ).bind(newAmountCents, goalId).run();
 
       // Return updated goal
       const updatedGoal = await env.DB.prepare(
         'SELECT * FROM savings_goals WHERE id = ?'
       ).bind(goalId).first();
 
-      updatedGoal.progress_percentage = calculateProgress(updatedGoal.current_amount, updatedGoal.target_amount);
-      updatedGoal.amount_remaining = updatedGoal.target_amount - updatedGoal.current_amount;
-      updatedGoal.days_remaining = calculateDaysRemaining(updatedGoal.target_date);
+      // Phase 30: Convert monetary fields from cents to decimal
+      const convertedGoal = convertObjectFromCents(updatedGoal, MONETARY_FIELDS.SAVINGS_GOALS);
 
-      return new Response(JSON.stringify(updatedGoal), {
+      convertedGoal.progress_percentage = calculateProgress(
+        parseFloat(convertedGoal.current_amount), 
+        parseFloat(convertedGoal.target_amount)
+      );
+      convertedGoal.amount_remaining = (parseFloat(convertedGoal.target_amount) - parseFloat(convertedGoal.current_amount)).toFixed(2);
+      convertedGoal.days_remaining = calculateDaysRemaining(convertedGoal.target_date);
+
+      return new Response(JSON.stringify(convertedGoal), {
         headers: corsHeaders
       });
     }
@@ -289,6 +318,29 @@ export async function onRequestPost(context) {
       });
     }
 
+    // Phase 30: Parse and validate monetary inputs
+    const targetAmountResult = parseMonetaryInput(target_amount, 'target_amount', true);
+    if (targetAmountResult.error) {
+      return new Response(JSON.stringify({ 
+        error: targetAmountResult.error,
+        code: 'INVALID_INPUT'
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
+
+    const currentAmountResult = parseMonetaryInput(current_amount || 0, 'current_amount', false);
+    if (currentAmountResult.error) {
+      return new Response(JSON.stringify({ 
+        error: currentAmountResult.error,
+        code: 'INVALID_INPUT'
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
+
     const id = generateId();
     const now = new Date().toISOString();
 
@@ -298,7 +350,10 @@ export async function onRequestPost(context) {
         type, category, description, is_active, created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
     `).bind(
-      id, userId, name, target_amount, current_amount || 0, target_date || null,
+      id, userId, name, 
+      targetAmountResult.value,  // Phase 30: Store as cents
+      currentAmountResult.value,  // Phase 30: Store as cents
+      target_date || null,
       type, category || null, description || null, now, now
     ).run();
 
@@ -306,11 +361,17 @@ export async function onRequestPost(context) {
       'SELECT * FROM savings_goals WHERE id = ?'
     ).bind(id).first();
 
-    newGoal.progress_percentage = calculateProgress(newGoal.current_amount, newGoal.target_amount);
-    newGoal.amount_remaining = newGoal.target_amount - newGoal.current_amount;
-    newGoal.days_remaining = calculateDaysRemaining(newGoal.target_date);
+    // Phase 30: Convert monetary fields from cents to decimal
+    const convertedGoal = convertObjectFromCents(newGoal, MONETARY_FIELDS.SAVINGS_GOALS);
 
-    return new Response(JSON.stringify(newGoal), {
+    convertedGoal.progress_percentage = calculateProgress(
+      parseFloat(convertedGoal.current_amount), 
+      parseFloat(convertedGoal.target_amount)
+    );
+    convertedGoal.amount_remaining = (parseFloat(convertedGoal.target_amount) - parseFloat(convertedGoal.current_amount)).toFixed(2);
+    convertedGoal.days_remaining = calculateDaysRemaining(convertedGoal.target_date);
+
+    return new Response(JSON.stringify(convertedGoal), {
       status: 201,
       headers: corsHeaders
     });
@@ -386,14 +447,38 @@ export async function onRequestPut(context) {
       updates.push('name = ?');
       params.push(name);
     }
+    
+    // Phase 30: Handle monetary fields with validation
     if (target_amount !== undefined) {
+      const targetAmountResult = parseMonetaryInput(target_amount, 'target_amount', false);
+      if (targetAmountResult.error) {
+        return new Response(JSON.stringify({ 
+          error: targetAmountResult.error,
+          code: 'INVALID_INPUT'
+        }), {
+          status: 400,
+          headers: corsHeaders
+        });
+      }
       updates.push('target_amount = ?');
-      params.push(target_amount);
+      params.push(targetAmountResult.value);
     }
+    
     if (current_amount !== undefined) {
+      const currentAmountResult = parseMonetaryInput(current_amount, 'current_amount', false);
+      if (currentAmountResult.error) {
+        return new Response(JSON.stringify({ 
+          error: currentAmountResult.error,
+          code: 'INVALID_INPUT'
+        }), {
+          status: 400,
+          headers: corsHeaders
+        });
+      }
       updates.push('current_amount = ?');
-      params.push(current_amount);
+      params.push(currentAmountResult.value);
     }
+    
     if (target_date !== undefined) {
       updates.push('target_date = ?');
       params.push(target_date);
@@ -445,11 +530,17 @@ export async function onRequestPut(context) {
       'SELECT * FROM savings_goals WHERE id = ?'
     ).bind(id).first();
 
-    updated.progress_percentage = calculateProgress(updated.current_amount, updated.target_amount);
-    updated.amount_remaining = updated.target_amount - updated.current_amount;
-    updated.days_remaining = calculateDaysRemaining(updated.target_date);
+    // Phase 30: Convert monetary fields from cents to decimal
+    const convertedGoal = convertObjectFromCents(updated, MONETARY_FIELDS.SAVINGS_GOALS);
 
-    return new Response(JSON.stringify(updated), {
+    convertedGoal.progress_percentage = calculateProgress(
+      parseFloat(convertedGoal.current_amount), 
+      parseFloat(convertedGoal.target_amount)
+    );
+    convertedGoal.amount_remaining = (parseFloat(convertedGoal.target_amount) - parseFloat(convertedGoal.current_amount)).toFixed(2);
+    convertedGoal.days_remaining = calculateDaysRemaining(convertedGoal.target_date);
+
+    return new Response(JSON.stringify(convertedGoal), {
       headers: corsHeaders
     });
   } catch (error) {
