@@ -1,4 +1,5 @@
 // Annual Declarations API - Comprehensive annual tax declaration operations
+// Phase 30: Monetary values stored as INTEGER cents in database
 //
 // This API handles all annual declaration operations including:
 // - Generate annual ISR declaration with personal deductions
@@ -17,6 +18,11 @@
 // - DELETE /api/annual-declarations/:id - Delete declaration
 
 import { getUserIdFromToken } from './auth.js';
+import { 
+  fromCents, 
+  fromCentsToDecimal,
+  toCents
+} from '../utils/monetary.js';
 
 // CORS headers
 const corsHeaders = {
@@ -93,9 +99,9 @@ async function calculateAnnualISR(env, userId, year) {
     brackets = getDefaultAnnualBrackets();
   }
   
-  // Calculate values
-  const totalIncome = incomeResult.total_income || 0;
-  const deductibleExpenses = expenseResult.deductible_expenses || 0;
+  // Phase 30: Convert values from cents to decimal for calculations
+  const totalIncome = parseFloat(fromCents(incomeResult.total_income || 0));
+  const deductibleExpenses = parseFloat(fromCents(expenseResult.deductible_expenses || 0));
   const taxableIncome = Math.max(0, totalIncome - deductibleExpenses);
   
   // Apply annual ISR tariff table
@@ -120,13 +126,14 @@ async function calculateAnnualISR(env, userId, year) {
       AND status IN ('calculated', 'paid')
   `).bind(userId, year).first();
   
-  const isrPaid = isrPaidResult.isr_paid || 0;
-  const isrRetention = incomeResult.isr_retention || 0;
+  // Phase 30: Convert monetary values from cents to decimal
+  const isrPaid = parseFloat(fromCents(isrPaidResult.isr_paid || 0));
+  const isrRetention = parseFloat(fromCents(incomeResult.isr_retention || 0));
   const isrBalance = isrCalculated - isrPaid - isrRetention;
   
   return {
     totalIncome,
-    totalExpenses: expenseResult.total_expenses || 0,
+    totalExpenses: parseFloat(fromCents(expenseResult.total_expenses || 0)),
     deductibleExpenses,
     taxableIncome,
     isrCalculated,
@@ -151,6 +158,7 @@ async function calculateAnnualIVA(env, userId, year) {
   const startDate = `${year}-01-01`;
   const endDate = `${year}-12-31`;
   
+  // Phase 30: IVA calculation on amounts stored as cents
   // Fetch IVA collected from income
   const ivaCollectedResult = await env.DB.prepare(`
     SELECT 
@@ -173,8 +181,9 @@ async function calculateAnnualIVA(env, userId, year) {
       AND is_deleted = 0
   `).bind(userId, startDate, endDate).first();
   
-  const ivaCollected = ivaCollectedResult.iva_collected || 0;
-  const ivaPaid = ivaPaidResult.iva_paid || 0;
+  // Phase 30: Convert IVA amounts from cents to decimal
+  const ivaCollected = parseFloat(fromCents(ivaCollectedResult.iva_collected || 0));
+  const ivaPaid = parseFloat(fromCents(ivaPaidResult.iva_paid || 0));
   const ivaBalance = ivaCollected - ivaPaid;
   
   return {
