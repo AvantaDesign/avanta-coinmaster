@@ -597,23 +597,51 @@ This plan prioritizes:
 
 ---
 
-## Phase 26: Core Functionality Integration
+## Phase 26: Core Functionality Integration ✅ COMPLETED
 
 **Goal:** Address critical gaps in the budgeting and fiscal configuration modules to ensure the system is functionally complete and intuitive.
 
 *   **Tasks:**
-    1.  **Budget Category Integration:**
-        *   Modify the "Create/Edit Budget" workflow to use the main transaction category list.
-        *   Ensure the category selection dropdown in the budget form is populated from the user's existing `categories` table.
-        *   Confirm that the system correctly tracks expenses against the budget based on the selected category.
-    2.  **ISR Tariff Table Management:**
-        *   **Backend:** Create full CRUD API endpoints (`GET`, `POST`, `PUT`, `DELETE`) to manage ISR tariff tables stored in the `fiscal_parameters` table.
-        *   **Frontend:** Build a dedicated UI within the "Configuración Fiscal" page. This interface must allow users to view, edit, create, and import (e.g., from JSON/CSV) the monthly and annual ISR progressive rate tables.
-        *   Implement robust validation for the structure and data types of imported/edited tables.
+    1.  ✅ **Budget Category Integration:**
+        *   ✅ Verified "Create/Edit Budget" workflow uses the main transaction category list
+        *   ✅ Category selection dropdown in budget form is populated from user's existing `categories` table
+        *   ✅ System correctly tracks expenses against budget based on selected category
+        *   ✅ Budget vs actual comparison API already implemented with proper category filtering
+    2.  ✅ **ISR Tariff Table Management:**
+        *   ✅ **Backend:** Full CRUD API endpoints (`GET`, `POST`, `PUT`, `DELETE`) already exist in `fiscal-parameters` API
+        *   ✅ **Frontend:** Built comprehensive UI within "Configuración Fiscal" page with:
+            - Inline editing of ISR brackets with add/remove functionality
+            - JSON/CSV import functionality for tariff tables
+            - JSON/CSV export functionality
+            - Real-time validation of bracket structure
+            - Historical parameter tracking view
+        *   ✅ Implemented robust validation for structure and data types
+    3.  ✅ **Enhanced Fiscal Configuration:**
+        *   ✅ Added UMA values management UI with inline editing
+        *   ✅ Parameter validation with proportional checks
+        *   ✅ Historical parameter tracking functionality
+        *   ✅ Comprehensive fiscal parameters display
+        *   ✅ SAT accounts catalog browser (from Phase 17)
 
-*   **Verification:**
-    *   Users can successfully create a budget using their existing expense categories, and the budget tracking works as expected.
-    *   The system allows for viewing and updating ISR tables through the new UI. The tax calculation engine (from Phase 19) must immediately use these user-configurable tables.
+*   **Verification:** ✅
+    *   ✅ Budget system already integrated with categories table and transaction tracking
+    *   ✅ ISR tariff tables can be viewed, edited, imported, and exported through UI
+    *   ✅ UMA values can be updated through dedicated interface
+    *   ✅ Parameter history tracking available
+    *   ✅ Tax calculation engine (Phase 19) uses user-configurable tables from fiscal_config
+    *   ✅ Build succeeds without errors (npm run build passed)
+
+**Implementation Date:** October 19, 2025  
+**Files Modified:**
+- `src/components/FiscalConfiguration.jsx` (enhanced with ISR management, UMA editing, parameter history)
+
+**Key Features Implemented:**
+- **ISR Tariff Table Management**: Complete CRUD interface with inline editing, import/export (JSON/CSV), add/remove brackets
+- **UMA Values Management**: Direct editing interface with validation and proportional checks
+- **Parameter History**: View historical fiscal parameters and their effective dates
+- **Budget-Category Integration**: Verified existing integration is fully functional
+- **Comprehensive Validation**: All fiscal parameter changes validated before saving
+- **Export Capabilities**: Export ISR tables as JSON or CSV for backup/sharing
 
 ---
 
