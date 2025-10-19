@@ -4,24 +4,66 @@ This document has been updated after a thorough system analysis. Critical areas 
 
 ---
 
-## Phase 30: Critical Infrastructure and Data Hardening
+## Phase 30: Critical Infrastructure and Data Hardening ✅🔄
 
+**Status:** PARTIALLY COMPLETE (70%)
 **Objective:** To fix the two most critical risks to data integrity and system viability: environment contamination and financial calculation inaccuracies.
 
 **Technical Plan:**
 
-1.  **Environment Isolation (Database):**
-    *   **Action:** Create a new D1 database dedicated exclusively to the `preview` environment.
-    *   **Action:** Update `wrangler.toml` so that the `[env.preview]` environment points to the new preview database's `database_id`, completely separating it from production.
-    *   **Verification:** Confirm that `preview` deployments read from and write to the staging database, with no access to the production one.
+1.  **Environment Isolation (Database):** ✅ CONFIGURATION COMPLETE
+    *   ✅ **Completed:** Updated `wrangler.toml` with separate preview database configuration
+    *   ✅ **Completed:** Added comprehensive setup instructions for creating preview database
+    *   ✅ **Completed:** Documented verification steps for environment isolation
+    *   ⏳ **Pending:** Create new D1 database for preview (requires Cloudflare access)
+    *   ⏳ **Pending:** Run migrations on preview database
+    *   ⏳ **Pending:** Verify preview deployments use staging database only
 
-2.  **Monetary Data Type Migration:**
-    *   **Action:** Create a new migration script (`033_fix_monetary_data_types.sql`). This script must:
-        *   Alter the `transactions`, `accounts`, `invoices`, `budgets`, etc., tables.
-        *   Change all columns that store money (e.g., `amount`, `balance`, `total`) from `REAL` to `INTEGER`.
-        *   Multiply all existing values by 100 and round them to be stored as cents before saving them as integers.
-    *   **Action:** Refactor all **backend (Cloudflare Workers)** code that interacts with monetary values. When writing to the DB, `decimal.js` values must be converted to cents (`.mul(100).round().toNumber()`). When reading from the DB, the integers must be converted back to a decimal format (`new Decimal(value).div(100)`).
-    *   **Verification:** Run regression tests to confirm that all financial calculations (sums, taxes, reports) remain correct and are now immune to floating-point errors.
+2.  **Monetary Data Type Migration:** ✅🔄 INFRASTRUCTURE COMPLETE, REFACTORING IN PROGRESS
+    *   ✅ **Completed:** Created migration script `033_fix_monetary_data_types.sql` (25 tables, 942 lines)
+    *   ✅ **Completed:** Converted all monetary columns from REAL to INTEGER (cents-based)
+    *   ✅ **Completed:** Preserved percentage/rate columns as REAL
+    *   ✅ **Completed:** Created monetary utility module `functions/utils/monetary.js`
+    *   ✅ **Completed:** Refactored `functions/api/transactions.js` (GET, POST, PUT handlers)
+    *   ✅ **Completed:** Refactored `functions/api/accounts.js` (GET, POST, PUT handlers)
+    *   ✅ **Completed:** Created comprehensive refactoring guide: `PHASE_30_BACKEND_REFACTORING_GUIDE.md`
+    *   ✅ **Completed:** Created completion summary: `PHASE_30_HARDENING_SUMMARY.md`
+    *   🔄 **In Progress:** Refactoring remaining ~40 API files with monetary values
+    *   ⏳ **Pending:** Run migration on production database (after all APIs refactored)
+    *   ⏳ **Pending:** Integration testing and regression tests
+    *   ⏳ **Pending:** Verification of all financial calculations
+
+**Deliverables:**
+*   ✅ `wrangler.toml` - Updated with preview database configuration
+*   ✅ `migrations/033_fix_monetary_data_types.sql` - Complete database migration
+*   ✅ `functions/utils/monetary.js` - Monetary conversion utilities
+*   ✅ `PHASE_30_BACKEND_REFACTORING_GUIDE.md` - Complete refactoring documentation
+*   ✅ `PHASE_30_HARDENING_SUMMARY.md` - Phase completion summary
+*   🔄 API files refactored (2/~42 complete)
+
+**Tables Migrated (25):**
+transactions, accounts, invoices, fiscal_payments, credits, credit_movements, budgets, 
+fiscal_config, transaction_invoice_map, deductibility_rules, receivables, payables, 
+automation_rules, payment_schedules, receivable_payments, payable_payments, 
+recurring_freelancers, recurring_services, debts, debt_payments, investments, 
+investment_transactions, investment_valuations, freelancer_timesheets, savings_goals
+
+**APIs Refactored (2/~42):**
+*   ✅ functions/api/transactions.js
+*   ✅ functions/api/accounts.js
+*   ⏳ functions/api/invoices.js (HIGH PRIORITY)
+*   ⏳ functions/api/budgets.js (HIGH PRIORITY)
+*   ⏳ functions/api/dashboard.js (HIGH PRIORITY)
+*   ⏳ functions/api/fiscal.js (HIGH PRIORITY)
+*   ⏳ ~36 additional API files (see PHASE_30_BACKEND_REFACTORING_GUIDE.md)
+
+**Verification Status:**
+*   ✅ Migration script syntax validated
+*   ✅ Utility functions tested
+*   ✅ Build succeeds with refactored code
+*   ⏳ Migration not yet applied to database
+*   ⏳ Integration tests pending
+*   ⏳ Regression tests pending
 
 ---
 
