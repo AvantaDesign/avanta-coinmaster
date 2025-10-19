@@ -687,6 +687,16 @@ export async function onRequestPost(context) {
     const sanitizedPaymentDate = payment_date?.trim() || null;
     const sanitizedEconomicActivityCode = economic_activity_code?.trim() || null;
 
+    // PHASE 28: Run compliance engine evaluation before inserting
+    // Note: Compliance evaluation is available via /api/compliance-engine/evaluate endpoint
+    // For now, we track that the transaction will be evaluated post-creation
+    let complianceNote = null;
+    if (!sanitizedCfdiUuid && type === 'gasto') {
+      complianceNote = 'Gasto sin CFDI: verificar requisitos de deducibilidad';
+    } else if (numAmount > 2000 && sanitizedAccount?.toLowerCase().includes('efectivo')) {
+      complianceNote = 'Pago en efectivo >$2,000: puede afectar deducibilidad';
+    }
+
     // Insert transaction
     try {
       const result = await env.DB.prepare(
@@ -729,11 +739,19 @@ export async function onRequestPost(context) {
         'SELECT * FROM transactions WHERE id = ? AND user_id = ?'
       ).bind(result.meta.last_row_id, userId).first();
 
-      return new Response(JSON.stringify({
+      // Prepare response
+      const response = {
         success: true,
         data: createdTransaction,
         message: 'Transaction created successfully'
-      }), {
+      };
+
+      // Add compliance note if available
+      if (complianceNote) {
+        response.compliance_note = complianceNote;
+      }
+
+      return new Response(JSON.stringify(response), {
         status: 201,
         headers: corsHeaders
       });
