@@ -1,7 +1,12 @@
 // Fiscal API - Calculate ISR and IVA
+// Phase 30: Monetary values stored as INTEGER cents in database
 
 import { getUserIdFromToken } from './auth.js';
 import Decimal from 'decimal.js';
+import { 
+  fromCents, 
+  fromCentsToDecimal
+} from '../utils/monetary.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -102,6 +107,7 @@ export async function onRequestGet(context) {
     }
     
     // Get income and deductible expenses for the period
+    // Phase 30: Amounts are stored as INTEGER cents in database
     const summary = await env.DB.prepare(`
       SELECT 
         SUM(CASE WHEN t.type = 'ingreso' AND (t.category = 'avanta' OR t.transaction_type = 'business') THEN t.amount ELSE 0 END) as business_income,
@@ -115,14 +121,14 @@ export async function onRequestGet(context) {
       WHERE t.user_id = ? AND t.date >= ? AND t.date <= ? AND t.is_deleted = 0
     `).bind(userId, firstDay, lastDay).first();
     
-    // Use Decimal for precise financial calculations
-    const businessIncome = new Decimal(summary?.business_income || 0);
-    const businessExpenses = new Decimal(summary?.business_expenses || 0);
-    const isrDeductible = new Decimal(summary?.isr_deductible || 0);
-    const ivaDeductible = new Decimal(summary?.iva_deductible || 0);
-    const totalIncome = new Decimal(summary?.total_income || 0);
-    const totalExpenses = new Decimal(summary?.total_expenses || 0);
-    const personalExpenses = new Decimal(summary?.personal_expenses || 0);
+    // Phase 30: Convert cents to Decimal for precise financial calculations
+    const businessIncome = fromCentsToDecimal(summary?.business_income || 0);
+    const businessExpenses = fromCentsToDecimal(summary?.business_expenses || 0);
+    const isrDeductible = fromCentsToDecimal(summary?.isr_deductible || 0);
+    const ivaDeductible = fromCentsToDecimal(summary?.iva_deductible || 0);
+    const totalIncome = fromCentsToDecimal(summary?.total_income || 0);
+    const totalExpenses = fromCentsToDecimal(summary?.total_expenses || 0);
+    const personalExpenses = fromCentsToDecimal(summary?.personal_expenses || 0);
     
     const utilidad = businessIncome.minus(isrDeductible);
     

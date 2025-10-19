@@ -15,8 +15,11 @@
 // - POST /api/tax-calculations - Calculate taxes for a period
 // - PUT /api/tax-calculations/:id - Update calculation status
 // - DELETE /api/tax-calculations/:id - Delete calculation
+//
+// Phase 30: Monetary values stored as INTEGER cents in database
 
 import { getUserIdFromToken } from './auth.js';
+import { fromCents } from '../utils/monetary.js';
 
 // CORS headers
 const corsHeaders = {
@@ -29,13 +32,14 @@ const corsHeaders = {
 /**
  * ISR Calculation Engine
  * Calculates provisional monthly ISR based on accumulated income and deductions
+ * Phase 30: All monetary values in cents
  */
 async function calculateISR(env, userId, year, month) {
   // Get accumulated income and deductions up to this month
   const startDate = `${year}-01-01`;
   const endDate = `${year}-${String(month).padStart(2, '0')}-${new Date(year, month, 0).getDate()}`;
   
-  // Fetch all income transactions for the period (accumulated)
+  // Fetch all income transactions for the period (accumulated, amounts in cents)
   const incomeResult = await env.DB.prepare(`
     SELECT 
       COALESCE(SUM(amount), 0) as total_income,
@@ -48,7 +52,7 @@ async function calculateISR(env, userId, year, month) {
       AND is_deleted = 0
   `).bind(userId, startDate, endDate).first();
   
-  // Fetch all deductible expenses for the period (accumulated)
+  // Fetch all deductible expenses for the period (accumulated, amounts in cents)
   const expenseResult = await env.DB.prepare(`
     SELECT 
       COALESCE(SUM(amount), 0) as total_expenses,
@@ -81,12 +85,17 @@ async function calculateISR(env, userId, year, month) {
     }
   }
   
-  // Calculate accumulated values
-  const accumulatedIncome = incomeResult.total_income || 0;
-  const accumulatedDeductions = expenseResult.deductible_expenses || 0;
-  const taxableIncome = Math.max(0, accumulatedIncome - accumulatedDeductions);
+  // Phase 30: Calculate accumulated values (in cents)
+  const accumulatedIncomeCents = incomeResult.total_income || 0;
+  const accumulatedDeductionsCents = expenseResult.deductible_expenses || 0;
+  const taxableIncomeCents = Math.max(0, accumulatedIncomeCents - accumulatedDeductionsCents);
   
-  // Apply ISR tariff table to calculate tax
+  // Convert to decimal for bracket calculation
+  const accumulatedIncome = parseFloat(fromCents(accumulatedIncomeCents));
+  const accumulatedDeductions = parseFloat(fromCents(accumulatedDeductionsCents));
+  const taxableIncome = parseFloat(fromCents(taxableIncomeCents));
+  
+  // Apply ISR tariff table to calculate tax (works with decimal values)
   let isrCalculated = 0;
   if (brackets.length > 0 && taxableIncome > 0) {
     // Find the appropriate bracket
@@ -99,12 +108,12 @@ async function calculateISR(env, userId, year, month) {
     }
   }
   
-  // Get previous ISR payments (from previous months)
+  // Get previous ISR payments (from previous months, in cents)
   const previousMonthEnd = month > 1 
     ? `${year}-${String(month - 1).padStart(2, '0')}-${new Date(year, month - 1, 0).getDate()}`
     : null;
   
-  let previousISRPaid = 0;
+  let previousISRPaidCents = 0;
   if (previousMonthEnd) {
     const prevCalc = await env.DB.prepare(`
       SELECT COALESCE(SUM(isr_calculated), 0) as prev_isr
@@ -115,16 +124,26 @@ async function calculateISR(env, userId, year, month) {
         AND calculation_type = 'monthly_provisional_isr'
     `).bind(userId, year, month).first();
     
-    previousISRPaid = prevCalc?.prev_isr || 0;
+    previousISRPaidCents = prevCalc?.prev_isr || 0;
   }
   
-  // Add ISR retentions
-  const isrRetention = incomeResult.isr_retention || 0;
+  // Phase 30: Convert decimal ISR calculated back to cents for storage
+  const isrCalculatedCents = Math.round(isrCalculated * 100);
   
-  // Calculate ISR balance (what needs to be paid this month)
-  const isrBalance = Math.max(0, isrCalculated - previousISRPaid - isrRetention);
+  // Add ISR retentions (in cents)
+  const isrRetentionCents = incomeResult.isr_retention || 0;
   
-  // Build detailed calculation breakdown
+  // Calculate ISR balance (what needs to be paid this month, in cents)
+  const isrBalanceCents = Math.max(0, isrCalculatedCents - previousISRPaidCents - isrRetentionCents);
+  
+  // Convert monthly amounts for breakdown
+  const monthlyIncome = parseFloat(fromCents(incomeResult.total_income || 0));
+  const monthlyExpenses = parseFloat(fromCents(expenseResult.total_expenses || 0));
+  const previousISRPaid = parseFloat(fromCents(previousISRPaidCents));
+  const isrRetention = parseFloat(fromCents(isrRetentionCents));
+  const isrBalance = parseFloat(fromCents(isrBalanceCents));
+  
+  // Build detailed calculation breakdown (in decimal for readability)
   const calculationDetails = {
     period: `${year}-${String(month).padStart(2, '0')}`,
     accumulatedIncome,
@@ -137,20 +156,21 @@ async function calculateISR(env, userId, year, month) {
     previousISRPaid,
     isrRetention,
     isrBalance,
-    monthlyIncome: incomeResult.total_income || 0,
-    monthlyExpenses: expenseResult.total_expenses || 0
+    monthlyIncome,
+    monthlyExpenses
   };
   
+  // Phase 30: Return values in cents for database storage
   return {
-    total_income: accumulatedIncome,
+    total_income: accumulatedIncomeCents,
     total_expenses: expenseResult.total_expenses || 0,
-    deductible_expenses: accumulatedDeductions,
-    accumulated_income: accumulatedIncome,
-    accumulated_deductions: accumulatedDeductions,
-    taxable_income: taxableIncome,
-    isr_calculated: isrCalculated,
-    isr_paid: previousISRPaid + isrRetention,
-    isr_balance: isrBalance,
+    deductible_expenses: accumulatedDeductionsCents,
+    accumulated_income: accumulatedIncomeCents,
+    accumulated_deductions: accumulatedDeductionsCents,
+    taxable_income: taxableIncomeCents,
+    isr_calculated: isrCalculatedCents,
+    isr_paid: previousISRPaidCents + isrRetentionCents,
+    isr_balance: isrBalanceCents,
     calculation_details: JSON.stringify(calculationDetails)
   };
 }
@@ -158,12 +178,13 @@ async function calculateISR(env, userId, year, month) {
 /**
  * IVA Calculation Engine
  * Calculates definitive monthly IVA (collected vs paid)
+ * Phase 30: All monetary values in cents
  */
 async function calculateIVA(env, userId, year, month) {
   const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
   const endDate = `${year}-${String(month).padStart(2, '0')}-${new Date(year, month, 0).getDate()}`;
   
-  // Fetch IVA collected from income
+  // Fetch IVA collected from income (amounts in cents)
   const ivaCollectedResult = await env.DB.prepare(`
     SELECT 
       COALESCE(SUM(CASE WHEN iva_rate = '16' THEN amount * 0.16 ELSE 0 END), 0) as iva_collected,
@@ -175,7 +196,7 @@ async function calculateIVA(env, userId, year, month) {
       AND is_deleted = 0
   `).bind(userId, startDate, endDate).first();
   
-  // Fetch IVA paid on deductible expenses
+  // Fetch IVA paid on deductible expenses (amounts in cents)
   const ivaPaidResult = await env.DB.prepare(`
     SELECT 
       COALESCE(SUM(CASE WHEN is_iva_deductible = 1 AND iva_rate = '16' THEN amount * 0.16 ELSE 0 END), 0) as iva_paid
@@ -186,12 +207,13 @@ async function calculateIVA(env, userId, year, month) {
       AND is_deleted = 0
   `).bind(userId, startDate, endDate).first();
   
-  const ivaCollected = ivaCollectedResult.iva_collected || 0;
-  const ivaRetention = ivaCollectedResult.iva_retention || 0;
-  const ivaPaid = ivaPaidResult.iva_paid || 0;
+  // Phase 30: IVA amounts are in cents
+  const ivaCollectedCents = ivaCollectedResult.iva_collected || 0;
+  const ivaRetentionCents = ivaCollectedResult.iva_retention || 0;
+  const ivaPaidCents = ivaPaidResult.iva_paid || 0;
   
-  // Get previous month's IVA balance (if negative, it's a credit to carry forward)
-  let previousIVABalance = 0;
+  // Get previous month's IVA balance (if negative, it's a credit to carry forward, in cents)
+  let previousIVABalanceCents = 0;
   if (month > 1) {
     const prevCalc = await env.DB.prepare(`
       SELECT iva_balance
@@ -204,13 +226,21 @@ async function calculateIVA(env, userId, year, month) {
       LIMIT 1
     `).bind(userId, year, month - 1).first();
     
-    previousIVABalance = prevCalc?.iva_balance || 0;
+    previousIVABalanceCents = prevCalc?.iva_balance || 0;
   }
   
-  // Calculate IVA balance (positive = to pay, negative = in favor)
-  const ivaBalance = ivaCollected - ivaPaid - ivaRetention + (previousIVABalance < 0 ? previousIVABalance : 0);
+  // Calculate IVA balance (positive = to pay, negative = in favor, in cents)
+  const ivaBalanceCents = ivaCollectedCents - ivaPaidCents - ivaRetentionCents + 
+                          (previousIVABalanceCents < 0 ? previousIVABalanceCents : 0);
   
-  // Build detailed calculation breakdown
+  // Convert to decimal for calculation details
+  const ivaCollected = parseFloat(fromCents(ivaCollectedCents));
+  const ivaPaid = parseFloat(fromCents(ivaPaidCents));
+  const ivaRetention = parseFloat(fromCents(ivaRetentionCents));
+  const previousIVABalance = parseFloat(fromCents(previousIVABalanceCents));
+  const ivaBalance = parseFloat(fromCents(ivaBalanceCents));
+  
+  // Build detailed calculation breakdown (in decimal for readability)
   const calculationDetails = {
     period: `${year}-${String(month).padStart(2, '0')}`,
     ivaCollected,
@@ -221,11 +251,12 @@ async function calculateIVA(env, userId, year, month) {
     netIVAToPay: Math.max(0, ivaBalance)
   };
   
+  // Phase 30: Return values in cents for database storage
   return {
-    iva_collected: ivaCollected,
-    iva_paid: ivaPaid,
-    iva_balance: ivaBalance,
-    previous_iva_balance: previousIVABalance,
+    iva_collected: ivaCollectedCents,
+    iva_paid: ivaPaidCents,
+    iva_balance: ivaBalanceCents,
+    previous_iva_balance: previousIVABalanceCents,
     calculation_details: JSON.stringify(calculationDetails)
   };
 }
@@ -283,9 +314,27 @@ export async function onRequestGet(context) {
         ORDER BY calculation_type, created_at DESC
       `).bind(userId, year, month).all();
       
+      // Phase 30: Convert monetary values from cents to decimal
+      const convertedCalculations = (calculations.results || []).map(calc => ({
+        ...calc,
+        total_income: parseFloat(fromCents(calc.total_income)),
+        total_expenses: parseFloat(fromCents(calc.total_expenses)),
+        deductible_expenses: parseFloat(fromCents(calc.deductible_expenses)),
+        accumulated_income: parseFloat(fromCents(calc.accumulated_income)),
+        accumulated_deductions: parseFloat(fromCents(calc.accumulated_deductions)),
+        taxable_income: parseFloat(fromCents(calc.taxable_income)),
+        isr_calculated: parseFloat(fromCents(calc.isr_calculated)),
+        isr_paid: parseFloat(fromCents(calc.isr_paid)),
+        isr_balance: parseFloat(fromCents(calc.isr_balance)),
+        iva_collected: parseFloat(fromCents(calc.iva_collected)),
+        iva_paid: parseFloat(fromCents(calc.iva_paid)),
+        iva_balance: parseFloat(fromCents(calc.iva_balance)),
+        previous_iva_balance: calc.previous_iva_balance ? parseFloat(fromCents(calc.previous_iva_balance)) : null
+      }));
+      
       return new Response(JSON.stringify({
         success: true,
-        calculations: calculations.results || []
+        calculations: convertedCalculations
       }), {
         status: 200,
         headers: corsHeaders
@@ -301,19 +350,30 @@ export async function onRequestGet(context) {
         WHERE user_id = ? AND period_year = ?
       `).bind(userId, year).first();
       
+      // Phase 30: Convert monetary values from cents to decimal
+      const convertedSummary = summary ? {
+        ...summary,
+        annual_income: parseFloat(fromCents(summary.annual_income || 0)),
+        annual_deductions: parseFloat(fromCents(summary.annual_deductions || 0)),
+        annual_isr: parseFloat(fromCents(summary.annual_isr || 0)),
+        annual_isr_paid: parseFloat(fromCents(summary.annual_isr_paid || 0)),
+        annual_iva_collected: parseFloat(fromCents(summary.annual_iva_collected || 0)),
+        annual_iva_paid: parseFloat(fromCents(summary.annual_iva_paid || 0))
+      } : {
+        user_id: userId,
+        period_year: year,
+        annual_income: 0,
+        annual_deductions: 0,
+        annual_isr: 0,
+        annual_isr_paid: 0,
+        annual_iva_collected: 0,
+        annual_iva_paid: 0,
+        months_calculated: 0
+      };
+      
       return new Response(JSON.stringify({
         success: true,
-        summary: summary || {
-          user_id: userId,
-          period_year: year,
-          annual_income: 0,
-          annual_deductions: 0,
-          annual_isr: 0,
-          annual_isr_paid: 0,
-          annual_iva_collected: 0,
-          annual_iva_paid: 0,
-          months_calculated: 0
-        }
+        summary: convertedSummary
       }), {
         status: 200,
         headers: corsHeaders
@@ -338,9 +398,27 @@ export async function onRequestGet(context) {
         });
       }
       
+      // Phase 30: Convert monetary values from cents to decimal
+      const convertedCalculation = {
+        ...calculation,
+        total_income: parseFloat(fromCents(calculation.total_income)),
+        total_expenses: parseFloat(fromCents(calculation.total_expenses)),
+        deductible_expenses: parseFloat(fromCents(calculation.deductible_expenses)),
+        accumulated_income: parseFloat(fromCents(calculation.accumulated_income)),
+        accumulated_deductions: parseFloat(fromCents(calculation.accumulated_deductions)),
+        taxable_income: parseFloat(fromCents(calculation.taxable_income)),
+        isr_calculated: parseFloat(fromCents(calculation.isr_calculated)),
+        isr_paid: parseFloat(fromCents(calculation.isr_paid)),
+        isr_balance: parseFloat(fromCents(calculation.isr_balance)),
+        iva_collected: parseFloat(fromCents(calculation.iva_collected)),
+        iva_paid: parseFloat(fromCents(calculation.iva_paid)),
+        iva_balance: parseFloat(fromCents(calculation.iva_balance)),
+        previous_iva_balance: calculation.previous_iva_balance ? parseFloat(fromCents(calculation.previous_iva_balance)) : null
+      };
+      
       return new Response(JSON.stringify({
         success: true,
-        calculation
+        calculation: convertedCalculation
       }), {
         status: 200,
         headers: corsHeaders
@@ -384,6 +462,24 @@ export async function onRequestGet(context) {
     
     const calculations = await env.DB.prepare(query).bind(...params).all();
     
+    // Phase 30: Convert monetary values from cents to decimal
+    const convertedCalculations = (calculations.results || []).map(calc => ({
+      ...calc,
+      total_income: parseFloat(fromCents(calc.total_income)),
+      total_expenses: parseFloat(fromCents(calc.total_expenses)),
+      deductible_expenses: parseFloat(fromCents(calc.deductible_expenses)),
+      accumulated_income: parseFloat(fromCents(calc.accumulated_income)),
+      accumulated_deductions: parseFloat(fromCents(calc.accumulated_deductions)),
+      taxable_income: parseFloat(fromCents(calc.taxable_income)),
+      isr_calculated: parseFloat(fromCents(calc.isr_calculated)),
+      isr_paid: parseFloat(fromCents(calc.isr_paid)),
+      isr_balance: parseFloat(fromCents(calc.isr_balance)),
+      iva_collected: parseFloat(fromCents(calc.iva_collected)),
+      iva_paid: parseFloat(fromCents(calc.iva_paid)),
+      iva_balance: parseFloat(fromCents(calc.iva_balance)),
+      previous_iva_balance: calc.previous_iva_balance ? parseFloat(fromCents(calc.previous_iva_balance)) : null
+    }));
+    
     // Get total count
     let countQuery = 'SELECT COUNT(*) as total FROM tax_calculations WHERE user_id = ?';
     const countParams = [userId];
@@ -409,7 +505,7 @@ export async function onRequestGet(context) {
     
     return new Response(JSON.stringify({
       success: true,
-      calculations: calculations.results || [],
+      calculations: convertedCalculations,
       pagination: {
         total: countResult.total,
         limit,
@@ -538,10 +634,20 @@ export async function onRequestPost(context) {
         isrData.calculation_details
       ).run();
       
+      // Phase 30: Convert monetary values from cents to decimal for response
       results.push({
         type: 'monthly_provisional_isr',
         id: isrResult.meta.last_row_id,
-        ...isrData
+        total_income: parseFloat(fromCents(isrData.total_income)),
+        total_expenses: parseFloat(fromCents(isrData.total_expenses)),
+        deductible_expenses: parseFloat(fromCents(isrData.deductible_expenses)),
+        accumulated_income: parseFloat(fromCents(isrData.accumulated_income)),
+        accumulated_deductions: parseFloat(fromCents(isrData.accumulated_deductions)),
+        taxable_income: parseFloat(fromCents(isrData.taxable_income)),
+        isr_calculated: parseFloat(fromCents(isrData.isr_calculated)),
+        isr_paid: parseFloat(fromCents(isrData.isr_paid)),
+        isr_balance: parseFloat(fromCents(isrData.isr_balance)),
+        calculation_details: isrData.calculation_details
       });
     }
     
@@ -570,10 +676,15 @@ export async function onRequestPost(context) {
         ivaData.calculation_details
       ).run();
       
+      // Phase 30: Convert monetary values from cents to decimal for response
       results.push({
         type: 'definitive_iva',
         id: ivaResult.meta.last_row_id,
-        ...ivaData
+        iva_collected: parseFloat(fromCents(ivaData.iva_collected)),
+        iva_paid: parseFloat(fromCents(ivaData.iva_paid)),
+        iva_balance: parseFloat(fromCents(ivaData.iva_balance)),
+        previous_iva_balance: parseFloat(fromCents(ivaData.previous_iva_balance)),
+        calculation_details: ivaData.calculation_details
       });
     }
     

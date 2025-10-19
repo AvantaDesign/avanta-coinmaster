@@ -108,7 +108,6 @@ export async function onRequestGet(context) {
       );
       convertedGoal.amount_remaining = (parseFloat(convertedGoal.target_amount) - parseFloat(convertedGoal.current_amount)).toFixed(2);
       convertedGoal.days_remaining = calculateDaysRemaining(convertedGoal.target_date);
-
       return new Response(JSON.stringify(convertedGoal), {
         headers: corsHeaders
       });
@@ -229,10 +228,9 @@ export async function onRequestPost(context) {
     // Handle contribution
     if (goalId && action === 'contribute') {
       const data = await request.json();
-      const { amount } = data;
-
+      
       // Phase 30: Parse and validate monetary input
-      const amountResult = parseMonetaryInput(amount, 'amount', true);
+      const amountResult = parseMonetaryInput(data.amount, 'amount', true);
       if (amountResult.error) {
         return new Response(JSON.stringify({ 
           error: amountResult.error,
@@ -245,7 +243,7 @@ export async function onRequestPost(context) {
 
       if (amountResult.value <= 0) {
         return new Response(JSON.stringify({ 
-          error: 'Invalid contribution amount',
+          error: 'Amount must be greater than 0',
           code: 'INVALID_INPUT'
         }), {
           status: 400,
@@ -268,7 +266,7 @@ export async function onRequestPost(context) {
         });
       }
 
-      // Update current amount (add cents to cents)
+      // Phase 30: Update current amount (add cents to cents)
       const newAmountCents = goal.current_amount + amountResult.value;
       await env.DB.prepare(
         'UPDATE savings_goals SET current_amount = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
@@ -288,7 +286,6 @@ export async function onRequestPost(context) {
       );
       convertedGoal.amount_remaining = (parseFloat(convertedGoal.target_amount) - parseFloat(convertedGoal.current_amount)).toFixed(2);
       convertedGoal.days_remaining = calculateDaysRemaining(convertedGoal.target_date);
-
       return new Response(JSON.stringify(convertedGoal), {
         headers: corsHeaders
       });
@@ -296,9 +293,9 @@ export async function onRequestPost(context) {
 
     // Create new goal
     const data = await request.json();
-    const { name, target_amount, target_date, type, category, description, current_amount } = data;
-
-    if (!name || !target_amount || !type) {
+    const { name, target_date, type, category, description } = data;
+    
+    if (!name || !type) {
       return new Response(JSON.stringify({ 
         error: 'Missing required fields: name, target_amount, type',
         code: 'INVALID_INPUT'
@@ -319,7 +316,7 @@ export async function onRequestPost(context) {
     }
 
     // Phase 30: Parse and validate monetary inputs
-    const targetAmountResult = parseMonetaryInput(target_amount, 'target_amount', true);
+    const targetAmountResult = parseMonetaryInput(data.target_amount, 'target_amount', true);
     if (targetAmountResult.error) {
       return new Response(JSON.stringify({ 
         error: targetAmountResult.error,
@@ -330,7 +327,7 @@ export async function onRequestPost(context) {
       });
     }
 
-    const currentAmountResult = parseMonetaryInput(current_amount || 0, 'current_amount', false);
+    const currentAmountResult = parseMonetaryInput(data.current_amount || 0, 'current_amount', false);
     if (currentAmountResult.error) {
       return new Response(JSON.stringify({ 
         error: currentAmountResult.error,
@@ -344,6 +341,7 @@ export async function onRequestPost(context) {
     const id = generateId();
     const now = new Date().toISOString();
 
+    // Phase 30: Store amounts in cents
     await env.DB.prepare(`
       INSERT INTO savings_goals (
         id, user_id, name, target_amount, current_amount, target_date, 
@@ -437,7 +435,7 @@ export async function onRequestPut(context) {
     }
 
     const data = await request.json();
-    const { name, target_amount, current_amount, target_date, type, category, description, is_active } = data;
+    const { name, target_date, type, category, description, is_active } = data;
 
     // Build update query dynamically
     const updates = [];
@@ -449,8 +447,8 @@ export async function onRequestPut(context) {
     }
     
     // Phase 30: Handle monetary fields with validation
-    if (target_amount !== undefined) {
-      const targetAmountResult = parseMonetaryInput(target_amount, 'target_amount', false);
+    if (data.target_amount !== undefined) {
+      const targetAmountResult = parseMonetaryInput(data.target_amount, 'target_amount', true);
       if (targetAmountResult.error) {
         return new Response(JSON.stringify({ 
           error: targetAmountResult.error,
@@ -464,8 +462,8 @@ export async function onRequestPut(context) {
       params.push(targetAmountResult.value);
     }
     
-    if (current_amount !== undefined) {
-      const currentAmountResult = parseMonetaryInput(current_amount, 'current_amount', false);
+    if (data.current_amount !== undefined) {
+      const currentAmountResult = parseMonetaryInput(data.current_amount, 'current_amount', false);
       if (currentAmountResult.error) {
         return new Response(JSON.stringify({ 
           error: currentAmountResult.error,
