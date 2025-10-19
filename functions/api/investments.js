@@ -1,6 +1,16 @@
 // Investments API - Manage investment portfolio and performance tracking
+// Phase 30: Monetary values stored as INTEGER cents in database
 
 import Decimal from 'decimal.js';
+import { 
+  toCents, 
+  fromCents, 
+  fromCentsToDecimal,
+  convertArrayFromCents, 
+  convertObjectFromCents, 
+  parseMonetaryInput,
+  MONETARY_FIELDS 
+} from '../utils/monetary.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -10,9 +20,11 @@ const corsHeaders = {
 };
 
 // Calculate ROI and performance metrics
-function calculatePerformanceMetrics(purchaseAmount, currentValue, purchaseDate) {
-  const invested = new Decimal(purchaseAmount);
-  const current = new Decimal(currentValue || purchaseAmount);
+// Phase 30: Expects amounts in cents, converts to Decimal for calculations
+function calculatePerformanceMetrics(purchaseAmountCents, currentValueCents, purchaseDate) {
+  // Convert from cents to Decimal for calculations
+  const invested = fromCentsToDecimal(purchaseAmountCents);
+  const current = currentValueCents ? fromCentsToDecimal(currentValueCents) : invested;
   
   const totalReturn = current.minus(invested);
   const percentReturn = invested.gt(0) ? totalReturn.div(invested).times(100) : new Decimal(0);
@@ -72,9 +84,13 @@ export async function onRequestGet(context) {
       const byType = {};
       const byRisk = {};
 
+      // Phase 30: Values from DB are in cents, convert to Decimal for calculations
       for (const inv of investments.results || []) {
-        totalInvested = totalInvested.plus(inv.purchase_amount);
-        totalCurrentValue = totalCurrentValue.plus(inv.current_value || inv.purchase_amount);
+        const purchaseAmt = fromCentsToDecimal(inv.purchase_amount);
+        const currentVal = inv.current_value ? fromCentsToDecimal(inv.current_value) : purchaseAmt;
+        
+        totalInvested = totalInvested.plus(purchaseAmt);
+        totalCurrentValue = totalCurrentValue.plus(currentVal);
         
         // Group by type
         if (!byType[inv.investment_type]) {
@@ -85,8 +101,8 @@ export async function onRequestGet(context) {
           };
         }
         byType[inv.investment_type].count++;
-        byType[inv.investment_type].invested = byType[inv.investment_type].invested.plus(inv.purchase_amount);
-        byType[inv.investment_type].current = byType[inv.investment_type].current.plus(inv.current_value || inv.purchase_amount);
+        byType[inv.investment_type].invested = byType[inv.investment_type].invested.plus(purchaseAmt);
+        byType[inv.investment_type].current = byType[inv.investment_type].current.plus(currentVal);
         
         // Group by risk
         const risk = inv.risk_level || 'medium';
@@ -98,8 +114,8 @@ export async function onRequestGet(context) {
           };
         }
         byRisk[risk].count++;
-        byRisk[risk].invested = byRisk[risk].invested.plus(inv.purchase_amount);
-        byRisk[risk].current = byRisk[risk].current.plus(inv.current_value || inv.purchase_amount);
+        byRisk[risk].invested = byRisk[risk].invested.plus(purchaseAmt);
+        byRisk[risk].current = byRisk[risk].current.plus(currentVal);
       }
 
       // Convert to regular objects
@@ -153,9 +169,15 @@ export async function onRequestGet(context) {
         });
       }
 
-      // Calculate performance metrics
+      // Phase 30: Convert monetary fields from cents to decimal
+      const convertedInvestment = convertObjectFromCents(
+        investment, 
+        MONETARY_FIELDS.INVESTMENTS
+      );
+
+      // Calculate performance metrics (using cents values from DB)
       if (investment.current_value) {
-        investment.performance = calculatePerformanceMetrics(
+        convertedInvestment.performance = calculatePerformanceMetrics(
           investment.purchase_amount,
           investment.current_value,
           investment.purchase_date
@@ -168,7 +190,11 @@ export async function onRequestGet(context) {
           'SELECT * FROM investment_transactions WHERE investment_id = ? ORDER BY transaction_date DESC'
         ).bind(id).all();
         
-        investment.transactions = transactions.results || [];
+        // Convert transaction monetary fields
+        convertedInvestment.transactions = convertArrayFromCents(
+          transactions.results || [],
+          ['amount', 'price_per_unit', 'fees']
+        );
       }
 
       // Include valuations
@@ -176,9 +202,13 @@ export async function onRequestGet(context) {
         'SELECT * FROM investment_valuations WHERE investment_id = ? ORDER BY valuation_date DESC LIMIT 30'
       ).bind(id).all();
       
-      investment.recent_valuations = valuations.results || [];
+      // Convert valuation monetary fields
+      convertedInvestment.recent_valuations = convertArrayFromCents(
+        valuations.results || [],
+        ['value', 'price_per_unit']
+      );
 
-      return new Response(JSON.stringify(investment), {
+      return new Response(JSON.stringify(convertedInvestment), {
         headers: corsHeaders
       });
     }
@@ -201,13 +231,20 @@ export async function onRequestGet(context) {
 
     const result = await env.DB.prepare(query).bind(...params).all();
 
-    // Add performance metrics to each investment
-    const investmentsWithMetrics = (result.results || []).map(inv => {
-      if (inv.current_value) {
+    // Phase 30: Convert monetary fields from cents to decimal
+    const convertedResults = convertArrayFromCents(
+      result.results || [],
+      MONETARY_FIELDS.INVESTMENTS
+    );
+
+    // Add performance metrics to each investment (using cents values from DB)
+    const investmentsWithMetrics = convertedResults.map((inv, idx) => {
+      const originalInv = (result.results || [])[idx];
+      if (originalInv && originalInv.current_value) {
         inv.performance = calculatePerformanceMetrics(
-          inv.purchase_amount,
-          inv.current_value,
-          inv.purchase_date
+          originalInv.purchase_amount,
+          originalInv.current_value,
+          originalInv.purchase_date
         );
       }
       return inv;
@@ -256,6 +293,55 @@ export async function onRequestPost(context) {
       });
     }
 
+    // Phase 30: Parse and validate monetary inputs
+    const purchaseAmountResult = parseMonetaryInput(data.purchase_amount, 'purchase_amount', true);
+    if (purchaseAmountResult.error) {
+      return new Response(JSON.stringify({ 
+        error: purchaseAmountResult.error,
+        code: 'VALIDATION_ERROR'
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
+
+    const currentValueResult = parseMonetaryInput(
+      data.current_value !== undefined ? data.current_value : data.purchase_amount, 
+      'current_value', 
+      false
+    );
+    if (currentValueResult.error) {
+      return new Response(JSON.stringify({ 
+        error: currentValueResult.error,
+        code: 'VALIDATION_ERROR'
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
+
+    const pricePerUnitResult = parseMonetaryInput(data.current_price_per_unit, 'current_price_per_unit', false);
+    if (pricePerUnitResult.error) {
+      return new Response(JSON.stringify({ 
+        error: pricePerUnitResult.error,
+        code: 'VALIDATION_ERROR'
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
+
+    const feesResult = parseMonetaryInput(data.fees || 0, 'fees', false);
+    if (feesResult.error) {
+      return new Response(JSON.stringify({ 
+        error: feesResult.error,
+        code: 'VALIDATION_ERROR'
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
+
     const metadataStr = data.metadata ? (typeof data.metadata === 'string' ? data.metadata : JSON.stringify(data.metadata)) : null;
 
     const result = await env.DB.prepare(`
@@ -269,10 +355,10 @@ export async function onRequestPost(context) {
       data.investment_type,
       data.broker_platform || null,
       data.purchase_date,
-      data.purchase_amount,
+      purchaseAmountResult.value,  // Phase 30: Store as cents
       data.quantity || null,
-      data.current_value || data.purchase_amount,
-      data.current_price_per_unit || null,
+      currentValueResult.value,  // Phase 30: Store as cents
+      pricePerUnitResult.value,  // Phase 30: Store as cents
       data.currency || 'MXN',
       data.status || 'active',
       data.category || null,
@@ -293,8 +379,8 @@ export async function onRequestPost(context) {
     `).bind(
       investmentId,
       data.purchase_date,
-      data.purchase_amount,
-      data.current_price_per_unit || null,
+      purchaseAmountResult.value,  // Phase 30: Store as cents
+      pricePerUnitResult.value,  // Phase 30: Store as cents
       'Initial purchase'
     ).run();
 
@@ -309,9 +395,9 @@ export async function onRequestPost(context) {
       data.purchase_date,
       'buy',
       data.quantity || null,
-      data.current_price_per_unit || null,
-      data.purchase_amount,
-      data.fees || 0,
+      pricePerUnitResult.value,  // Phase 30: Store as cents
+      purchaseAmountResult.value,  // Phase 30: Store as cents
+      feesResult.value,  // Phase 30: Store as cents
       'Initial purchase'
     ).run();
 
@@ -367,8 +453,7 @@ export async function onRequestPut(context) {
     
     const allowedFields = [
       'investment_name', 'investment_type', 'broker_platform', 'quantity',
-      'current_value', 'current_price_per_unit', 'currency', 'status',
-      'category', 'risk_level', 'description', 'notes'
+      'currency', 'status', 'category', 'risk_level', 'description', 'notes'
     ];
 
     for (const field of allowedFields) {
@@ -376,6 +461,37 @@ export async function onRequestPut(context) {
         updates.push(`${field} = ?`);
         params.push(data[field]);
       }
+    }
+
+    // Phase 30: Handle monetary fields with validation
+    if (data.current_value !== undefined) {
+      const currentValueResult = parseMonetaryInput(data.current_value, 'current_value', false);
+      if (currentValueResult.error) {
+        return new Response(JSON.stringify({ 
+          error: currentValueResult.error,
+          code: 'VALIDATION_ERROR'
+        }), {
+          status: 400,
+          headers: corsHeaders
+        });
+      }
+      updates.push('current_value = ?');
+      params.push(currentValueResult.value);
+    }
+
+    if (data.current_price_per_unit !== undefined) {
+      const priceResult = parseMonetaryInput(data.current_price_per_unit, 'current_price_per_unit', false);
+      if (priceResult.error) {
+        return new Response(JSON.stringify({ 
+          error: priceResult.error,
+          code: 'VALIDATION_ERROR'
+        }), {
+          status: 400,
+          headers: corsHeaders
+        });
+      }
+      updates.push('current_price_per_unit = ?');
+      params.push(priceResult.value);
     }
 
     if (data.metadata !== undefined) {
@@ -411,6 +527,11 @@ export async function onRequestPut(context) {
 
     // If current_value is updated, create a new valuation record
     if (data.current_value !== undefined) {
+      const currentValueResult = parseMonetaryInput(data.current_value, 'current_value', false);
+      const priceResult = data.current_price_per_unit !== undefined 
+        ? parseMonetaryInput(data.current_price_per_unit, 'current_price_per_unit', false)
+        : { value: null };
+
       await env.DB.prepare(`
         INSERT INTO investment_valuations (
           investment_id, valuation_date, value, price_per_unit, notes
@@ -418,8 +539,8 @@ export async function onRequestPut(context) {
       `).bind(
         data.id,
         new Date().toISOString().split('T')[0],
-        data.current_value,
-        data.current_price_per_unit || null,
+        currentValueResult.value,  // Phase 30: Store as cents
+        priceResult.value,  // Phase 30: Store as cents
         data.valuation_notes || 'Manual update'
       ).run();
     }

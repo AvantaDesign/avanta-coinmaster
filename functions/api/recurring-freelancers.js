@@ -1,6 +1,15 @@
 // Recurring Freelancers API - Manage recurring payments to freelancers
+// Phase 30: Monetary values stored as INTEGER cents in database
 
 import Decimal from 'decimal.js';
+import { 
+  toCents, 
+  fromCents, 
+  convertArrayFromCents, 
+  convertObjectFromCents, 
+  parseMonetaryInput,
+  MONETARY_FIELDS 
+} from '../utils/monetary.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -82,7 +91,13 @@ export async function onRequestGet(context) {
         });
       }
 
-      return new Response(JSON.stringify(freelancer), {
+      // Phase 30: Convert monetary fields from cents to decimal
+      const convertedFreelancer = convertObjectFromCents(
+        freelancer, 
+        MONETARY_FIELDS.RECURRING_FREELANCERS
+      );
+
+      return new Response(JSON.stringify(convertedFreelancer), {
         headers: corsHeaders
       });
     }
@@ -111,7 +126,13 @@ export async function onRequestGet(context) {
 
     const result = await stmt.all();
 
-    return new Response(JSON.stringify(result.results || []), {
+    // Phase 30: Convert monetary fields from cents to decimal
+    const convertedResults = convertArrayFromCents(
+      result.results || [], 
+      MONETARY_FIELDS.RECURRING_FREELANCERS
+    );
+
+    return new Response(JSON.stringify(convertedResults), {
       headers: corsHeaders
     });
 
@@ -166,8 +187,20 @@ export async function onRequestPost(context) {
       });
     }
 
-    // Validate amount
-    if (amount <= 0) {
+    // Phase 30: Parse and validate monetary input
+    const amountResult = parseMonetaryInput(amount, 'amount', true);
+    if (amountResult.error) {
+      return new Response(JSON.stringify({ 
+        error: amountResult.error,
+        code: 'VALIDATION_ERROR'
+      }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
+
+    // Additional validation: amount must be positive
+    if (amountResult.value <= 0) {
       return new Response(JSON.stringify({ 
         error: 'Amount must be positive',
         code: 'VALIDATION_ERROR'
@@ -201,7 +234,7 @@ export async function onRequestPost(context) {
     ).bind(
       freelancer_name,
       freelancer_rfc || null,
-      amount,
+      amountResult.value,  // Phase 30: Store as cents
       frequency,
       payment_day || null,
       description || null,
@@ -278,9 +311,9 @@ export async function onRequestPut(context) {
     const updates = [];
     const values = [];
 
-    // List of allowed update fields
+    // List of allowed update fields (non-monetary)
     const allowedFields = [
-      'freelancer_name', 'freelancer_rfc', 'amount', 'frequency', 
+      'freelancer_name', 'freelancer_rfc', 'frequency', 
       'payment_day', 'description', 'category', 'status', 'type'
     ];
 
@@ -289,6 +322,22 @@ export async function onRequestPut(context) {
         updates.push(`${field} = ?`);
         values.push(updateFields[field]);
       }
+    }
+
+    // Phase 30: Handle monetary field with validation
+    if (updateFields.amount !== undefined) {
+      const amountResult = parseMonetaryInput(updateFields.amount, 'amount', false);
+      if (amountResult.error) {
+        return new Response(JSON.stringify({ 
+          error: amountResult.error,
+          code: 'VALIDATION_ERROR'
+        }), {
+          status: 400,
+          headers: corsHeaders
+        });
+      }
+      updates.push('amount = ?');
+      values.push(amountResult.value);
     }
 
     // Recalculate next payment date if frequency or payment_day changed

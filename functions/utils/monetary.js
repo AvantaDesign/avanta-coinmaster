@@ -224,5 +224,7 @@ export const MONETARY_FIELDS = {
   INVESTMENTS: ['purchase_amount', 'current_value', 'current_price_per_unit'],
   SAVINGS_GOALS: ['target_amount', 'current_amount'],
   PAYMENTS: ['amount'],
-  SCHEDULES: ['amount']
+  SCHEDULES: ['amount'],
+  RECURRING_FREELANCERS: ['amount'],
+  RECURRING_SERVICES: ['amount']
 };
