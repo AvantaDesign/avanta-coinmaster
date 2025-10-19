@@ -32,6 +32,15 @@ export default function FiscalConfiguration() {
   const [editingISRBrackets, setEditingISRBrackets] = useState(false);
   const [tempISRBrackets, setTempISRBrackets] = useState([]);
   const [isrImportFile, setIsrImportFile] = useState(null);
+  
+  // Phase 26: State for parameter history
+  const [showParameterHistory, setShowParameterHistory] = useState(false);
+  const [parameterHistory, setParameterHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  
+  // Phase 26: State for UMA values editing
+  const [editingUMA, setEditingUMA] = useState(false);
+  const [tempUMAValues, setTempUMAValues] = useState({ daily: 0, monthly: 0, annual: 0 });
 
   // Tax regime options for Mexico
   const taxRegimes = [
@@ -355,6 +364,110 @@ export default function FiscalConfiguration() {
     link.download = `tabla_isr_${selectedYear}.csv`;
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  // Phase 26: Load parameter history
+  const loadParameterHistory = async () => {
+    if (parameterHistory.length > 0) {
+      setShowParameterHistory(!showParameterHistory);
+      return;
+    }
+
+    try {
+      setLoadingHistory(true);
+      const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
+      const response = await fetch(`${API_URL}/api/fiscal-parameters?type=isr_bracket`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+        credentials: 'include'
+      });
+      const data = await response.json();
+      setParameterHistory(data.parameters || []);
+      setShowParameterHistory(true);
+    } catch (error) {
+      console.error('Error loading parameter history:', error);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  // Phase 26: UMA values management
+  const handleEditUMA = () => {
+    setEditingUMA(true);
+    setTempUMAValues({ ...umaValues });
+  };
+
+  const handleCancelUMAEdit = () => {
+    setEditingUMA(false);
+    setTempUMAValues({ daily: 0, monthly: 0, annual: 0 });
+    setErrors([]);
+  };
+
+  const handleSaveUMA = async () => {
+    // Validate UMA values
+    if (tempUMAValues.daily <= 0 || tempUMAValues.monthly <= 0 || tempUMAValues.annual <= 0) {
+      setErrors(['Todos los valores UMA deben ser mayores a cero']);
+      return;
+    }
+
+    // Check if monthly ≈ daily * 30.4 and annual ≈ daily * 365
+    const expectedMonthly = tempUMAValues.daily * 30.4;
+    const expectedAnnual = tempUMAValues.daily * 365;
+    const monthlyDiff = Math.abs(tempUMAValues.monthly - expectedMonthly) / expectedMonthly;
+    const annualDiff = Math.abs(tempUMAValues.annual - expectedAnnual) / expectedAnnual;
+
+    if (monthlyDiff > 0.05 || annualDiff > 0.05) {
+      setErrors([
+        'Advertencia: Los valores UMA no tienen la proporción esperada.',
+        `UMA Mensual esperada: ${expectedMonthly.toFixed(2)} (actual: ${tempUMAValues.monthly})`,
+        `UMA Anual esperada: ${expectedAnnual.toFixed(2)} (actual: ${tempUMAValues.annual})`,
+        '¿Desea continuar de todos modos? Si los valores son correctos según el SAT, ignore este mensaje.'
+      ]);
+      // Allow user to continue but show warning
+    }
+
+    try {
+      setSaving(true);
+      setErrors([]);
+
+      const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
+      
+      // Create three parameters for daily, monthly, and annual
+      const umaTypes = [
+        { key: 'daily', value: tempUMAValues.daily, desc: 'UMA Diaria' },
+        { key: 'monthly', value: tempUMAValues.monthly, desc: 'UMA Mensual' },
+        { key: 'annual', value: tempUMAValues.annual, desc: 'UMA Anual' }
+      ];
+
+      for (const uma of umaTypes) {
+        await fetch(`${API_URL}/api/fiscal-parameters`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            parameter_type: 'uma_value',
+            period_type: 'permanent',
+            effective_from: `${selectedYear}-01-01`,
+            effective_to: `${selectedYear}-12-31`,
+            value: uma.value.toString(),
+            description: `${uma.desc} ${selectedYear}`,
+            source: 'INEGI - Manual Configuration',
+            is_active: 1
+          })
+        });
+      }
+
+      setUmaValues({ ...tempUMAValues });
+      setEditingUMA(false);
+      setTempUMAValues({ daily: 0, monthly: 0, annual: 0 });
+    } catch (error) {
+      console.error('Error saving UMA values:', error);
+      setErrors(['Error al guardar valores UMA']);
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) {
@@ -709,23 +822,117 @@ export default function FiscalConfiguration() {
             )}
           </p>
         </div>
+
+        {/* Phase 26: Parameter History */}
+        <div className="mt-4">
+          <button
+            onClick={loadParameterHistory}
+            disabled={loadingHistory}
+            className="px-4 py-2 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 text-sm"
+          >
+            {loadingHistory ? '⏳ Cargando...' : showParameterHistory ? '📊 Ocultar Historial' : '📊 Ver Historial de Cambios'}
+          </button>
+        </div>
+
+        {showParameterHistory && parameterHistory.length > 0 && (
+          <div className="mt-4 border border-gray-200 dark:border-slate-700 rounded-lg p-4 bg-gray-50 dark:bg-slate-800/50">
+            <h4 className="text-md font-semibold mb-3 text-gray-900 dark:text-gray-100">Historial de Tablas ISR</h4>
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {parameterHistory.map((param, idx) => {
+                const brackets = JSON.parse(param.value);
+                return (
+                  <div key={idx} className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg p-3">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                          {param.description || 'Tabla ISR'}
+                        </p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          Vigente: {new Date(param.effective_from).toLocaleDateString('es-MX')} 
+                          {param.effective_to ? ` - ${new Date(param.effective_to).toLocaleDateString('es-MX')}` : ' - presente'}
+                        </p>
+                      </div>
+                      <span className={`text-xs px-2 py-1 rounded ${
+                        param.is_active 
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' 
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                      }`}>
+                        {param.is_active ? 'Activo' : 'Inactivo'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                      {brackets.length} tramos • 
+                      Tasa mínima: {(Math.min(...brackets.map(b => b.rate)) * 100).toFixed(2)}% • 
+                      Tasa máxima: {(Math.max(...brackets.map(b => b.rate)) * 100).toFixed(2)}%
+                    </p>
+                    {param.source && (
+                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                        Fuente: {param.source}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Phase 17: UMA Values */}
+      {/* Phase 17/26: UMA Values */}
       <div className="mt-8">
-        <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Valores UMA {selectedYear}</h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-          Unidad de Medida y Actualización - Valores oficiales publicados por INEGI
-        </p>
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Valores UMA {selectedYear}</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Unidad de Medida y Actualización - Valores oficiales publicados por INEGI
+            </p>
+          </div>
+          {!editingUMA ? (
+            <button
+              onClick={handleEditUMA}
+              className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 text-sm"
+            >
+              ✏️ Actualizar Valores UMA
+            </button>
+          ) : (
+            <div className="flex space-x-2">
+              <button
+                onClick={handleCancelUMAEdit}
+                className="px-4 py-2 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 text-sm"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveUMA}
+                disabled={saving}
+                className="px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 disabled:opacity-50 text-sm"
+              >
+                {saving ? 'Guardando...' : '💾 Guardar'}
+              </button>
+            </div>
+          )}
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 p-6 rounded-lg border border-blue-200 dark:border-blue-700">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-blue-900 dark:text-blue-300">UMA Diaria</span>
               <span className="text-xs px-2 py-1 bg-blue-200 dark:bg-blue-700 text-blue-900 dark:text-blue-100 rounded">Día</span>
             </div>
-            <p className="text-3xl font-bold text-blue-900 dark:text-blue-100">
-              {formatCurrency(umaValues.daily)}
-            </p>
+            {editingUMA ? (
+              <input
+                type="number"
+                value={tempUMAValues.daily}
+                onChange={(e) => setTempUMAValues(prev => ({ ...prev, daily: parseFloat(e.target.value) || 0 }))}
+                className="w-full px-3 py-2 text-2xl font-bold border border-blue-300 dark:border-blue-600 rounded bg-white dark:bg-slate-700 text-blue-900 dark:text-blue-100"
+                step="0.01"
+                min="0"
+              />
+            ) : (
+              <p className="text-3xl font-bold text-blue-900 dark:text-blue-100">
+                {formatCurrency(umaValues.daily)}
+              </p>
+            )}
             <p className="text-xs text-blue-700 dark:text-blue-400 mt-1">Por día</p>
           </div>
           
@@ -734,9 +941,20 @@ export default function FiscalConfiguration() {
               <span className="text-sm font-medium text-green-900 dark:text-green-300">UMA Mensual</span>
               <span className="text-xs px-2 py-1 bg-green-200 dark:bg-green-700 text-green-900 dark:text-green-100 rounded">Mes</span>
             </div>
-            <p className="text-3xl font-bold text-green-900 dark:text-green-100">
-              {formatCurrency(umaValues.monthly)}
-            </p>
+            {editingUMA ? (
+              <input
+                type="number"
+                value={tempUMAValues.monthly}
+                onChange={(e) => setTempUMAValues(prev => ({ ...prev, monthly: parseFloat(e.target.value) || 0 }))}
+                className="w-full px-3 py-2 text-2xl font-bold border border-green-300 dark:border-green-600 rounded bg-white dark:bg-slate-700 text-green-900 dark:text-green-100"
+                step="0.01"
+                min="0"
+              />
+            ) : (
+              <p className="text-3xl font-bold text-green-900 dark:text-green-100">
+                {formatCurrency(umaValues.monthly)}
+              </p>
+            )}
             <p className="text-xs text-green-700 dark:text-green-400 mt-1">30.4 días promedio</p>
           </div>
           
@@ -745,9 +963,20 @@ export default function FiscalConfiguration() {
               <span className="text-sm font-medium text-purple-900 dark:text-purple-300">UMA Anual</span>
               <span className="text-xs px-2 py-1 bg-purple-200 dark:bg-purple-700 text-purple-900 dark:text-purple-100 rounded">Año</span>
             </div>
-            <p className="text-3xl font-bold text-purple-900 dark:text-purple-100">
-              {formatCurrency(umaValues.annual)}
-            </p>
+            {editingUMA ? (
+              <input
+                type="number"
+                value={tempUMAValues.annual}
+                onChange={(e) => setTempUMAValues(prev => ({ ...prev, annual: parseFloat(e.target.value) || 0 }))}
+                className="w-full px-3 py-2 text-2xl font-bold border border-purple-300 dark:border-purple-600 rounded bg-white dark:bg-slate-700 text-purple-900 dark:text-purple-100"
+                step="0.01"
+                min="0"
+              />
+            ) : (
+              <p className="text-3xl font-bold text-purple-900 dark:text-purple-100">
+                {formatCurrency(umaValues.annual)}
+              </p>
+            )}
             <p className="text-xs text-purple-700 dark:text-purple-400 mt-1">365 días</p>
           </div>
         </div>
@@ -756,6 +985,13 @@ export default function FiscalConfiguration() {
           <p className="text-sm text-yellow-900 dark:text-yellow-300">
             <strong>Aplicación:</strong> Los valores UMA se utilizan para calcular límites de deducciones personales 
             (15% de ingresos anuales o 5 veces la UMA anual, lo que sea menor) y otros límites fiscales establecidos por el SAT.
+            {editingUMA && (
+              <>
+                <br /><br />
+                <strong>Nota:</strong> Los valores UMA son actualizados anualmente por INEGI. Asegúrese de usar los valores oficiales.
+                <br />Proporción esperada: UMA Mensual ≈ UMA Diaria × 30.4 | UMA Anual ≈ UMA Diaria × 365
+              </>
+            )}
           </p>
         </div>
       </div>
