@@ -1,6 +1,8 @@
 // Accounts API - Manage bank accounts and credit cards
+// Phase 30: Monetary values stored as INTEGER cents in database
 
 import { getUserIdFromToken } from './auth.js';
+import { toCents, fromCents, convertArrayFromCents, convertObjectFromCents, MONETARY_FIELDS } from '../utils/monetary.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -54,7 +56,10 @@ export async function onRequestGet(context) {
     
     const result = await env.DB.prepare(query).bind(...params).all();
     
-    return new Response(JSON.stringify(result.results || []), {
+    // Phase 30: Convert balance from cents to decimal
+    const convertedResults = convertArrayFromCents(result.results || [], MONETARY_FIELDS.ACCOUNTS);
+    
+    return new Response(JSON.stringify(convertedResults), {
       headers: corsHeaders
     });
   } catch (error) {
@@ -152,7 +157,7 @@ export async function onRequestPut(context) {
         });
       }
       updates.push('balance = ?');
-      params.push(numBalance);
+      params.push(toCents(numBalance));  // Phase 30: Convert to cents
     }
     if (metadata !== undefined) {
       updates.push('metadata = ?');
@@ -262,7 +267,7 @@ export async function onRequestPost(context) {
     
     const result = await env.DB.prepare(
       'INSERT INTO accounts (user_id, name, type, balance, metadata, is_active) VALUES (?, ?, ?, ?, ?, 1)'
-    ).bind(userId, name, type, numBalance, metadataStr).run();
+    ).bind(userId, name, type, toCents(numBalance), metadataStr).run();  // Phase 30: Convert to cents
     
     return new Response(JSON.stringify({ 
       success: true,
