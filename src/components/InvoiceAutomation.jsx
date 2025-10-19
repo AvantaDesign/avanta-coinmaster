@@ -223,7 +223,7 @@ export default function InvoiceAutomation() {
         ) : (
           <div className="divide-y">
             {rules.map((rule) => (
-              <div key={rule.id} className="p-4 hover:bg-gray-50">
+              <div key={rule.id} className="p-4 hover:bg-gray-50 dark:hover:bg-slate-800">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2">

@@ -117,7 +117,7 @@ export default function AccountsReceivable() {
       case 'paid': return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300';
       case 'partial': return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300';
       case 'overdue': return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300';
-      case 'cancelled': return 'bg-gray-100 text-gray-800';
+      case 'cancelled': return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300';
       default: return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300';
     }
   };
@@ -125,9 +125,9 @@ export default function AccountsReceivable() {
   const getPriorityColor = (priority) => {
     switch (priority) {
       case 'critical': return 'bg-red-100 dark:bg-red-900/30 border-red-500 text-red-900';
-      case 'high': return 'bg-orange-100 border-orange-500 text-orange-900';
+      case 'high': return 'bg-orange-100 dark:bg-orange-900/30 border-orange-500 dark:border-orange-700 text-orange-900 dark:text-orange-400';
       case 'medium': return 'bg-yellow-100 dark:bg-yellow-900/30 border-yellow-500 text-yellow-900';
-      default: return 'bg-gray-100 border-gray-500 text-gray-900';
+      default: return 'bg-gray-100 dark:bg-gray-800 border-gray-500 dark:border-gray-600 text-gray-900 dark:text-gray-300';
     }
   };
 

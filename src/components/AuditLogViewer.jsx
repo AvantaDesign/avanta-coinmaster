@@ -104,10 +104,10 @@ export default function AuditLogViewer() {
 
   const getSeverityColor = (severity) => {
     const colors = {
-      low: 'bg-gray-100 text-gray-800',
-      medium: 'bg-blue-100 text-blue-800',
-      high: 'bg-orange-100 text-orange-800',
-      critical: 'bg-red-100 text-red-800',
+      low: 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300',
+      medium: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400',
+      high: 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400',
+      critical: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400',
     };
     return colors[severity] || colors.low;
   };
@@ -314,7 +314,7 @@ export default function AuditLogViewer() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {logs.map((log) => (
-                    <tr key={log.id} className="hover:bg-gray-50">
+                    <tr key={log.id} className="hover:bg-gray-50 dark:hover:bg-slate-800">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatDate(log.timestamp)}
                       </td>
@@ -404,14 +404,14 @@ export default function AuditLogViewer() {
                   <button
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                     disabled={currentPage === 1}
-                    className="px-3 py-1 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                    className="px-3 py-1 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-slate-800"
                   >
                     Previous
                   </button>
                   <button
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                     disabled={currentPage === totalPages}
-                    className="px-3 py-1 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                    className="px-3 py-1 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-slate-800"
                   >
                     Next
                   </button>

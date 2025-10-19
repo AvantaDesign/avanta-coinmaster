@@ -117,10 +117,10 @@ export default function AuditTrail({ entityType, entityId }) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow">
-      <div className="p-6 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">Audit Trail</h3>
-        <p className="text-sm text-gray-600 mt-1">
+    <div className="bg-white dark:bg-slate-800 rounded-lg shadow">
+      <div className="p-6 border-b border-gray-200 dark:border-slate-600">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Audit Trail</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
           Complete history for {entityType} #{entityId}
         </p>
       </div>
@@ -203,8 +203,8 @@ export default function AuditTrail({ entityType, entityId }) {
 
                       {/* Other details */}
                       {isExpanded && Object.keys(details).length > 0 && !details.changes && (
-                        <div className="mt-3 bg-white p-3 rounded border border-gray-200">
-                          <pre className="text-xs text-gray-700 overflow-x-auto">
+                        <div className="mt-3 bg-white dark:bg-slate-900 p-3 rounded border border-gray-200 dark:border-slate-600">
+                          <pre className="text-xs text-gray-700 dark:text-gray-300 overflow-x-auto">
                             {JSON.stringify(details, null, 2)}
                           </pre>
                         </div>
@@ -218,9 +218,9 @@ export default function AuditTrail({ entityType, entityId }) {
         </div>
 
         {/* Summary */}
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <p className="text-sm text-gray-600">
-            Total events: <span className="font-medium text-gray-900">{trail.length}</span>
+        <div className="mt-6 pt-6 border-t border-gray-200 dark:border-slate-600">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Total events: <span className="font-medium text-gray-900 dark:text-gray-100">{trail.length}</span>
           </p>
         </div>
       </div>
