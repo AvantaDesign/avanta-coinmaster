@@ -164,11 +164,41 @@ ALLOWED_FILE_TYPES = "image/jpeg,image/png,image/gif,application/pdf,text/xml"
 ISR_RATE = "0.20"
 IVA_RATE = "0.16"
 
-# D1 Database binding for preview
+# ============================================================================
+# CRITICAL: PREVIEW ENVIRONMENT DATABASE ISOLATION
+# ============================================================================
+# 
+# PHASE 30 REQUIREMENT: Preview must use a SEPARATE database from production
+# to prevent cross-environment data contamination.
+#
+# SETUP INSTRUCTIONS:
+# 1. Create a new D1 database exclusively for preview:
+#    wrangler d1 create avanta-coinmaster-preview
+#
+# 2. Copy the database_id from the command output
+#
+# 3. Replace the placeholder database_id below with the new preview database ID
+#
+# 4. Run migrations on the preview database:
+#    wrangler d1 execute avanta-coinmaster-preview --file=schema.sql
+#    wrangler d1 execute avanta-coinmaster-preview --file=migrations/033_fix_monetary_data_types.sql
+#
+# 5. (Optional) Seed the preview database with test data:
+#    wrangler d1 execute avanta-coinmaster-preview --file=seed.sql
+#
+# VERIFICATION:
+# - Confirm preview deployments write to the preview database only
+# - Verify production database is never accessed from preview environment
+# - Test that preview can be reset without affecting production
+#
+# ============================================================================
+
+# D1 Database binding for preview environment
+# TODO: Replace with actual preview database ID after creation
 [[env.preview.d1_databases]]
 binding = "DB"
-database_name = "avanta-coinmaster"
-database_id = "04aff2ec-b447-4af7-ae5d-0363bf6c8e49"
+database_name = "avanta-coinmaster-preview"
+database_id = "REPLACE_WITH_PREVIEW_DATABASE_ID"  # ← MUST BE REPLACED BEFORE DEPLOYMENT
 
 # ============================================================================
 # PRODUCTION ENVIRONMENT (explicit configuration)
