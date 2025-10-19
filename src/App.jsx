@@ -51,6 +51,7 @@ const FiscalAnalytics = lazy(() => import('./components/FiscalAnalytics'));
 const DigitalArchive = lazy(() => import('./components/DigitalArchive'));
 const ComplianceMonitoring = lazy(() => import('./components/ComplianceMonitoring'));
 const SystemAuditTrail = lazy(() => import('./components/SystemAuditTrail'));
+const TagManager = lazy(() => import('./components/TagManager'));
 
 // Loading fallback component
 function LoadingFallback() {
@@ -150,6 +151,7 @@ function NavigationBar() {
         { name: 'Transacciones', icon: '📊', path: '/transactions' },
         { name: 'Cuentas', icon: '🏦', path: '/accounts' },
         { name: 'Categorías', icon: '📂', path: '/categories' },
+        { name: 'Etiquetas', icon: '🏷️', path: '/tags' },
         { name: 'Créditos', icon: '💳', path: '/credits' },
         { name: 'Presupuestos', icon: '📋', path: '/budgets' }
       ]
@@ -541,6 +543,7 @@ function AuthenticatedApp() {
                 <Route path="/digital-archive" element={<DigitalArchive />} />
                 <Route path="/compliance-monitoring" element={<ComplianceMonitoring />} />
                 <Route path="/system-audit-trail" element={<SystemAuditTrail />} />
+                <Route path="/tags" element={<TagManager />} />
                 <Route path="/invoices" element={<Invoices />} />
                 <Route path="/receipts" element={<Receipts />} />
                 <Route path="/automation" element={<Home />} />

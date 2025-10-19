@@ -1130,3 +1130,165 @@ export async function deleteReceipt(id) {
   if (!response.ok) throw new Error('Failed to delete receipt');
   return response.json();
 }
+
+// ============================================================================
+// Tags API - Phase 27: Advanced Usability Enhancements
+// ============================================================================
+
+/**
+ * Fetch all tags for the current user
+ * @param {Object} params - Query parameters (category, search, entity_type, entity_id, etc.)
+ * @returns {Promise<Array>} Array of tags
+ */
+export async function fetchTags(params = {}) {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/tags${queryString ? '?' + queryString : ''}`;
+  const response = await authFetch(url);
+  if (!response.ok) throw new Error('Failed to fetch tags');
+  return response.json();
+}
+
+/**
+ * Create a new tag
+ * @param {Object} data - Tag data {name, description, color, category}
+ * @returns {Promise<Object>} Created tag
+ */
+export async function createTag(data) {
+  const response = await authFetch(`${API_BASE}/tags`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to create tag');
+  }
+  return response.json();
+}
+
+/**
+ * Update a tag
+ * @param {number} id - Tag ID
+ * @param {Object} data - Updated tag data
+ * @returns {Promise<Object>} Updated tag
+ */
+export async function updateTag(id, data) {
+  const response = await authFetch(`${API_BASE}/tags/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to update tag');
+  }
+  return response.json();
+}
+
+/**
+ * Delete a tag
+ * @param {number} id - Tag ID
+ * @returns {Promise<Object>} Deletion result
+ */
+export async function deleteTag(id) {
+  const response = await authFetch(`${API_BASE}/tags/${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to delete tag');
+  }
+  return response.json();
+}
+
+/**
+ * Apply a tag to an entity
+ * @param {number} tagId - Tag ID
+ * @param {string} entityType - Entity type ('transaction', 'account', etc.)
+ * @param {number} entityId - Entity ID
+ * @returns {Promise<Object>} Result
+ */
+export async function applyTag(tagId, entityType, entityId) {
+  const response = await authFetch(`${API_BASE}/tags/${tagId}/apply`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify({ entity_type: entityType, entity_id: entityId })
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to apply tag');
+  }
+  return response.json();
+}
+
+/**
+ * Remove a tag from an entity
+ * @param {number} tagId - Tag ID
+ * @param {string} entityType - Entity type
+ * @param {number} entityId - Entity ID
+ * @returns {Promise<Object>} Result
+ */
+export async function removeTag(tagId, entityType, entityId) {
+  const response = await authFetch(`${API_BASE}/tags/${tagId}/remove`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify({ entity_type: entityType, entity_id: entityId })
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to remove tag');
+  }
+  return response.json();
+}
+
+/**
+ * Bulk apply tags to multiple entities
+ * @param {Array} tagIds - Array of tag IDs
+ * @param {Array} entities - Array of {entity_type, entity_id}
+ * @returns {Promise<Object>} Result
+ */
+export async function bulkApplyTags(tagIds, entities) {
+  const response = await authFetch(`${API_BASE}/tags/bulk-apply`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify({ tag_ids: tagIds, entities })
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to bulk apply tags');
+  }
+  return response.json();
+}
+
+/**
+ * Get tag suggestions based on search query
+ * @param {string} query - Search query
+ * @param {string} entityType - Optional entity type context
+ * @param {number} limit - Max results (default: 10)
+ * @returns {Promise<Array>} Array of tag suggestions
+ */
+export async function getTagSuggestions(query, entityType = null, limit = 10) {
+  const params = new URLSearchParams({ query, limit: limit.toString() });
+  if (entityType) {
+    params.append('entity_type', entityType);
+  }
+  const response = await authFetch(`${API_BASE}/tags/search-suggestions?${params.toString()}`);
+  if (!response.ok) throw new Error('Failed to get tag suggestions');
+  return response.json();
+}
