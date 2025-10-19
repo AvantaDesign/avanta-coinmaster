@@ -90,10 +90,10 @@ export default function AccountManager() {
     const colors = {
       checking: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300',
       savings: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300',
-      credit: 'bg-orange-100 text-orange-800',
+      credit: 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400',
       cash: 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300'
     };
-    return colors[type] || 'bg-gray-100 text-gray-800';
+    return colors[type] || 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300';
   };
 
   if (loading) {
