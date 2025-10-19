@@ -1,5 +1,6 @@
 /**
  * Advanced Reports API Endpoint
+ * Phase 30: Monetary values stored as INTEGER cents in database
  * 
  * Provides backend support for report generation:
  * - Generate custom reports from database
@@ -15,6 +16,12 @@
  */
 
 import Decimal from 'decimal.js';
+import { 
+  fromCents, 
+  fromCentsToDecimal,
+  convertArrayFromCents,
+  MONETARY_FIELDS 
+} from '../utils/monetary.js';
 
 // CORS headers
 const corsHeaders = {
@@ -129,7 +136,8 @@ async function generateMonthlySummaryReport(context) {
         };
       }
 
-      const amount = new Decimal(t.amount);
+      // Phase 30: Convert amount from cents to Decimal for calculations
+      const amount = fromCentsToDecimal(t.amount);
       if (amount.gt(0)) {
         totalIncome = totalIncome.plus(amount);
         categoryBreakdown[category].income = categoryBreakdown[category].income.plus(amount);
@@ -140,6 +148,9 @@ async function generateMonthlySummaryReport(context) {
       }
       categoryBreakdown[category].count++;
     });
+
+    // Phase 30: Convert transactions from cents to decimal
+    const convertedTransactions = convertArrayFromCents(transactions.results, MONETARY_FIELDS.TRANSACTIONS);
 
     const report = {
       month,
@@ -156,7 +167,7 @@ async function generateMonthlySummaryReport(context) {
         count: data.count,
         net: parseFloat(data.income.minus(data.expenses).toFixed(2))
       })),
-      transactions: transactions.results
+      transactions: convertedTransactions
     };
 
     return new Response(JSON.stringify({
@@ -203,10 +214,11 @@ async function generateProfitabilityReport(context) {
       ORDER BY (income - expenses) DESC
     `).bind(from, to).all();
 
+    // Phase 30: Convert aggregated amounts from cents to Decimal
     const totalIncome = transactions.results.reduce((sum, t) => 
-      sum.plus(new Decimal(t.income)), new Decimal(0));
+      sum.plus(fromCentsToDecimal(t.income)), new Decimal(0));
     const totalExpenses = transactions.results.reduce((sum, t) => 
-      sum.plus(new Decimal(t.expenses)), new Decimal(0));
+      sum.plus(fromCentsToDecimal(t.expenses)), new Decimal(0));
 
     const report = {
       period: { from, to },
@@ -219,8 +231,9 @@ async function generateProfitabilityReport(context) {
           : 0
       },
       categories: transactions.results.map(t => {
-        const income = new Decimal(t.income);
-        const expenses = new Decimal(t.expenses);
+        // Phase 30: Convert amounts from cents to Decimal
+        const income = fromCentsToDecimal(t.income);
+        const expenses = fromCentsToDecimal(t.expenses);
         const profit = income.minus(expenses);
         return {
           category: t.category || 'Sin categoría',
@@ -281,8 +294,9 @@ async function generateCashFlowReport(context) {
     const report = {
       period: { from, to },
       monthlyFlow: monthlyFlow.results.map(m => {
-        const income = new Decimal(m.income);
-        const expenses = new Decimal(m.expenses);
+        // Phase 30: Convert amounts from cents to Decimal
+        const income = fromCentsToDecimal(m.income);
+        const expenses = fromCentsToDecimal(m.expenses);
         return {
           month: m.month,
           income: parseFloat(income.toFixed(2)),
@@ -291,15 +305,16 @@ async function generateCashFlowReport(context) {
         };
       }),
       summary: {
+        // Phase 30: Convert amounts from cents to Decimal
         totalIncome: parseFloat(monthlyFlow.results.reduce((sum, m) => 
-          sum.plus(new Decimal(m.income)), new Decimal(0)).toFixed(2)),
+          sum.plus(fromCentsToDecimal(m.income)), new Decimal(0)).toFixed(2)),
         totalExpenses: parseFloat(monthlyFlow.results.reduce((sum, m) => 
-          sum.plus(new Decimal(m.expenses)), new Decimal(0)).toFixed(2)),
+          sum.plus(fromCentsToDecimal(m.expenses)), new Decimal(0)).toFixed(2)),
         averageMonthlyIncome: monthlyFlow.results.length > 0 
-          ? monthlyFlow.results.reduce((sum, m) => sum + m.income, 0) / monthlyFlow.results.length 
+          ? monthlyFlow.results.reduce((sum, m) => sum + parseFloat(fromCents(m.income)), 0) / monthlyFlow.results.length 
           : 0,
         averageMonthlyExpenses: monthlyFlow.results.length > 0 
-          ? monthlyFlow.results.reduce((sum, m) => sum + m.expenses, 0) / monthlyFlow.results.length 
+          ? monthlyFlow.results.reduce((sum, m) => sum + parseFloat(fromCents(m.expenses)), 0) / monthlyFlow.results.length 
           : 0
       }
     };
@@ -351,9 +366,16 @@ async function generateARAgingReport(context) {
     receivables.results.forEach(r => {
       const dueDate = new Date(r.due_date);
       const daysOverdue = Math.floor((today - dueDate) / (1000 * 60 * 60 * 24));
+      // Phase 30: amounts stored as cents, calculate outstanding in cents then convert
       const outstanding = r.amount - r.amount_paid;
 
-      const item = { ...r, daysOverdue, outstanding };
+      // Phase 30: Convert monetary fields from cents to decimal
+      const convertedReceivable = convertObjectFromCents(r, MONETARY_FIELDS.RECEIVABLES);
+      const item = { 
+        ...convertedReceivable, 
+        daysOverdue, 
+        outstanding: parseFloat(fromCents(outstanding))
+      };
 
       if (daysOverdue <= 0) {
         aging.current.push(item);
@@ -379,7 +401,8 @@ async function generateARAgingReport(context) {
         days31to60: { count: aging.days31to60.length, total: calculateTotal(aging.days31to60) },
         days61to90: { count: aging.days61to90.length, total: calculateTotal(aging.days61to90) },
         over90: { count: aging.over90.length, total: calculateTotal(aging.over90) },
-        totalOutstanding: receivables.results.reduce((sum, r) => sum + (r.amount - r.amount_paid), 0)
+        totalOutstanding: receivables.results.reduce((sum, r) => 
+          sum + parseFloat(fromCents(r.amount - r.amount_paid)), 0)
       }
     };
 
@@ -430,9 +453,16 @@ async function generateAPAgingReport(context) {
     payables.results.forEach(p => {
       const dueDate = new Date(p.due_date);
       const daysOverdue = Math.floor((today - dueDate) / (1000 * 60 * 60 * 24));
+      // Phase 30: amounts stored as cents, calculate outstanding in cents then convert
       const outstanding = p.amount - p.amount_paid;
 
-      const item = { ...p, daysOverdue, outstanding };
+      // Phase 30: Convert monetary fields from cents to decimal
+      const convertedPayable = convertObjectFromCents(p, MONETARY_FIELDS.PAYABLES);
+      const item = { 
+        ...convertedPayable, 
+        daysOverdue, 
+        outstanding: parseFloat(fromCents(outstanding))
+      };
 
       if (daysOverdue <= 0) {
         aging.current.push(item);
@@ -458,7 +488,8 @@ async function generateAPAgingReport(context) {
         days31to60: { count: aging.days31to60.length, total: calculateTotal(aging.days31to60) },
         days61to90: { count: aging.days61to90.length, total: calculateTotal(aging.days61to90) },
         over90: { count: aging.over90.length, total: calculateTotal(aging.over90) },
-        totalOutstanding: payables.results.reduce((sum, p) => sum + (p.amount - p.amount_paid), 0)
+        totalOutstanding: payables.results.reduce((sum, p) => 
+          sum + parseFloat(fromCents(p.amount - p.amount_paid)), 0)
       }
     };
 
@@ -509,19 +540,27 @@ async function generateCategoryAnalysisReport(context) {
       ORDER BY ABS(total) DESC
     `).bind(from, to).all();
 
-    const totalAmount = analysis.results.reduce((sum, a) => sum + Math.abs(a.total), 0);
+    // Phase 30: Convert amounts from cents to decimal
+    const totalAmount = analysis.results.reduce((sum, a) => 
+      sum + Math.abs(parseFloat(fromCents(a.total))), 0);
 
     const report = {
       period: { from, to },
-      categories: analysis.results.map(a => ({
-        category: a.category || 'Sin categoría',
-        count: a.count,
-        total: a.total,
-        average: a.average,
-        min: a.min,
-        max: a.max,
-        percentage: totalAmount > 0 ? (Math.abs(a.total) / totalAmount) * 100 : 0
-      })),
+      categories: analysis.results.map(a => {
+        const total = parseFloat(fromCents(a.total));
+        const average = parseFloat(fromCents(a.average));
+        const min = parseFloat(fromCents(a.min));
+        const max = parseFloat(fromCents(a.max));
+        return {
+          category: a.category || 'Sin categoría',
+          count: a.count,
+          total,
+          average,
+          min,
+          max,
+          percentage: totalAmount > 0 ? (Math.abs(total) / totalAmount) * 100 : 0
+        };
+      }),
       summary: {
         totalCategories: analysis.results.length,
         totalTransactions: analysis.results.reduce((sum, a) => sum + a.count, 0),
@@ -572,7 +611,8 @@ async function generateDailyDashboardReport(context) {
     let todayExpenses = new Decimal(0);
     
     todayTransactions.results.forEach(t => {
-      const amount = new Decimal(t.amount);
+      // Phase 30: Convert amount from cents to Decimal
+      const amount = fromCentsToDecimal(t.amount);
       if (amount.gt(0)) {
         todayIncome = todayIncome.plus(amount);
       } else {
@@ -604,6 +644,12 @@ async function generateDailyDashboardReport(context) {
       ORDER BY balance DESC
     `).all();
 
+    // Phase 30: Convert monetary fields
+    const convertedTransactions = convertArrayFromCents(todayTransactions.results, MONETARY_FIELDS.TRANSACTIONS);
+    const convertedPayables = convertArrayFromCents(immediatePayables.results, MONETARY_FIELDS.PAYABLES);
+    const convertedReceivables = convertArrayFromCents(immediateReceivables.results, MONETARY_FIELDS.RECEIVABLES);
+    const convertedAccounts = convertArrayFromCents(accounts.results, MONETARY_FIELDS.ACCOUNTS);
+
     const report = {
       date: today,
       cashFlow: {
@@ -615,18 +661,20 @@ async function generateDailyDashboardReport(context) {
       immediateCommitments: {
         payables: {
           count: immediatePayables.results.length,
-          total: immediatePayables.results.reduce((sum, p) => sum + (p.amount - (p.amount_paid || 0)), 0),
-          items: immediatePayables.results
+          total: immediatePayables.results.reduce((sum, p) => 
+            sum + parseFloat(fromCents(p.amount - (p.amount_paid || 0))), 0),
+          items: convertedPayables
         },
         receivables: {
           count: immediateReceivables.results.length,
-          total: immediateReceivables.results.reduce((sum, r) => sum + (r.amount - (r.amount_paid || 0)), 0),
-          items: immediateReceivables.results
+          total: immediateReceivables.results.reduce((sum, r) => 
+            sum + parseFloat(fromCents(r.amount - (r.amount_paid || 0))), 0),
+          items: convertedReceivables
         }
       },
       accountBalances: {
-        total: accounts.results.reduce((sum, a) => sum + a.balance, 0),
-        byAccount: accounts.results.map(a => ({
+        total: accounts.results.reduce((sum, a) => sum + parseFloat(fromCents(a.balance)), 0),
+        byAccount: convertedAccounts.map(a => ({
           name: a.name,
           type: a.type,
           balance: a.balance
@@ -708,29 +756,38 @@ async function generateWeeklyReport(context) {
       ORDER BY (income + expenses) DESC
     `).bind(from, to).all();
 
+    // Phase 30: Convert monetary fields
     const report = {
       period: { from, to, week: `Semana del ${from} al ${to}` },
       summary: {
         transactions: weekTransactions.results.length,
-        income: weekTransactions.results.reduce((sum, t) => t.amount > 0 ? sum + t.amount : sum, 0),
-        expenses: weekTransactions.results.reduce((sum, t) => t.amount < 0 ? sum + Math.abs(t.amount) : sum, 0)
+        income: weekTransactions.results.reduce((sum, t) => 
+          t.amount > 0 ? sum + parseFloat(fromCents(t.amount)) : sum, 0),
+        expenses: weekTransactions.results.reduce((sum, t) => 
+          t.amount < 0 ? sum + Math.abs(parseFloat(fromCents(t.amount))) : sum, 0)
       },
-      activeProjects: projectCategories.results.map(p => ({
-        project: p.category,
-        transactions: p.transaction_count,
-        income: p.income,
-        expenses: p.expenses,
-        net: p.income - p.expenses
-      })),
+      activeProjects: projectCategories.results.map(p => {
+        const income = parseFloat(fromCents(p.income));
+        const expenses = parseFloat(fromCents(p.expenses));
+        return {
+          project: p.category,
+          transactions: p.transaction_count,
+          income,
+          expenses,
+          net: income - expenses
+        };
+      }),
       pendingInvoices: {
         count: pendingReceivables.results.length,
-        total: pendingReceivables.results.reduce((sum, r) => sum + (r.amount - (r.amount_paid || 0)), 0),
-        items: pendingReceivables.results.slice(0, 10) // Top 10
+        total: pendingReceivables.results.reduce((sum, r) => 
+          sum + parseFloat(fromCents(r.amount - (r.amount_paid || 0))), 0),
+        items: convertArrayFromCents(pendingReceivables.results.slice(0, 10), MONETARY_FIELDS.RECEIVABLES) // Top 10
       },
       scheduledPayments: {
         count: scheduledPayables.results.length,
-        total: scheduledPayables.results.reduce((sum, p) => sum + (p.amount - (p.amount_paid || 0)), 0),
-        items: scheduledPayables.results
+        total: scheduledPayables.results.reduce((sum, p) => 
+          sum + parseFloat(fromCents(p.amount - (p.amount_paid || 0))), 0),
+        items: convertArrayFromCents(scheduledPayables.results, MONETARY_FIELDS.PAYABLES)
       }
     };
 
@@ -780,9 +837,10 @@ async function generateQuarterlyBalanceSheet(context) {
       WHERE is_deleted = FALSE
     `).all();
 
+    // Phase 30: Convert amounts from cents to decimal
     const assets = {
       cash: accounts.results.filter(a => a.type === 'efectivo' || a.type === 'cuenta_bancaria')
-        .reduce((sum, a) => sum + a.balance, 0),
+        .reduce((sum, a) => sum + parseFloat(fromCents(a.balance)), 0),
       receivables: 0, // Will calculate from AR
       total: 0
     };
@@ -794,7 +852,7 @@ async function generateQuarterlyBalanceSheet(context) {
       WHERE status != 'paid' AND status != 'cancelled'
     `).all();
     
-    assets.receivables = receivables.results[0]?.total || 0;
+    assets.receivables = parseFloat(fromCents(receivables.results[0]?.total || 0));
     assets.total = assets.cash + assets.receivables;
 
     // Liabilities (payables)
@@ -805,8 +863,8 @@ async function generateQuarterlyBalanceSheet(context) {
     `).all();
 
     const liabilities = {
-      accountsPayable: payables.results[0]?.total || 0,
-      total: payables.results[0]?.total || 0
+      accountsPayable: parseFloat(fromCents(payables.results[0]?.total || 0)),
+      total: parseFloat(fromCents(payables.results[0]?.total || 0))
     };
 
     // Equity (calculated from income statement)
@@ -819,8 +877,8 @@ async function generateQuarterlyBalanceSheet(context) {
       AND is_deleted = FALSE
     `).bind(from, to).all();
 
-    const quarterIncome = incomeStatement.results[0]?.income || 0;
-    const quarterExpenses = incomeStatement.results[0]?.expenses || 0;
+    const quarterIncome = parseFloat(fromCents(incomeStatement.results[0]?.income || 0));
+    const quarterExpenses = parseFloat(fromCents(incomeStatement.results[0]?.expenses || 0));
     const quarterNet = quarterIncome - quarterExpenses;
 
     // Get opening equity (simplified - would need more complex calculation in real scenario)
