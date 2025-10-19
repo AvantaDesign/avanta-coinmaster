@@ -1,4 +1,5 @@
 // Tax Reports API - Generate and export tax reports
+// Phase 30: Monetary values stored as INTEGER cents in database
 //
 // This API handles tax report generation including:
 // - Monthly tax reports with detailed breakdowns
@@ -12,6 +13,11 @@
 // - GET /api/tax-reports/declaration/:year/:month - Get declaration summary
 
 import { getUserIdFromToken } from './auth.js';
+import { 
+  fromCents, 
+  convertArrayFromCents,
+  MONETARY_FIELDS 
+} from '../utils/monetary.js';
 
 // CORS headers
 const corsHeaders = {
@@ -74,17 +80,18 @@ async function generateMonthlyReport(env, userId, year, month) {
     ORDER BY date DESC
   `).bind(userId, startDate, endDate).all();
   
-  // Calculate summary totals
-  const totalIncome = income.results?.reduce((sum, t) => sum + t.amount, 0) || 0;
-  const totalExpenses = expenses.results?.reduce((sum, t) => sum + t.amount, 0) || 0;
+  // Phase 30: Calculate summary totals, converting from cents to decimal
+  const totalIncome = income.results?.reduce((sum, t) => sum + parseFloat(fromCents(t.amount)), 0) || 0;
+  const totalExpenses = expenses.results?.reduce((sum, t) => sum + parseFloat(fromCents(t.amount)), 0) || 0;
   const deductibleExpenses = expenses.results?.reduce((sum, t) => 
-    sum + (t.is_isr_deductible ? t.amount : 0), 0) || 0;
+    sum + (t.is_isr_deductible ? parseFloat(fromCents(t.amount)) : 0), 0) || 0;
   
   const ivaCollected = income.results?.reduce((sum, t) => 
-    sum + (t.iva_rate === '16' ? t.amount * 0.16 : 0), 0) || 0;
+    sum + (t.iva_rate === '16' ? parseFloat(fromCents(t.amount)) * 0.16 : 0), 0) || 0;
   const ivaPaid = expenses.results?.reduce((sum, t) => 
-    sum + (t.is_iva_deductible && t.iva_rate === '16' ? t.amount * 0.16 : 0), 0) || 0;
+    sum + (t.is_iva_deductible && t.iva_rate === '16' ? parseFloat(fromCents(t.amount)) * 0.16 : 0), 0) || 0;
   
+  // Phase 30: Convert transactions from cents to decimal
   return {
     period: {
       year,
@@ -93,12 +100,12 @@ async function generateMonthlyReport(env, userId, year, month) {
     },
     calculations: calculations.results || [],
     income: {
-      transactions: income.results || [],
+      transactions: convertArrayFromCents(income.results || [], MONETARY_FIELDS.TRANSACTIONS),
       total: totalIncome,
       ivaCollected
     },
     expenses: {
-      transactions: expenses.results || [],
+      transactions: convertArrayFromCents(expenses.results || [], MONETARY_FIELDS.TRANSACTIONS),
       total: totalExpenses,
       deductible: deductibleExpenses,
       ivaPaid

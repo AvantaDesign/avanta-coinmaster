@@ -1,4 +1,5 @@
 // CFDI Management API - Comprehensive CRUD operations for CFDI metadata
+// Phase 30: Monetary values stored as INTEGER cents in database
 //
 // This API handles all CFDI management operations including:
 // - Upload and parse CFDI XML files
@@ -16,6 +17,12 @@
 // - DELETE /api/cfdi-management/:id - Delete CFDI record
 
 import { getUserIdFromToken } from './auth.js';
+import { 
+  toCents, 
+  convertArrayFromCents, 
+  convertObjectFromCents,
+  MONETARY_FIELDS 
+} from '../utils/monetary.js';
 
 // CORS headers
 const corsHeaders = {
@@ -225,6 +232,13 @@ export async function onRequestPost(context) {
       }
     }
 
+    // Phase 30: Convert monetary values to cents before storing
+    const totalInCents = toCents(cfdiData.total || 0);
+    const subtotalInCents = toCents(cfdiData.subtotal || 0);
+    const ivaAmountInCents = toCents(cfdiData.impuestos?.totalTraslados || 0);
+    const discountInCents = toCents(cfdiData.descuento || 0);
+    const isrRetentionInCents = toCents(cfdiData.impuestos?.totalRetenciones || 0);
+
     // Insert CFDI metadata
     const result = await env.DB.prepare(`
       INSERT INTO cfdi_metadata (
@@ -249,12 +263,12 @@ export async function onRequestPost(context) {
       cfdiData.emisor?.nombre || '',
       cfdiData.receptor?.rfc || '',
       cfdiData.receptor?.nombre || '',
-      cfdiData.total || 0,
-      cfdiData.subtotal || 0,
-      cfdiData.impuestos?.totalTraslados || 0,
-      cfdiData.descuento || 0,
-      cfdiData.impuestos?.totalRetenciones || 0,
-      0, // iva_retention - would need specific extraction
+      totalInCents,        // stored as cents
+      subtotalInCents,     // stored as cents
+      ivaAmountInCents,    // stored as cents
+      discountInCents,     // stored as cents
+      isrRetentionInCents, // stored as cents
+      0,                   // iva_retention - would need specific extraction
       cfdiData.date || new Date().toISOString().split('T')[0],
       null, // payment_date - not in standard CFDI
       cfdiData.timbreFiscal?.fechaTimbrado || null,
@@ -280,9 +294,13 @@ export async function onRequestPost(context) {
       'SELECT * FROM cfdi_metadata WHERE id = ?'
     ).bind(result.meta.last_row_id).first();
 
+    // Phase 30: Convert monetary fields from cents to decimal for response
+    const CFDI_MONETARY_FIELDS = ['total_amount', 'subtotal', 'iva_amount', 'discount', 'isr_retention', 'iva_retention'];
+    const convertedCfdi = convertObjectFromCents(created, CFDI_MONETARY_FIELDS);
+
     return new Response(JSON.stringify({ 
       success: true,
-      cfdi: created,
+      cfdi: convertedCfdi,
       autoMatched: autoMatched === 1,
       linkedTransactionId
     }), {
@@ -436,9 +454,13 @@ export async function onRequestPut(context) {
       'SELECT * FROM cfdi_metadata WHERE id = ? AND user_id = ?'
     ).bind(cfdiId, userId).first();
 
+    // Phase 30: Convert monetary fields from cents to decimal
+    const CFDI_MONETARY_FIELDS = ['total_amount', 'subtotal', 'iva_amount', 'discount', 'isr_retention', 'iva_retention'];
+    const convertedCfdi = convertObjectFromCents(updated, CFDI_MONETARY_FIELDS);
+
     return new Response(JSON.stringify({ 
       success: true,
-      cfdi: updated
+      cfdi: convertedCfdi
     }), {
       status: 200,
       headers: corsHeaders
@@ -626,8 +648,12 @@ async function listCFDIs(env, userId, url) {
     LIMIT ? OFFSET ?
   `).bind(...params, limit, offset).all();
 
+  // Phase 30: Convert monetary fields from cents to decimal
+  const CFDI_MONETARY_FIELDS = ['total_amount', 'subtotal', 'iva_amount'];
+  const convertedCfdis = convertArrayFromCents(records.results || [], CFDI_MONETARY_FIELDS);
+
   return new Response(JSON.stringify({ 
-    cfdis: records.results || [],
+    cfdis: convertedCfdis,
     total,
     limit,
     offset,
@@ -656,16 +682,23 @@ async function getSingleCFDI(env, userId, cfdiId) {
     });
   }
 
+  // Phase 30: Convert monetary fields from cents to decimal
+  const CFDI_MONETARY_FIELDS = ['total_amount', 'subtotal', 'iva_amount', 'discount', 'isr_retention', 'iva_retention'];
+  const convertedCfdi = convertObjectFromCents(cfdi, CFDI_MONETARY_FIELDS);
+
   // If linked to transaction, fetch transaction details
   let linkedTransaction = null;
   if (cfdi.linked_transaction_id) {
-    linkedTransaction = await env.DB.prepare(
+    const transaction = await env.DB.prepare(
       'SELECT id, date, description, amount, type FROM transactions WHERE id = ?'
     ).bind(cfdi.linked_transaction_id).first();
+    
+    // Convert transaction amount from cents to decimal
+    linkedTransaction = convertObjectFromCents(transaction, MONETARY_FIELDS.TRANSACTIONS);
   }
 
   return new Response(JSON.stringify({ 
-    cfdi,
+    cfdi: convertedCfdi,
     linkedTransaction
   }), {
     status: 200,
@@ -733,11 +766,15 @@ async function validateCFDI(env, userId, uuid) {
     ).run();
   }
 
+  // Phase 30: Convert monetary fields from cents to decimal
+  const CFDI_MONETARY_FIELDS = ['total_amount', 'subtotal', 'iva_amount', 'discount', 'isr_retention', 'iva_retention'];
+  const convertedCfdi = convertObjectFromCents({ ...cfdi, status: newStatus }, CFDI_MONETARY_FIELDS);
+
   return new Response(JSON.stringify({ 
     valid: validationErrors.length === 0,
     status: newStatus,
     errors: validationErrors,
-    cfdi: { ...cfdi, status: newStatus }
+    cfdi: convertedCfdi
   }), {
     status: 200,
     headers: corsHeaders

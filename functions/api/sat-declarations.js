@@ -1,4 +1,5 @@
 // SAT Declarations API - Comprehensive DIOT and Contabilidad Electrónica operations
+// Phase 30: Monetary values stored as INTEGER cents in database
 //
 // This API handles all SAT declaration operations including:
 // - Generate DIOT (Declaración Informativa de Operaciones con Terceros)
@@ -17,6 +18,10 @@
 // - DELETE /api/sat-declarations/:id - Delete declaration
 
 import { getUserIdFromToken } from './auth.js';
+import { 
+  fromCents, 
+  fromCentsToDecimal
+} from '../utils/monetary.js';
 
 // CORS headers
 const corsHeaders = {
@@ -549,6 +554,8 @@ async function generateDIOT(env, userId, year, month) {
       // Skip if RFC is invalid or empty
       if (!op.client_rfc || op.client_rfc.length < 12) continue;
 
+      // Phase 30: Amounts are already in cents from aggregation, store as-is
+      // Note: These will be converted back when retrieved
       await env.DB.prepare(`
         INSERT INTO diot_operations (
           user_id, declaration_id, client_rfc, client_name, 
@@ -564,9 +571,9 @@ async function generateDIOT(env, userId, year, month) {
         op.client_name || 'N/A',
         op.operation_type,
         op.nationality || 'nacional',
-        op.total_amount || 0,
-        op.base_amount || 0,
-        op.iva_amount || 0,
+        op.total_amount || 0,      // Already in cents from SUM
+        op.base_amount || 0,        // Already in cents from SUM
+        op.iva_amount || 0,         // Already in cents from SUM
         op.iva_rate || 'exento',
         op.currency || 'MXN',
         op.exchange_rate || 1.0,

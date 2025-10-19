@@ -1,5 +1,6 @@
 /**
  * Analytics API Endpoint
+ * Phase 30: No monetary data handling required - tracks events and user metrics only
  * 
  * Collects and stores custom analytics events from the frontend.
  * Provides endpoints for:
