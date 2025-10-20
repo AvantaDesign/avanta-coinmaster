@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { processReceipt, calculateConfidence, validateExtractedData } from '../utils/ocrProcessor';
+import { calculateConfidence, validateExtractedData } from '../utils/ocrProcessor';
 import { updateReceipt, createTransaction } from '../utils/api';
 import { showSuccess, showError, showWarning } from '../utils/notifications';
 
@@ -10,7 +10,7 @@ export default function ReceiptProcessor({ receipt, onProcessComplete }) {
   const [editedData, setEditedData] = useState(null);
   const [showCreateTransaction, setShowCreateTransaction] = useState(false);
 
-  // Process receipt with OCR
+  // Process receipt with OCR (using backend endpoint)
   const handleProcess = async () => {
     if (!receipt || !receipt.file_path) {
       showError('No se encontró el archivo del recibo');
@@ -25,25 +25,48 @@ export default function ReceiptProcessor({ receipt, onProcessComplete }) {
       const imageUrl = `/api/upload/${receipt.file_path.split('/').pop()}`;
       
       // Download image for processing
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
+      const imageResponse = await fetch(imageUrl);
+      const blob = await imageResponse.blob();
       
-      // Process with OCR
-      const result = await processReceipt(blob, (progressInfo) => {
-        setProgress(progressInfo.progress || 0);
+      // Create form data for backend OCR endpoint
+      const formData = new FormData();
+      formData.append('file', blob, receipt.file_name);
+      
+      // Simulate progress updates
+      const progressInterval = setInterval(() => {
+        setProgress(prev => Math.min(prev + 0.1, 0.9));
+      }, 300);
+      
+      // Send to backend OCR endpoint
+      const response = await fetch('/api/process-document-ocr', {
+        method: 'POST',
+        body: formData
       });
+      
+      clearInterval(progressInterval);
+      setProgress(1);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error en el procesamiento OCR');
+      }
+      
+      const result = await response.json();
 
       if (result.success) {
         // Calculate confidence for the extracted data
-        const confidence = calculateConfidence(result.text, result.extractedData);
+        const confidence = result.confidence || calculateConfidence(result.text, result.extractedData);
         
         // Validate extracted data
         const validation = validateExtractedData(result.extractedData);
 
         setOcrResult({
-          ...result,
+          success: true,
+          text: result.text,
+          extractedData: result.extractedData,
           confidence,
-          validation
+          validation,
+          processingMethod: result.processingMethod
         });
 
         // Initialize edited data with extracted data
@@ -61,10 +84,15 @@ export default function ReceiptProcessor({ receipt, onProcessComplete }) {
           confidence_score: confidence
         });
 
-        showSuccess('Procesamiento OCR completado');
+        showSuccess('Procesamiento OCR completado en el servidor');
 
         if (validation.warnings.length > 0) {
           validation.warnings.forEach(warning => showWarning(warning));
+        }
+        
+        // Show message if OCR service is not configured
+        if (result.message) {
+          showWarning(result.message);
         }
       } else {
         throw new Error(result.error || 'Error al procesar el recibo');
