@@ -8,6 +8,11 @@ This directory contains historical audit reports, bug fixes, deployment fixes, a
 - **ACCESSIBILITY_AUDIT.md** - Accessibility compliance audit
 - **SECURITY_AUDIT_REPORT.md** - Security vulnerability assessment and remediation
 
+### Authentication and Security
+- **AUTHENTICATION_ANALYSIS_PLAN.md** - Authentication system analysis and planning
+- **AUTHENTICATION_FIX_SUMMARY.md** - Authentication fixes and improvements
+- **SECURITY_AND_LOGIC_FIX_PLAN.md** - Security and logic issue remediation plan
+
 ### Deployment Fixes
 - **CLOUDFLARE_DEPLOYMENT_FIX.md** - Cloudflare Pages deployment issues resolution
 - **DEPLOYMENT_FIX.md** - General deployment fixes and troubleshooting

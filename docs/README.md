@@ -26,21 +26,38 @@ Welcome to the comprehensive documentation for Avanta CoinMaster 2.0! This folde
 
 ```
 docs/
-├── README.md                    # This file - complete documentation index
-├── QUICKSTART.md               # 5-minute setup guide
-├── DEPLOYMENT.md               # Production deployment guide
-├── DEVELOPMENT.md              # Developer guidelines and architecture
-├── TESTING.md                  # Testing procedures and checklist
-├── TESTING_PLAN.md             # Comprehensive testing plan
-├── CONTRIBUTING.md             # Contribution guidelines
-├── CHANGELOG.md                # Version history and updates
-├── IMPLEMENTATION_PLAN.md      # Original implementation roadmap
-└── archive/                    # Archived development documentation
-    ├── Phase-specific summaries
-    ├── API references
-    ├── Testing guides
-    ├── Session documentation
-    └── Technical references
+├── README.md                           # This file - complete documentation index
+├── QUICKSTART.md                       # 5-minute setup guide
+├── DEPLOYMENT.md                       # Production deployment guide
+├── DEVELOPMENT.md                      # Developer guidelines and architecture
+├── TESTING.md                          # Testing procedures and checklist
+├── TESTING_PLAN.md                     # Comprehensive testing plan
+├── TESTING_GUIDE.md                    # Detailed testing guide
+├── CONTRIBUTING.md                     # Contribution guidelines
+├── CHANGELOG.md                        # Version history and updates
+├── DOCUMENTATION_GUIDE.md              # How to write documentation
+├── TECHNICAL_DOCUMENTATION.md          # Technical architecture and design
+├── USER_GUIDE.md                       # End-user guide
+├── TESTING_QUICK_REFERENCE.md          # Quick testing reference
+└── archive/                            # Organized historical documentation
+    ├── agent-prompts/                  # AI agent session prompts
+    ├── domain-knowledge/               # Mexican tax and SAT regulations
+    ├── fixes-and-audits/               # Bug fixes and audit reports
+    ├── guides/                         # Comprehensive guides (API, deployment, etc.)
+    ├── implementation-plans/           # All implementation plans (V1-V8)
+    │   ├── early/                      # Pre-V4 plans (Phases 0-4)
+    │   ├── v4/                         # Phases 5-9
+    │   ├── v5/                         # Phases 10-16
+    │   ├── v6/                         # Foundation features
+    │   ├── v7/                         # Phases 17-29
+    │   └── v8/                         # Phases 30-39
+    ├── phases/                         # Phase-specific documentation
+    │   ├── phases-00-04/               # Foundation phases
+    │   ├── phases-05-16/               # Core features
+    │   ├── phases-17-29/               # Fiscal compliance
+    │   └── phases-30-39/               # Hardening and polish
+    ├── project-milestones/             # Project completion summaries
+    └── research/                       # Technology research
 ```
 
 ---
@@ -66,26 +83,36 @@ docs/
 
 ## 📋 **Archived Documentation**
 
-The `archive/` folder contains detailed documentation from the development process:
+The `archive/` folder contains organized historical documentation from the development process:
+
+### **Implementation Plans**
+- **archive/implementation-plans/early/** - Pre-V4 implementation plans (Phases 0-4)
+- **archive/implementation-plans/v4/** - Implementation Plan V4 (Phases 5-9)
+- **archive/implementation-plans/v5/** - Implementation Plan V5 (Phases 10-16)
+- **archive/implementation-plans/v6/** - Implementation Plan V6 (Foundation features)
+- **archive/implementation-plans/v7/** - Implementation Plan V7 (Phases 17-29)
+- **archive/implementation-plans/v8/** - Implementation Plan V8 (Phases 30-39)
 
 ### **Phase Documentation**
-- **Phase 0:** Usability improvements, table interactions, data visualization
-- **Phase 1:** Advanced transaction classification, database schema updates
-- **Phase 2:** Fiscal module, Mexican tax calculations, reconciliation
-- **Phase 3:** Automation, accounts receivable/payable management
-- **Phase 4:** Advanced analytics, UX improvements
+- **archive/phases/phases-00-04/** - Foundation phases (Security, Classification, Debts, Improvements)
+- **archive/phases/phases-05-16/** - Core features (Transactions, Accounts, Categories, Dashboard, Budgeting)
+- **archive/phases/phases-17-29/** - Fiscal compliance (ISR/IVA, CFDI, Bank Reconciliation, Declarations)
+- **archive/phases/phases-30-39/** - Hardening and polish (Infrastructure, Security, Performance, Multi-user)
 
-### **Technical References**
-- **API Documentation:** Complete API references for each phase
-- **Testing Guides:** Detailed testing procedures and results
-- **Database Guides:** D1 setup, schemas, and migrations
-- **Storage Guides:** R2 setup and file management
-- **Integration Guides:** n8n workflows, CSV import, CFDI parsing
+### **Guides and References**
+- **archive/guides/** - API documentation, deployment guides, testing guides, quick references
+- **archive/domain-knowledge/** - Mexican tax regulations, SAT requirements, deductibility rules
+- **archive/fixes-and-audits/** - Bug fixes, security audits, deployment troubleshooting
+- **archive/agent-prompts/** - AI agent session prompts and instructions
+- **archive/research/** - Technology research and feasibility studies
+- **archive/project-milestones/** - Project completion summaries and session documentation
 
-### **Session Documentation**
-- **Session Summaries:** Development progress and implementation details
-- **Quick References:** Development session guides and checklists
-- **Implementation Summaries:** Complete feature implementation details
+### **Quick Finding Reference**
+- For implementation plans: See `archive/implementation-plans/`
+- For phase details: See `archive/phases/phases-XX-YY/`
+- For API docs: See `archive/guides/API_*.md`
+- For testing: See `archive/guides/*_TESTING_*.md`
+- For deployment: See `archive/guides/PRODUCTION_*.md`
 
 ---
 
@@ -94,21 +121,28 @@ The `archive/` folder contains detailed documentation from the development proce
 ### **Setup & Deployment**
 - **Quick setup:** [QUICKSTART.md](QUICKSTART.md)
 - **Production deployment:** [DEPLOYMENT.md](DEPLOYMENT.md)
-- **Database setup:** `archive/D1_*` files
-- **Storage setup:** `archive/R2_*` files
+- **Database setup:** `archive/guides/D1_*.md` files
+- **Storage setup:** `archive/guides/R2_*.md` files
+- **Production readiness:** `archive/guides/PRODUCTION_*.md` files
 
 ### **Development**
-- **Architecture:** [DEVELOPMENT.md](DEVELOPMENT.md)
-- **API reference:** `archive/API_*` files
-- **Testing:** [TESTING.md](TESTING.md) and [TESTING_PLAN.md](TESTING_PLAN.md)
-- **Phase details:** `archive/PHASE_*` files
+- **Architecture:** [DEVELOPMENT.md](DEVELOPMENT.md) and [TECHNICAL_DOCUMENTATION.md](TECHNICAL_DOCUMENTATION.md)
+- **API reference:** `archive/guides/API_*.md` files
+- **Testing:** [TESTING.md](TESTING.md), [TESTING_PLAN.md](TESTING_PLAN.md), and [TESTING_GUIDE.md](TESTING_GUIDE.md)
+- **Phase details:** `archive/phases/phases-XX-YY/` directories
 
 ### **Advanced Features**
-- **CSV import:** `archive/CSV_*` files
-- **CFDI parsing:** `archive/CSV_CFDI_*` files
-- **n8n integration:** `archive/N8N_*` files
-- **Analytics:** `archive/ANALYTICS_*` files
-- **Production monitoring:** `archive/PRODUCTION_*` files
+- **CSV import:** `archive/guides/CSV_*.md` files
+- **CFDI parsing:** `archive/guides/CSV_CFDI_*.md` files
+- **n8n integration:** `archive/guides/N8N_*.md` files
+- **Analytics:** `archive/guides/ANALYTICS_*.md` files
+- **Data visualization:** `archive/guides/DATA_VISUALIZATION_*.md` files
+
+### **Historical Context**
+- **Implementation plans:** `archive/implementation-plans/` directory
+- **Project milestones:** `archive/project-milestones/` directory
+- **Bug fixes and audits:** `archive/fixes-and-audits/` directory
+- **Domain knowledge:** `archive/domain-knowledge/` directory
 
 ---
 
