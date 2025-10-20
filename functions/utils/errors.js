@@ -380,3 +380,89 @@ export function formatErrorForMonitoring(error, context = {}) {
     }
   };
 }
+
+/**
+ * Send error notification to webhook
+ * Phase 32: Error Monitoring Integration
+ * 
+ * @param {Error} error - Error object
+ * @param {Object} context - Additional context
+ * @param {Object} env - Environment bindings
+ * @returns {Promise<boolean>} True if notification sent successfully
+ */
+export async function sendErrorWebhook(error, context = {}, env = null) {
+  if (!env || !env.ERROR_ALERT_WEBHOOK) {
+    return false;
+  }
+  
+  try {
+    const payload = formatErrorForMonitoring(error, context);
+    
+    const response = await fetch(env.ERROR_ALERT_WEBHOOK, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Avanta-Finance-Error-Monitor/1.0'
+      },
+      body: JSON.stringify({
+        ...payload,
+        environment: env.ENVIRONMENT || 'unknown',
+        application: 'avanta-finance',
+        version: env.APP_VERSION || '1.0.0'
+      })
+    });
+    
+    if (!response.ok) {
+      console.error('Error webhook failed:', response.statusText);
+      return false;
+    }
+    
+    return true;
+  } catch (webhookError) {
+    console.error('Failed to send error webhook:', webhookError);
+    return false;
+  }
+}
+
+/**
+ * Send security alert to webhook
+ * Phase 32: Security Monitoring Integration
+ * 
+ * @param {string} alertType - Type of security alert
+ * @param {Object} details - Alert details
+ * @param {Object} env - Environment bindings
+ * @returns {Promise<boolean>} True if alert sent successfully
+ */
+export async function sendSecurityWebhook(alertType, details = {}, env = null) {
+  if (!env || !env.SECURITY_ALERT_WEBHOOK) {
+    return false;
+  }
+  
+  try {
+    const response = await fetch(env.SECURITY_ALERT_WEBHOOK, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Avanta-Finance-Security-Monitor/1.0'
+      },
+      body: JSON.stringify({
+        alertType,
+        details,
+        timestamp: new Date().toISOString(),
+        environment: env.ENVIRONMENT || 'unknown',
+        application: 'avanta-finance',
+        version: env.APP_VERSION || '1.0.0'
+      })
+    });
+    
+    if (!response.ok) {
+      console.error('Security webhook failed:', response.statusText);
+      return false;
+    }
+    
+    return true;
+  } catch (webhookError) {
+    console.error('Failed to send security webhook:', webhookError);
+    return false;
+  }
+}

@@ -168,11 +168,25 @@ export function generateCacheKey(prefix, params = {}) {
  */
 export async function getFromCache(key, env = null) {
   try {
-    // Try in-memory cache first
+    // Phase 32: Try Cloudflare KV first (if available)
+    if (env && env.CACHE_KV) {
+      try {
+        const value = await env.CACHE_KV.get(key);
+        if (value !== null) {
+          logDebug('KV cache hit', { key }, env);
+          return JSON.parse(value);
+        }
+      } catch (kvError) {
+        console.error('KV cache get error:', kvError);
+        // Fall through to in-memory cache
+      }
+    }
+    
+    // Try in-memory cache as fallback
     const value = cache.get(key);
     
     if (value !== null) {
-      logDebug('Cache hit', { key }, env);
+      logDebug('Memory cache hit', { key }, env);
       return value;
     }
     
@@ -193,8 +207,23 @@ export async function getFromCache(key, env = null) {
  */
 export async function setInCache(key, value, ttlSeconds = CacheTTL.MEDIUM, env = null) {
   try {
+    // Phase 32: Use Cloudflare KV if available
+    if (env && env.CACHE_KV) {
+      try {
+        await env.CACHE_KV.put(key, JSON.stringify(value), {
+          expirationTtl: ttlSeconds
+        });
+        logDebug('KV cache set', { key, ttl: ttlSeconds }, env);
+        return;
+      } catch (kvError) {
+        console.error('KV cache set error:', kvError);
+        // Fall through to in-memory cache
+      }
+    }
+    
+    // Use in-memory cache as fallback
     cache.set(key, value, ttlSeconds);
-    logDebug('Cache set', { key, ttl: ttlSeconds }, env);
+    logDebug('Memory cache set', { key, ttl: ttlSeconds }, env);
   } catch (error) {
     console.error('Cache set error:', error);
   }
@@ -203,9 +232,20 @@ export async function setInCache(key, value, ttlSeconds = CacheTTL.MEDIUM, env =
 /**
  * Delete item from cache
  * @param {string} key - Cache key
+ * @param {Object} env - Environment bindings
  */
-export async function deleteFromCache(key) {
+export async function deleteFromCache(key, env = null) {
   try {
+    // Phase 32: Delete from KV if available
+    if (env && env.CACHE_KV) {
+      try {
+        await env.CACHE_KV.delete(key);
+      } catch (kvError) {
+        console.error('KV cache delete error:', kvError);
+      }
+    }
+    
+    // Also delete from in-memory cache
     cache.delete(key);
   } catch (error) {
     console.error('Cache delete error:', error);
@@ -214,10 +254,19 @@ export async function deleteFromCache(key) {
 
 /**
  * Clear all cache
+ * Note: KV namespace cannot be cleared entirely via API
+ * @param {Object} env - Environment bindings
  */
-export async function clearCache() {
+export async function clearCache(env = null) {
   try {
+    // Clear in-memory cache
     cache.clear();
+    
+    // Note: Cloudflare KV doesn't support clearing all keys
+    // In production, implement key prefix-based deletion if needed
+    if (env && env.CACHE_KV) {
+      console.log('KV cache cannot be cleared entirely. Use key prefixes for targeted deletion.');
+    }
   } catch (error) {
     console.error('Cache clear error:', error);
   }

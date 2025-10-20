@@ -152,10 +152,23 @@ CACHE_REPORTS_TTL = "600"
 # ERROR_ALERT_WEBHOOK = "https://n8n.your-domain.com/webhook/errors"
 # SECURITY_ALERT_WEBHOOK = "https://n8n.your-domain.com/webhook/security"
 
+# Phase 32: OCR Service Configuration (Optional)
+# Configure external OCR service for document processing
+# Option 1: Google Cloud Vision API
+# GOOGLE_CLOUD_VISION_API_KEY = "your-api-key-here"
+# Option 2: AWS Textract
+# AWS_TEXTRACT_ENABLED = "true"
+# AWS_ACCESS_KEY_ID = "your-access-key"
+# AWS_SECRET_ACCESS_KEY = "your-secret-key"
+# AWS_REGION = "us-east-1"
+
 # Note: Use wrangler secret for sensitive values:
 # wrangler secret put N8N_WEBHOOK_SECRET
 # wrangler secret put ERROR_ALERT_WEBHOOK
 # wrangler secret put SECURITY_ALERT_WEBHOOK
+# wrangler secret put GOOGLE_CLOUD_VISION_API_KEY
+# wrangler secret put AWS_ACCESS_KEY_ID
+# wrangler secret put AWS_SECRET_ACCESS_KEY
 
 # ============================================================================
 # PREVIEW ENVIRONMENT VARIABLES (for staging/testing)
