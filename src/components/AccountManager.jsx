@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { fetchAccounts, createAccount, updateAccount, deleteAccount } from '../utils/api';
 import { formatCurrency } from '../utils/calculations';
 import Icon from './icons/IconLibrary';
+import InitialBalanceManager from './InitialBalanceManager'; // Phase 33
 
 export default function AccountManager() {
   const [accounts, setAccounts] = useState([]);
@@ -9,12 +10,14 @@ export default function AccountManager() {
   const [error, setError] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [managingBalancesFor, setManagingBalancesFor] = useState(null); // Phase 33: Track which account is managing balances
   
   // Form state
   const [formData, setFormData] = useState({
     name: '',
     type: 'checking',
-    balance: 0
+    balance: 0,
+    opening_date: '' // Phase 33: Account opening date
   });
 
   useEffect(() => {
@@ -54,7 +57,8 @@ export default function AccountManager() {
     setFormData({
       name: account.name,
       type: account.type,
-      balance: account.balance
+      balance: account.balance,
+      opening_date: account.opening_date || '' // Phase 33: Include opening_date
     });
     setIsAdding(true);
   };
@@ -71,7 +75,7 @@ export default function AccountManager() {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', type: 'checking', balance: 0 });
+    setFormData({ name: '', type: 'checking', balance: 0, opening_date: '' }); // Phase 33: Include opening_date
     setEditingId(null);
     setIsAdding(false);
   };
@@ -141,7 +145,7 @@ export default function AccountManager() {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100"
                   required
                 />
               </div>
@@ -153,7 +157,7 @@ export default function AccountManager() {
                 <select
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100"
                   required
                 >
                   <option value="checking">Cuenta Corriente</option>
@@ -172,9 +176,25 @@ export default function AccountManager() {
                   step="0.01"
                   value={formData.balance}
                   onChange={(e) => setFormData({ ...formData, balance: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100"
                 />
               </div>
+            </div>
+
+            {/* Phase 33: Opening Date Field */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Fecha de Apertura
+                <span className="text-gray-500 dark:text-gray-400 text-xs ml-2">
+                  (Opcional - Para cálculo de antigüedad)
+                </span>
+              </label>
+              <input
+                type="date"
+                value={formData.opening_date}
+                onChange={(e) => setFormData({ ...formData, opening_date: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100"
+              />
             </div>
 
             <div className="flex gap-2">
@@ -228,6 +248,12 @@ export default function AccountManager() {
                 <tr key={account.id} className="hover:bg-gray-50 dark:hover:bg-slate-800">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{account.name}</div>
+                    {/* Phase 33: Display opening date and account age */}
+                    {account.opening_date && (
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        Apertura: {new Date(account.opening_date).toLocaleDateString('es-MX')}
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getTypeColor(account.type)}`}>
@@ -243,18 +269,26 @@ export default function AccountManager() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
+                      onClick={() => setManagingBalancesFor(account)}
+                      className="text-green-600 hover:text-green-900 mr-3 inline-flex items-center gap-1"
+                      title="Gestionar saldos iniciales"
+                    >
+                      <Icon name="calendar" size="sm" />
+                      <span className="hidden lg:inline">Saldos</span>
+                    </button>
+                    <button
                       onClick={() => handleEdit(account)}
                       className="text-blue-600 hover:text-blue-900 mr-3 inline-flex items-center gap-1"
                     >
                       <Icon name="pencil" size="sm" />
-                      Editar
+                      <span className="hidden lg:inline">Editar</span>
                     </button>
                     <button
                       onClick={() => handleDelete(account.id)}
                       className="text-red-600 hover:text-red-900 inline-flex items-center gap-1"
                     >
                       <Icon name="trash" size="sm" />
-                      Eliminar
+                      <span className="hidden lg:inline">Eliminar</span>
                     </button>
                   </td>
                 </tr>
@@ -269,18 +303,43 @@ export default function AccountManager() {
       {accounts.length > 0 && (
         <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
           <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-blue-900">Total de cuentas:</span>
-            <span className="text-lg font-bold text-blue-900">{accounts.length}</span>
+            <span className="text-sm font-medium text-blue-900 dark:text-blue-100">Total de cuentas:</span>
+            <span className="text-lg font-bold text-blue-900 dark:text-blue-100">{accounts.length}</span>
           </div>
           <div className="flex justify-between items-center mt-2">
-            <span className="text-sm font-medium text-blue-900">Balance total:</span>
+            <span className="text-sm font-medium text-blue-900 dark:text-blue-100">Balance total:</span>
             <span className={`text-lg font-bold ${
               accounts.reduce((sum, acc) => sum + (acc.balance || 0), 0) >= 0 
-                ? 'text-green-600' 
-                : 'text-red-600'
+                ? 'text-green-600 dark:text-green-400' 
+                : 'text-red-600 dark:text-red-400'
             }`}>
               {formatCurrency(accounts.reduce((sum, acc) => sum + (acc.balance || 0), 0))}
             </span>
+          </div>
+        </div>
+      )}
+
+      {/* Phase 33: Initial Balance Management Modal/Section */}
+      {managingBalancesFor && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-slate-900 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 p-4 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                Gestión de Saldos Iniciales
+              </h2>
+              <button
+                onClick={() => setManagingBalancesFor(null)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <Icon name="x-mark" size="md" />
+              </button>
+            </div>
+            <div className="p-6">
+              <InitialBalanceManager 
+                accountId={managingBalancesFor.id} 
+                accountName={managingBalancesFor.name}
+              />
+            </div>
           </div>
         </div>
       )}

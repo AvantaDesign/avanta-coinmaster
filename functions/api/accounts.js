@@ -157,7 +157,7 @@ export async function onRequestPut(context) {
     }
 
     const data = await request.json();
-    const { name, type, balance, metadata } = data;
+    const { name, type, balance, metadata, opening_date } = data;
     
     // Build update query dynamically based on provided fields
     const updates = [];
@@ -197,6 +197,23 @@ export async function onRequestPut(context) {
     if (metadata !== undefined) {
       updates.push('metadata = ?');
       params.push(typeof metadata === 'string' ? metadata : JSON.stringify(metadata));
+    }
+    // Phase 33: Support updating opening_date
+    if (opening_date !== undefined) {
+      if (opening_date !== null) {
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!dateRegex.test(opening_date)) {
+          return new Response(JSON.stringify({ 
+            error: 'Invalid opening_date format. Use YYYY-MM-DD',
+            code: 'VALIDATION_ERROR'
+          }), {
+            status: 400,
+            headers: corsHeaders
+          });
+        }
+      }
+      updates.push('opening_date = ?');
+      params.push(opening_date);
     }
     
     if (updates.length === 0) {
@@ -301,7 +318,7 @@ export async function onRequestPost(context) {
     }
 
     const data = await request.json();
-    const { name, type, balance, metadata } = data;
+    const { name, type, balance, metadata, opening_date } = data;
     
     // Phase 31: Sanitize name input
     if (name) {
@@ -330,6 +347,20 @@ export async function onRequestPost(context) {
       });
     }
     
+    // Phase 33: Validate opening_date format if provided
+    if (opening_date) {
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateRegex.test(opening_date)) {
+        return new Response(JSON.stringify({ 
+          error: 'Invalid opening_date format. Use YYYY-MM-DD',
+          code: 'VALIDATION_ERROR'
+        }), {
+          status: 400,
+          headers: corsHeaders
+        });
+      }
+    }
+    
     const numBalance = balance !== undefined ? parseFloat(balance) : 0;
     if (isNaN(numBalance)) {
       return new Response(JSON.stringify({ 
@@ -343,9 +374,10 @@ export async function onRequestPost(context) {
     
     const metadataStr = metadata ? (typeof metadata === 'string' ? metadata : JSON.stringify(metadata)) : null;
     
+    // Phase 33: Include opening_date in insert
     const result = await env.DB.prepare(
-      'INSERT INTO accounts (user_id, name, type, balance, metadata, is_active) VALUES (?, ?, ?, ?, ?, 1)'
-    ).bind(userId, data.name, type, toCents(numBalance), metadataStr).run();  // Phase 30: Convert to cents
+      'INSERT INTO accounts (user_id, name, type, balance, metadata, opening_date, is_active) VALUES (?, ?, ?, ?, ?, ?, 1)'
+    ).bind(userId, data.name, type, toCents(numBalance), metadataStr, opening_date || null).run();  // Phase 30: Convert to cents
     
     // Phase 31: Log audit event
     await logAuditEvent('CREATE', 'account', {
