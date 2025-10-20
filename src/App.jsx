@@ -56,6 +56,8 @@ const ComplianceMonitoring = lazy(() => import('./components/ComplianceMonitorin
 const SystemAuditTrail = lazy(() => import('./components/SystemAuditTrail'));
 const TagManager = lazy(() => import('./components/TagManager'));
 const ComplianceDashboard = lazy(() => import('./components/ComplianceDashboard'));
+// Phase 35: Centralized Settings Panel
+const Settings = lazy(() => import('./pages/Settings'));
 
 // Loading fallback component
 function LoadingFallback() {
@@ -232,14 +234,23 @@ function NavigationBar() {
         { name: 'Acciones Rápidas', icon: '⚡', path: '/quick-actions' },
         { name: 'Registro de Auditoría', icon: '🔒', path: '/audit-log' }
       ]
+    },
+    // Phase 35: Centralized Settings Panel
+    {
+      name: 'Configuración',
+      icon: '⚙️',
+      path: '/settings',
+      type: 'single'
     }
   ];
 
   // Phase 34: Add admin navigation if user is admin
   if (user?.role === 'admin') {
-    navigationModules.push({
+    // Insert admin before settings
+    const settingsIndex = navigationModules.findIndex(m => m.path === '/settings');
+    navigationModules.splice(settingsIndex, 0, {
       name: 'Admin',
-      icon: '⚙️',
+      icon: '🎛️',
       type: 'dropdown',
       items: [
         { name: 'Panel Admin', icon: '🎛️', path: '/admin' },
@@ -595,6 +606,8 @@ function AuthenticatedApp() {
                 <Route path="/import" element={<Import />} />
                 <Route path="/audit-log" element={<AuditLog />} />
                 <Route path="/deductibility-rules" element={<DeductibilityRules />} />
+                {/* Phase 35: Centralized Settings Panel */}
+                <Route path="/settings" element={<Settings />} />
               </Routes>
             </Suspense>
           </div>
