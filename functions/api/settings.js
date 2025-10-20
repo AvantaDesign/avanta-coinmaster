@@ -7,9 +7,9 @@
 
 import { createErrorResponse, createSuccessResponse, ErrorType, HttpStatus } from '../utils/errors.js';
 import { withErrorHandling } from '../utils/errors.js';
-import { validateRequired, validateEnum } from '../utils/validation.js';
+import { validateEnum } from '../utils/validation.js';
 import { logDebug, logError } from '../utils/logging.js';
-import { verifyAuth } from '../utils/security.js';
+import { getUserIdFromToken } from './auth.js';
 
 /**
  * Default settings for new users
@@ -87,12 +87,15 @@ export async function onRequestGet(context) {
     const { request, env } = context;
     
     // Verify authentication
-    const authResult = await verifyAuth(request, env);
-    if (!authResult.valid) {
-      return createErrorResponse(authResult.error, request, env);
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return createErrorResponse(
+        { message: 'Valid authentication token required', type: ErrorType.AUTH, statusCode: HttpStatus.UNAUTHORIZED },
+        request,
+        env
+      );
     }
     
-    const userId = authResult.userId;
     logDebug('Fetching user settings', { userId }, env);
     
     try {
@@ -144,12 +147,14 @@ export async function onRequestPut(context) {
     const { request, env } = context;
     
     // Verify authentication
-    const authResult = await verifyAuth(request, env);
-    if (!authResult.valid) {
-      return createErrorResponse(authResult.error, request, env);
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return createErrorResponse(
+        { message: 'Valid authentication token required', type: ErrorType.AUTH, statusCode: HttpStatus.UNAUTHORIZED },
+        request,
+        env
+      );
     }
-    
-    const userId = authResult.userId;
     
     try {
       const data = await request.json();
@@ -241,12 +246,14 @@ export async function onRequestPost(context) {
     }
     
     // Verify authentication
-    const authResult = await verifyAuth(request, env);
-    if (!authResult.valid) {
-      return createErrorResponse(authResult.error, request, env);
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return createErrorResponse(
+        { message: 'Valid authentication token required', type: ErrorType.AUTH, statusCode: HttpStatus.UNAUTHORIZED },
+        request,
+        env
+      );
     }
-    
-    const userId = authResult.userId;
     
     try {
       logDebug('Resetting user settings to defaults', { userId }, env);

@@ -9,7 +9,7 @@ import { createErrorResponse, createSuccessResponse, ErrorType, HttpStatus } fro
 import { withErrorHandling } from '../utils/errors.js';
 import { validateFile } from '../utils/validation.js';
 import { logDebug, logError } from '../utils/logging.js';
-import { verifyAuth } from '../utils/security.js';
+import { getUserIdFromToken } from './auth.js';
 
 /**
  * Maximum file size for certificate upload (10MB)
@@ -44,12 +44,16 @@ export async function onRequestGet(context) {
     }
     
     // Verify authentication
-    const authResult = await verifyAuth(request, env);
-    if (!authResult.valid) {
-      return createErrorResponse(authResult.error, request, env);
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return createErrorResponse(
+        { message: 'Valid authentication token required', type: ErrorType.AUTH, statusCode: HttpStatus.UNAUTHORIZED },
+        request,
+        env
+      );
     }
     
-    const userId = authResult.userId;
+    
     logDebug('Fetching fiscal certificates', { userId }, env);
     
     try {
@@ -93,12 +97,16 @@ async function handleGetCertificate(context) {
     const certificateId = pathParts[pathParts.length - 1];
     
     // Verify authentication
-    const authResult = await verifyAuth(request, env);
-    if (!authResult.valid) {
-      return createErrorResponse(authResult.error, request, env);
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return createErrorResponse(
+        { message: 'Valid authentication token required', type: ErrorType.AUTH, statusCode: HttpStatus.UNAUTHORIZED },
+        request,
+        env
+      );
     }
     
-    const userId = authResult.userId;
+    
     
     try {
       const db = env.DB;
@@ -151,12 +159,16 @@ export async function onRequestPost(context) {
     const { request, env } = context;
     
     // Verify authentication
-    const authResult = await verifyAuth(request, env);
-    if (!authResult.valid) {
-      return createErrorResponse(authResult.error, request, env);
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return createErrorResponse(
+        { message: 'Valid authentication token required', type: ErrorType.AUTH, statusCode: HttpStatus.UNAUTHORIZED },
+        request,
+        env
+      );
     }
     
-    const userId = authResult.userId;
+    
     
     try {
       // Parse multipart form data
@@ -310,12 +322,16 @@ export async function onRequestDelete(context) {
     const certificateId = pathParts[pathParts.length - 1];
     
     // Verify authentication
-    const authResult = await verifyAuth(request, env);
-    if (!authResult.valid) {
-      return createErrorResponse(authResult.error, request, env);
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return createErrorResponse(
+        { message: 'Valid authentication token required', type: ErrorType.AUTH, statusCode: HttpStatus.UNAUTHORIZED },
+        request,
+        env
+      );
     }
     
-    const userId = authResult.userId;
+    
     
     try {
       const db = env.DB;
