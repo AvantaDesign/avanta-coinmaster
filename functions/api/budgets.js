@@ -2,6 +2,7 @@
  * Budgets API
  * Handles budget management for business and personal finances
  * Phase 30: Monetary values stored as INTEGER cents in database
+ * Phase 31: Backend Hardening and Security - Integrated security utilities
  * 
  * Endpoints:
  * - GET    /api/budgets                 - List all budgets with optional filters
@@ -24,6 +25,7 @@ import {
   parseMonetaryInput,
   MONETARY_FIELDS 
 } from '../utils/monetary.js';
+import { logRequest, logError, logAuditEvent } from '../utils/logging.js';
 
 /**
  * Main request handler
@@ -35,13 +37,16 @@ export async function onRequest(context) {
   const method = request.method;
 
   try {
+    // Phase 31: Log request
+    logRequest(request, { endpoint: 'budgets', method, path }, env);
+    
     // Authenticate user
     const userId = await authenticateRequest(request, env);
 
     // Route to appropriate handler
     if (path === '' || path === '/') {
       if (method === 'GET') return await listBudgets(env, userId, url);
-      if (method === 'POST') return await createBudget(env, userId, request);
+      if (method === 'POST') return await createBudget(env, userId, request, context);
     }
     
     if (path === '/progress' && method === 'GET') {
@@ -56,13 +61,21 @@ export async function onRequest(context) {
     if (idMatch) {
       const budgetId = idMatch[1];
       if (method === 'GET') return await getBudget(env, userId, budgetId);
-      if (method === 'PUT') return await updateBudget(env, userId, budgetId, request);
-      if (method === 'DELETE') return await deleteBudget(env, userId, budgetId);
+      if (method === 'PUT') return await updateBudget(env, userId, budgetId, request, context);
+      if (method === 'DELETE') return await deleteBudget(env, userId, budgetId, context);
     }
 
     return getApiResponse(null, 'Not found', 404);
   } catch (error) {
     console.error('Budgets API error:', error);
+    
+    // Phase 31: Log error
+    await logError(error, { 
+      endpoint: 'budgets',
+      method,
+      path
+    }, env);
+    
     return getApiResponse(null, error.message || 'Internal server error', error.status || 500);
   }
 }

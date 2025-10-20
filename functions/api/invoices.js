@@ -1,5 +1,6 @@
 // Invoices API - Manage CFDI invoices
 // Phase 30: Monetary values stored as INTEGER cents in database
+// Phase 31: Backend Hardening and Security - Integrated security utilities
 
 import { getUserIdFromToken } from './auth.js';
 import { 
@@ -8,13 +9,11 @@ import {
   parseMonetaryInput, 
   MONETARY_FIELDS 
 } from '../utils/monetary.js';
-
-const corsHeaders = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
+import { getSecurityHeaders } from '../utils/security.js';
+import { sanitizeString } from '../utils/validation.js';
+import { logRequest, logError, logAuditEvent } from '../utils/logging.js';
+import { createErrorResponse } from '../utils/errors.js';
+import { checkRateLimit, getRateLimitConfig } from '../utils/rate-limiter.js';
 
 export async function onRequestGet(context) {
   const { env, request } = context;
@@ -22,7 +21,13 @@ export async function onRequestGet(context) {
   const type = url.searchParams.get('type'); // recibido or emitido
   const status = url.searchParams.get('status') || 'active';
   
+  // Phase 31: Security headers
+  const corsHeaders = getSecurityHeaders();
+  
   try {
+    // Phase 31: Log request
+    logRequest(request, { endpoint: 'invoices', method: 'GET' }, env);
+    
     // Get user ID from token
     const userId = await getUserIdFromToken(request, env);
     if (!userId) {
@@ -72,21 +77,51 @@ export async function onRequestGet(context) {
     });
   } catch (error) {
     console.error('Invoices GET error:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Failed to fetch invoices',
-      message: error.message,
-      code: 'QUERY_ERROR'
-    }), {
-      status: 500,
-      headers: corsHeaders
-    });
+    
+    // Phase 31: Log error
+    await logError(error, { 
+      endpoint: 'invoices',
+      method: 'GET',
+      userId
+    }, env);
+    
+    return await createErrorResponse(error, request, env);
   }
 }
 
 export async function onRequestPost(context) {
   const { env, request } = context;
   
+  // Phase 31: Security headers
+  const corsHeaders = getSecurityHeaders();
+  
   try {
+    // Phase 31: Log request
+    logRequest(request, { endpoint: 'invoices', method: 'POST' }, env);
+    
+    // Phase 31: Rate limiting for create operations
+    const rateLimitConfig = getRateLimitConfig('POST', '/api/invoices');
+    const rateLimitResult = await checkRateLimit(request, rateLimitConfig, null, env);
+    
+    if (!rateLimitResult.allowed) {
+      return new Response(JSON.stringify({
+        error: true,
+        type: 'RATE_LIMIT_ERROR',
+        message: 'Too many requests. Please try again later.',
+        retryAfter: rateLimitResult.retryAfter,
+        timestamp: new Date().toISOString()
+      }), {
+        status: 429,
+        headers: {
+          ...corsHeaders,
+          'X-RateLimit-Limit': rateLimitConfig.maxRequests.toString(),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': rateLimitResult.resetAt.toString(),
+          'Retry-After': rateLimitResult.retryAfter.toString()
+        }
+      });
+    }
+    
     // Get user ID from token
     const userId = await getUserIdFromToken(request, env);
     if (!userId) {
@@ -195,6 +230,16 @@ export async function onRequestPost(context) {
         xml_url || null
       ).run();
       
+      // Phase 31: Log audit event
+      await logAuditEvent('CREATE', 'invoice', {
+        userId,
+        invoiceId: result.meta.last_row_id,
+        uuid,
+        rfc_emisor,
+        rfc_receptor,
+        total: totalResult.decimal
+      }, env);
+      
       return new Response(JSON.stringify({ 
         id: result.meta.last_row_id, 
         success: true,
@@ -218,20 +263,22 @@ export async function onRequestPost(context) {
     }
   } catch (error) {
     console.error('Invoices POST error:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Failed to create invoice',
-      message: error.message,
-      code: 'CREATE_ERROR'
-    }), {
-      status: 500,
-      headers: corsHeaders
-    });
+    
+    // Phase 31: Log error
+    await logError(error, { 
+      endpoint: 'invoices',
+      method: 'POST',
+      userId
+    }, env);
+    
+    return await createErrorResponse(error, request, env);
   }
 }
 
 export async function onRequestOptions(context) {
+  // Phase 31: Use security headers
   return new Response(null, {
     status: 204,
-    headers: corsHeaders
+    headers: getSecurityHeaders()
   });
 }

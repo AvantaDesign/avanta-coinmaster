@@ -8,9 +8,13 @@
 // - Spending trends
 // - Account summaries
 // Phase 30: Monetary values stored as INTEGER cents in database
+// Phase 31: Backend Hardening and Security - Integrated security utilities
 
 import { getUserIdFromToken } from './auth.js';
 import { fromCents, convertArrayFromCents, MONETARY_FIELDS } from '../utils/monetary.js';
+import { getSecurityHeaders } from '../utils/security.js';
+import { logRequest, logError } from '../utils/logging.js';
+import { createErrorResponse } from '../utils/errors.js';
 
 /**
  * GET /api/dashboard
@@ -32,16 +36,16 @@ export async function onRequestGet(context) {
   const includeTrends = url.searchParams.get('include_trends') !== 'false';
   const recentLimit = Math.min(parseInt(url.searchParams.get('recent_limit') || '10'), 50);
 
-  // Add CORS headers for cross-origin requests
+  // Phase 31: Security headers with cache control
   const corsHeaders = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    ...getSecurityHeaders(),
     'Cache-Control': 'no-cache, no-store, must-revalidate',
   };
   
   try {
+    // Phase 31: Log request
+    logRequest(request, { endpoint: 'dashboard', method: 'GET', period }, env);
+    
     // Get user ID from token
     const userId = await getUserIdFromToken(request, env);
     if (!userId) {
@@ -269,15 +273,15 @@ export async function onRequestGet(context) {
   } catch (error) {
     console.error('Dashboard API Error:', error);
     
-    return new Response(JSON.stringify({ 
-      error: 'Internal server error',
-      message: error.message,
-      code: 'INTERNAL_ERROR',
-      timestamp: new Date().toISOString()
-    }), {
-      status: 500,
-      headers: corsHeaders
-    });
+    // Phase 31: Log error
+    await logError(error, { 
+      endpoint: 'dashboard',
+      method: 'GET',
+      userId,
+      period
+    }, env);
+    
+    return await createErrorResponse(error, request, env);
   }
 }
 
@@ -285,13 +289,9 @@ export async function onRequestGet(context) {
  * Handle OPTIONS requests for CORS preflight
  */
 export async function onRequestOptions(context) {
+  // Phase 31: Use security headers
   return new Response(null, {
     status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      'Access-Control-Max-Age': '86400',
-    }
+    headers: getSecurityHeaders()
   });
 }

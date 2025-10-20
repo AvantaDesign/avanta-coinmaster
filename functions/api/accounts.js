@@ -1,20 +1,25 @@
 // Accounts API - Manage bank accounts and credit cards
 // Phase 30: Monetary values stored as INTEGER cents in database
+// Phase 31: Backend Hardening and Security - Integrated security utilities
 
 import { getUserIdFromToken } from './auth.js';
 import { toCents, fromCents, convertArrayFromCents, convertObjectFromCents, MONETARY_FIELDS } from '../utils/monetary.js';
-
-const corsHeaders = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
+import { getSecurityHeaders } from '../utils/security.js';
+import { sanitizeString, validateAccountData } from '../utils/validation.js';
+import { logRequest, logError, logAuditEvent } from '../utils/logging.js';
+import { createErrorResponse, createSuccessResponse } from '../utils/errors.js';
+import { checkRateLimit, getRateLimitConfig } from '../utils/rate-limiter.js';
 
 export async function onRequestGet(context) {
   const { env, request } = context;
   
+  // Phase 31: Security headers
+  const corsHeaders = getSecurityHeaders();
+  
   try {
+    // Phase 31: Log request
+    logRequest(request, { endpoint: 'accounts', method: 'GET' }, env);
+    
     // Get user ID from token
     const userId = await getUserIdFromToken(request, env);
     if (!userId) {
@@ -64,14 +69,15 @@ export async function onRequestGet(context) {
     });
   } catch (error) {
     console.error('Accounts GET error:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Failed to fetch accounts',
-      message: error.message,
-      code: 'QUERY_ERROR'
-    }), {
-      status: 500,
-      headers: corsHeaders
-    });
+    
+    // Phase 31: Log error
+    await logError(error, { 
+      endpoint: 'accounts',
+      method: 'GET',
+      userId
+    }, env);
+    
+    return await createErrorResponse(error, request, env);
   }
 }
 
@@ -81,7 +87,36 @@ export async function onRequestPut(context) {
   const pathParts = url.pathname.split('/');
   const id = pathParts[pathParts.length - 1];
   
+  // Phase 31: Security headers
+  const corsHeaders = getSecurityHeaders();
+  
   try {
+    // Phase 31: Log request
+    logRequest(request, { endpoint: 'accounts', method: 'PUT', accountId: id }, env);
+    
+    // Phase 31: Rate limiting for update operations
+    const rateLimitConfig = getRateLimitConfig('PUT', '/api/accounts');
+    const rateLimitResult = await checkRateLimit(request, rateLimitConfig, null, env);
+    
+    if (!rateLimitResult.allowed) {
+      return new Response(JSON.stringify({
+        error: true,
+        type: 'RATE_LIMIT_ERROR',
+        message: 'Too many requests. Please try again later.',
+        retryAfter: rateLimitResult.retryAfter,
+        timestamp: new Date().toISOString()
+      }), {
+        status: 429,
+        headers: {
+          ...corsHeaders,
+          'X-RateLimit-Limit': rateLimitConfig.maxRequests.toString(),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': rateLimitResult.resetAt.toString(),
+          'Retry-After': rateLimitResult.retryAfter.toString()
+        }
+      });
+    }
+    
     // Get user ID from token
     const userId = await getUserIdFromToken(request, env);
     if (!userId) {
@@ -181,6 +216,13 @@ export async function onRequestPut(context) {
     const query = `UPDATE accounts SET ${updates.join(', ')} WHERE id = ? AND user_id = ?`;
     await env.DB.prepare(query).bind(...params).run();
     
+    // Phase 31: Log audit event
+    await logAuditEvent('UPDATE', 'account', {
+      userId,
+      accountId: id,
+      updatedFields: Object.keys(data).filter(key => data[key] !== undefined)
+    }, env);
+    
     return new Response(JSON.stringify({ 
       success: true,
       message: 'Account updated successfully'
@@ -189,21 +231,52 @@ export async function onRequestPut(context) {
     });
   } catch (error) {
     console.error('Accounts PUT error:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Failed to update account',
-      message: error.message,
-      code: 'UPDATE_ERROR'
-    }), {
-      status: 500,
-      headers: corsHeaders
-    });
+    
+    // Phase 31: Log error
+    await logError(error, { 
+      endpoint: 'accounts',
+      method: 'PUT',
+      accountId: id,
+      userId
+    }, env);
+    
+    return await createErrorResponse(error, request, env);
   }
 }
 
 export async function onRequestPost(context) {
   const { env, request } = context;
   
+  // Phase 31: Security headers
+  const corsHeaders = getSecurityHeaders();
+  
   try {
+    // Phase 31: Log request
+    logRequest(request, { endpoint: 'accounts', method: 'POST' }, env);
+    
+    // Phase 31: Rate limiting for create operations
+    const rateLimitConfig = getRateLimitConfig('POST', '/api/accounts');
+    const rateLimitResult = await checkRateLimit(request, rateLimitConfig, null, env);
+    
+    if (!rateLimitResult.allowed) {
+      return new Response(JSON.stringify({
+        error: true,
+        type: 'RATE_LIMIT_ERROR',
+        message: 'Too many requests. Please try again later.',
+        retryAfter: rateLimitResult.retryAfter,
+        timestamp: new Date().toISOString()
+      }), {
+        status: 429,
+        headers: {
+          ...corsHeaders,
+          'X-RateLimit-Limit': rateLimitConfig.maxRequests.toString(),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': rateLimitResult.resetAt.toString(),
+          'Retry-After': rateLimitResult.retryAfter.toString()
+        }
+      });
+    }
+    
     // Get user ID from token
     const userId = await getUserIdFromToken(request, env);
     if (!userId) {
@@ -229,6 +302,11 @@ export async function onRequestPost(context) {
 
     const data = await request.json();
     const { name, type, balance, metadata } = data;
+    
+    // Phase 31: Sanitize name input
+    if (name) {
+      data.name = sanitizeString(name);
+    }
     
     // Validate required fields
     if (!name || !type) {
@@ -267,7 +345,16 @@ export async function onRequestPost(context) {
     
     const result = await env.DB.prepare(
       'INSERT INTO accounts (user_id, name, type, balance, metadata, is_active) VALUES (?, ?, ?, ?, ?, 1)'
-    ).bind(userId, name, type, toCents(numBalance), metadataStr).run();  // Phase 30: Convert to cents
+    ).bind(userId, data.name, type, toCents(numBalance), metadataStr).run();  // Phase 30: Convert to cents
+    
+    // Phase 31: Log audit event
+    await logAuditEvent('CREATE', 'account', {
+      userId,
+      accountId: result.meta.last_row_id,
+      name: data.name,
+      type,
+      balance: numBalance
+    }, env);
     
     return new Response(JSON.stringify({ 
       success: true,
@@ -279,14 +366,15 @@ export async function onRequestPost(context) {
     });
   } catch (error) {
     console.error('Accounts POST error:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Failed to create account',
-      message: error.message,
-      code: 'CREATE_ERROR'
-    }), {
-      status: 500,
-      headers: corsHeaders
-    });
+    
+    // Phase 31: Log error
+    await logError(error, { 
+      endpoint: 'accounts',
+      method: 'POST',
+      userId
+    }, env);
+    
+    return await createErrorResponse(error, request, env);
   }
 }
 
@@ -296,7 +384,36 @@ export async function onRequestDelete(context) {
   const pathParts = url.pathname.split('/');
   const id = pathParts[pathParts.length - 1];
   
+  // Phase 31: Security headers
+  const corsHeaders = getSecurityHeaders();
+  
   try {
+    // Phase 31: Log request
+    logRequest(request, { endpoint: 'accounts', method: 'DELETE', accountId: id }, env);
+    
+    // Phase 31: Rate limiting
+    const rateLimitConfig = getRateLimitConfig('DELETE', '/api/accounts');
+    const rateLimitResult = await checkRateLimit(request, rateLimitConfig, null, env);
+    
+    if (!rateLimitResult.allowed) {
+      return new Response(JSON.stringify({
+        error: true,
+        type: 'RATE_LIMIT_ERROR',
+        message: 'Too many requests. Please try again later.',
+        retryAfter: rateLimitResult.retryAfter,
+        timestamp: new Date().toISOString()
+      }), {
+        status: 429,
+        headers: {
+          ...corsHeaders,
+          'X-RateLimit-Limit': rateLimitConfig.maxRequests.toString(),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': rateLimitResult.resetAt.toString(),
+          'Retry-After': rateLimitResult.retryAfter.toString()
+        }
+      });
+    }
+    
     // Get user ID from token
     const userId = await getUserIdFromToken(request, env);
     if (!userId) {
@@ -322,7 +439,7 @@ export async function onRequestDelete(context) {
     
     // Check if account exists and belongs to user
     const existingAccount = await env.DB.prepare(
-      'SELECT id FROM accounts WHERE id = ? AND user_id = ?'
+      'SELECT id, name FROM accounts WHERE id = ? AND user_id = ?'
     ).bind(id, userId).first();
     
     if (!existingAccount) {
@@ -340,6 +457,13 @@ export async function onRequestDelete(context) {
       'UPDATE accounts SET is_active = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?'
     ).bind(id, userId).run();
     
+    // Phase 31: Log audit event
+    await logAuditEvent('DELETE_SOFT', 'account', {
+      userId,
+      accountId: id,
+      accountName: existingAccount.name
+    }, env);
+    
     return new Response(JSON.stringify({ 
       success: true,
       message: 'Account deleted successfully'
@@ -348,20 +472,23 @@ export async function onRequestDelete(context) {
     });
   } catch (error) {
     console.error('Accounts DELETE error:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Failed to delete account',
-      message: error.message,
-      code: 'DELETE_ERROR'
-    }), {
-      status: 500,
-      headers: corsHeaders
-    });
+    
+    // Phase 31: Log error
+    await logError(error, { 
+      endpoint: 'accounts',
+      method: 'DELETE',
+      accountId: id,
+      userId
+    }, env);
+    
+    return await createErrorResponse(error, request, env);
   }
 }
 
 export async function onRequestOptions(context) {
+  // Phase 31: Use security headers
   return new Response(null, {
     status: 204,
-    headers: corsHeaders
+    headers: getSecurityHeaders()
   });
 }
