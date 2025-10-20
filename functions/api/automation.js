@@ -1,5 +1,9 @@
 // Automation API - Manage automation rules and schedules
 
+import { getUserIdFromToken } from './auth.js';
+import { getSecurityHeaders } from '../utils/security.js';
+import { logRequest, logError } from '../utils/logging.js';
+
 const corsHeaders = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
@@ -15,13 +19,29 @@ export async function onRequestGet(context) {
   const { env, request } = context;
   
   try {
+    // Authenticate user
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({ 
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: getSecurityHeaders()
+      });
+    }
+
+    // Log request
+    logRequest(request, { endpoint: 'automation', method: 'GET' }, env);
+
     if (!env.DB) {
       return new Response(JSON.stringify({ 
         error: 'Database not available',
         code: 'DB_NOT_CONFIGURED'
       }), {
         status: 503,
-        headers: corsHeaders
+        headers: getSecurityHeaders()
       });
     }
 
@@ -33,8 +53,8 @@ export async function onRequestGet(context) {
     // Get specific rule
     if (id) {
       const rule = await env.DB.prepare(
-        'SELECT * FROM automation_rules WHERE id = ?'
-      ).bind(id).first();
+        'SELECT * FROM automation_rules WHERE id = ? AND user_id = ?'
+      ).bind(id, userId).first();
 
       if (!rule) {
         return new Response(JSON.stringify({ 
@@ -47,13 +67,13 @@ export async function onRequestGet(context) {
       }
 
       return new Response(JSON.stringify(rule), {
-        headers: corsHeaders
+        headers: getSecurityHeaders()
       });
     }
 
     // Build query
-    let query = 'SELECT * FROM automation_rules WHERE 1=1';
-    const params = [];
+    let query = 'SELECT * FROM automation_rules WHERE user_id = ?';
+    const params = [userId];
 
     if (ruleType) {
       query += ' AND rule_type = ?';
@@ -74,18 +94,19 @@ export async function onRequestGet(context) {
     const result = await stmt.all();
 
     return new Response(JSON.stringify(result.results || []), {
-      headers: corsHeaders
+      headers: getSecurityHeaders()
     });
 
   } catch (error) {
     console.error('Automation GET error:', error);
+    logError(error, { endpoint: 'automation', method: 'GET' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to fetch automation rules',
       message: error.message,
       code: 'QUERY_ERROR'
     }), {
       status: 500,
-      headers: corsHeaders
+      headers: getSecurityHeaders()
     });
   }
 }
@@ -94,13 +115,29 @@ export async function onRequestPost(context) {
   const { env, request } = context;
   
   try {
-    if (!env.DB) {
+    // Authenticate user
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
       return new Response(JSON.stringify({ 
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: getSecurityHeaders()
+      });
+    }
+
+    // Log request
+    logRequest(request, { endpoint: 'automation', method: 'POST' }, env);
+
+    if (!env.DB) {
+      return new Response(JSON.stringify({
         error: 'Database not available',
         code: 'DB_NOT_CONFIGURED'
       }), {
         status: 503,
-        headers: corsHeaders
+        headers: getSecurityHeaders()
       });
     }
 
@@ -154,12 +191,13 @@ export async function onRequestPost(context) {
 
     const result = await env.DB.prepare(
       `INSERT INTO automation_rules (
-        rule_type, name, description, is_active,
+        user_id, rule_type, name, description, is_active,
         customer_name, customer_rfc, amount, frequency,
         start_date, end_date, next_generation_date,
         days_before_due, reminder_type, config_json
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
+      userId,
       rule_type,
       name,
       description || null,
@@ -181,18 +219,19 @@ export async function onRequestPost(context) {
       id: result.meta.last_row_id
     }), {
       status: 201,
-      headers: corsHeaders
+      headers: getSecurityHeaders()
     });
 
   } catch (error) {
     console.error('Automation POST error:', error);
+    logError(error, { endpoint: 'automation', method: 'POST' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to create automation rule',
       message: error.message,
       code: 'CREATE_ERROR'
     }), {
       status: 500,
-      headers: corsHeaders
+      headers: getSecurityHeaders()
     });
   }
 }

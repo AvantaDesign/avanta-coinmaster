@@ -11,6 +11,7 @@ import {
   parseMonetaryInput,
   MONETARY_FIELDS 
 } from '../utils/monetary.js';
+import { getUserIdFromToken } from './auth.js';
 import { getSecurityHeaders } from '../utils/security.js';
 import { logRequest, logError } from '../utils/logging.js';
 import { createErrorResponse } from '../utils/errors.js';
@@ -27,6 +28,19 @@ export async function onRequestGet(context) {
   const corsHeaders = getSecurityHeaders();
   
   try {
+    // Authenticate user
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({ 
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     // Phase 31: Log request
     logRequest(request, { endpoint: 'receivables', method: 'GET' }, env);
     if (!env.DB) {
@@ -48,8 +62,8 @@ export async function onRequestGet(context) {
     // Get specific receivable
     if (id) {
       const receivable = await env.DB.prepare(
-        'SELECT * FROM receivables WHERE id = ?'
-      ).bind(id).first();
+        'SELECT * FROM receivables WHERE id = ? AND user_id = ?'
+      ).bind(id, userId).first();
 
       if (!receivable) {
         return new Response(JSON.stringify({ 
@@ -79,8 +93,8 @@ export async function onRequestGet(context) {
     }
 
     // Build query
-    let query = 'SELECT * FROM receivables WHERE 1=1';
-    const params = [];
+    let query = 'SELECT * FROM receivables WHERE user_id = ?';
+    const params = [userId];
 
     if (status) {
       query += ' AND status = ?';
@@ -139,13 +153,28 @@ export async function onRequestPost(context) {
   const { env, request } = context;
   
   try {
+    // Authenticate user
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({ 
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: getSecurityHeaders()
+      });
+    }
+
+    // Phase 31: Log request
+    logRequest(request, { endpoint: 'receivables', method: 'POST' }, env);
     if (!env.DB) {
       return new Response(JSON.stringify({ 
         error: 'Database not available',
         code: 'DB_NOT_CONFIGURED'
       }), {
         status: 503,
-        headers: corsHeaders
+        headers: getSecurityHeaders()
       });
     }
 
@@ -188,10 +217,11 @@ export async function onRequestPost(context) {
 
     const result = await env.DB.prepare(
       `INSERT INTO receivables (
-        invoice_id, customer_name, customer_rfc, invoice_number,
+        user_id, invoice_id, customer_name, customer_rfc, invoice_number,
         invoice_date, due_date, amount, payment_terms, notes
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
+      userId,
       invoice_id || null,
       customer_name,
       customer_rfc || null,
