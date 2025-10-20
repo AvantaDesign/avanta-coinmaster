@@ -6,6 +6,9 @@ You are tasked with implementing **Phase 32: Performance and User Experience (UX
 
 ## 📋 **CONTEXT & CURRENT STATUS**
 
+### **Official Implementation Plan**
+This phase is defined in **`IMPLEMENTATION_PLAN_V8.md`** - Phase 32: Performance and User Experience (UX) Optimization
+
 ### **Phase 31 COMPLETE ✅**
 - **Security Infrastructure:** ✅ COMPLETE - All security utilities implemented
 - **Critical Endpoint Integration:** ✅ COMPLETE - All endpoints secured
@@ -20,6 +23,8 @@ You are tasked with implementing **Phase 32: Performance and User Experience (UX
 - **Deployment:** Cloudflare Pages with Workers Functions
 
 ## 🎯 **PHASE 32 OBJECTIVES**
+
+**Reference:** See `IMPLEMENTATION_PLAN_V8.md` - Phase 32: Performance and User Experience (UX) Optimization for the official technical plan.
 
 ### **1. Backend OCR Processing**
 - Move OCR processing from frontend to backend
