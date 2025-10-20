@@ -1,6 +1,10 @@
 // Notifications API - Manage user notifications and reminders
 // Phase 5: In-App Financial Activities and Workflows
 
+import { getUserIdFromToken } from './auth.js';
+import { getSecurityHeaders } from '../utils/security.js';
+import { logRequest, logError } from '../utils/logging.js';
+
 const corsHeaders = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
@@ -9,7 +13,7 @@ const corsHeaders = {
 };
 
 export async function onRequestOptions(context) {
-  return new Response(null, { headers: corsHeaders });
+  return new Response(null, { headers: getSecurityHeaders() });
 }
 
 export async function onRequestGet(context) {
@@ -22,19 +26,46 @@ export async function onRequestGet(context) {
         code: 'DB_NOT_CONFIGURED'
       }), {
         status: 503,
-        headers: corsHeaders
+        headers: getSecurityHeaders()
       });
     }
 
+export async function onRequestGet(context) {
+  const { env, request } = context;
+  
+  try {
+    // Authenticate user
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({ 
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: getSecurityHeaders()
+      });
+    }
+
+    // Log request
+    logRequest(request, { endpoint: 'notifications', method: 'GET' }, env);
+
+    if (!env.DB) {
+      return new Response(JSON.stringify({ 
+        error: 'Database not available',
+        code: 'DB_NOT_CONFIGURED'
+      }), {
+        status: 503,
+        headers: getSecurityHeaders()
+      });
+    }
+    
     const url = new URL(request.url);
     const id = url.searchParams.get('id');
     const type = url.searchParams.get('type');
     const unreadOnly = url.searchParams.get('unread') === 'true';
     const limit = parseInt(url.searchParams.get('limit') || '50');
     
-    // For this demo, we'll use user_id = 1. In production, get from auth token
-    const userId = 1;
-
     // Get specific notification
     if (id) {
       const notification = await env.DB.prepare(
@@ -47,13 +78,13 @@ export async function onRequestGet(context) {
           code: 'NOT_FOUND'
         }), {
           status: 404,
-          headers: corsHeaders
+          headers: getSecurityHeaders()
         });
       }
 
       return new Response(JSON.stringify(notification), {
         status: 200,
-        headers: corsHeaders
+        headers: getSecurityHeaders()
       });
     }
 
@@ -90,7 +121,7 @@ export async function onRequestGet(context) {
       unreadCount: unreadCount.count || 0
     }), {
       status: 200,
-      headers: corsHeaders
+      headers: getSecurityHeaders()
     });
 
   } catch (error) {
@@ -101,7 +132,7 @@ export async function onRequestGet(context) {
       details: error.message
     }), {
       status: 500,
-      headers: corsHeaders
+      headers: getSecurityHeaders()
     });
   }
 }
@@ -116,7 +147,7 @@ export async function onRequestPost(context) {
         code: 'DB_NOT_CONFIGURED'
       }), {
         status: 503,
-        headers: corsHeaders
+        headers: getSecurityHeaders()
       });
     }
 
@@ -130,7 +161,7 @@ export async function onRequestPost(context) {
         code: 'VALIDATION_ERROR'
       }), {
         status: 400,
-        headers: corsHeaders
+        headers: getSecurityHeaders()
       });
     }
 
@@ -142,7 +173,7 @@ export async function onRequestPost(context) {
         code: 'VALIDATION_ERROR'
       }), {
         status: 400,
-        headers: corsHeaders
+        headers: getSecurityHeaders()
       });
     }
 
@@ -155,7 +186,7 @@ export async function onRequestPost(context) {
         code: 'VALIDATION_ERROR'
       }), {
         status: 400,
-        headers: corsHeaders
+        headers: getSecurityHeaders()
       });
     }
 
@@ -184,7 +215,7 @@ export async function onRequestPost(context) {
 
     return new Response(JSON.stringify(notification), {
       status: 201,
-      headers: corsHeaders
+      headers: getSecurityHeaders()
     });
 
   } catch (error) {
@@ -195,7 +226,7 @@ export async function onRequestPost(context) {
       details: error.message
     }), {
       status: 500,
-      headers: corsHeaders
+      headers: getSecurityHeaders()
     });
   }
 }
@@ -210,7 +241,7 @@ export async function onRequestPut(context) {
         code: 'DB_NOT_CONFIGURED'
       }), {
         status: 503,
-        headers: corsHeaders
+        headers: getSecurityHeaders()
       });
     }
 
@@ -225,7 +256,7 @@ export async function onRequestPut(context) {
         code: 'VALIDATION_ERROR'
       }), {
         status: 400,
-        headers: corsHeaders
+        headers: getSecurityHeaders()
       });
     }
 
@@ -240,7 +271,7 @@ export async function onRequestPut(context) {
         code: 'NOT_FOUND'
       }), {
         status: 404,
-        headers: corsHeaders
+        headers: getSecurityHeaders()
       });
     }
 
@@ -267,7 +298,7 @@ export async function onRequestPut(context) {
           code: 'VALIDATION_ERROR'
         }), {
           status: 400,
-          headers: corsHeaders
+          headers: getSecurityHeaders()
         });
       }
 
@@ -282,7 +313,7 @@ export async function onRequestPut(context) {
         code: 'VALIDATION_ERROR'
       }), {
         status: 400,
-        headers: corsHeaders
+        headers: getSecurityHeaders()
       });
     }
 
@@ -293,7 +324,7 @@ export async function onRequestPut(context) {
 
     return new Response(JSON.stringify(updated), {
       status: 200,
-      headers: corsHeaders
+      headers: getSecurityHeaders()
     });
 
   } catch (error) {
@@ -304,7 +335,7 @@ export async function onRequestPut(context) {
       details: error.message
     }), {
       status: 500,
-      headers: corsHeaders
+      headers: getSecurityHeaders()
     });
   }
 }
@@ -319,7 +350,7 @@ export async function onRequestDelete(context) {
         code: 'DB_NOT_CONFIGURED'
       }), {
         status: 503,
-        headers: corsHeaders
+        headers: getSecurityHeaders()
       });
     }
 
@@ -333,7 +364,7 @@ export async function onRequestDelete(context) {
         code: 'VALIDATION_ERROR'
       }), {
         status: 400,
-        headers: corsHeaders
+        headers: getSecurityHeaders()
       });
     }
 
@@ -348,7 +379,7 @@ export async function onRequestDelete(context) {
         code: 'NOT_FOUND'
       }), {
         status: 404,
-        headers: corsHeaders
+        headers: getSecurityHeaders()
       });
     }
 
@@ -362,7 +393,7 @@ export async function onRequestDelete(context) {
       message: 'Notification deleted successfully'
     }), {
       status: 200,
-      headers: corsHeaders
+      headers: getSecurityHeaders()
     });
 
   } catch (error) {
@@ -373,7 +404,7 @@ export async function onRequestDelete(context) {
       details: error.message
     }), {
       status: 500,
-      headers: corsHeaders
+      headers: getSecurityHeaders()
     });
   }
 }

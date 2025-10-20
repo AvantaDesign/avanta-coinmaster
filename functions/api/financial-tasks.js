@@ -47,14 +47,17 @@ export async function onRequestGet(context) {
   const { env, request } = context;
   
   try {
-    if (!env.DB) {
-      return createErrorResponse('Database not available', 'DB_NOT_CONFIGURED', 503);
-    }
-
-    // Get authenticated user
+    // Authenticate user
     const userId = await getUserIdFromToken(request, env);
     if (!userId) {
       return createErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
+    }
+
+    // Log request
+    logInfo('Financial tasks GET request', { userId }, env);
+
+    if (!env.DB) {
+      return createErrorResponse('Database not available', 'DB_NOT_CONFIGURED', 503);
     }
 
     const url = new URL(request.url);
