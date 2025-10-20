@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { fetchNotifications, markNotificationAsRead, dismissNotification, snoozeNotification } from '../utils/api';
+import LoadingState from './common/LoadingState';
+import EmptyState from './common/EmptyState';
 
 export default function NotificationCenter() {
   const [notifications, setNotifications] = useState([]);
@@ -97,10 +99,7 @@ export default function NotificationCenter() {
   if (loading && notifications.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Cargando notificaciones...</p>
-        </div>
+        <LoadingState message="Cargando notificaciones..." size="large" />
       </div>
     );
   }
@@ -188,17 +187,13 @@ export default function NotificationCenter() {
       {/* Notifications List */}
       <div className="space-y-3">
         {filteredNotifications.length === 0 ? (
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-12 text-center">
-            <div className="text-6xl mb-4">📭</div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-              No hay notificaciones
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              {filter === 'unread' 
-                ? 'Todas tus notificaciones han sido leídas' 
-                : 'No tienes notificaciones en este momento'}
-            </p>
-          </div>
+          <EmptyState
+            icon="📭"
+            title="No hay notificaciones"
+            message={filter === 'unread' 
+              ? 'Todas tus notificaciones han sido leídas' 
+              : 'No tienes notificaciones en este momento'}
+          />
         ) : (
           filteredNotifications.map(notification => {
             const typeConfig = getTypeConfig(notification.type);

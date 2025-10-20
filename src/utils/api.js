@@ -1440,3 +1440,20 @@ export async function deleteAccountInitialBalance(accountId, balanceId) {
   }
   return response.json();
 }
+
+// User Profile - Password Change
+export async function changePassword(currentPassword, newPassword) {
+  const response = await authFetch(`${API_BASE}/user-profile/change-password`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify({ currentPassword, newPassword })
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to change password');
+  }
+  return response.json();
+}

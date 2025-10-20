@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { showSuccess, showError, showInfo } from '../../utils/notifications';
+import { changePassword } from '../../utils/api';
 
 /**
  * Security Tab - Security and Notifications Settings
@@ -36,15 +37,19 @@ export default function SecurityTab({ settings, updateSettings }) {
       return;
     }
 
-    // TODO: Implement password change API call
-    showError('Funcionalidad de cambio de contraseña en desarrollo');
-    
-    // Reset form
-    setPasswordForm({
-      current_password: '',
-      new_password: '',
-      confirm_password: ''
-    });
+    try {
+      await changePassword(passwordForm.current_password, passwordForm.new_password);
+      showSuccess('Contraseña actualizada exitosamente');
+      
+      // Reset form
+      setPasswordForm({
+        current_password: '',
+        new_password: '',
+        confirm_password: ''
+      });
+    } catch (error) {
+      showError(error.message || 'Error al cambiar la contraseña');
+    }
   };
 
   return (
