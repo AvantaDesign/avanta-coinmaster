@@ -20,20 +20,6 @@ export async function onRequestGet(context) {
   const { env, request } = context;
   
   try {
-    if (!env.DB) {
-      return new Response(JSON.stringify({ 
-        error: 'Database not available',
-        code: 'DB_NOT_CONFIGURED'
-      }), {
-        status: 503,
-        headers: getSecurityHeaders()
-      });
-    }
-
-export async function onRequestGet(context) {
-  const { env, request } = context;
-  
-  try {
     // Authenticate user
     const userId = await getUserIdFromToken(request, env);
     if (!userId) {
