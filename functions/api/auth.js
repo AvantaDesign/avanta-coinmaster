@@ -3,6 +3,7 @@
 // SECURITY: Uses Web Crypto API for password hashing and jose library for JWT
 
 import { SignJWT, jwtVerify } from 'jose';
+import { getSecurityHeaders } from '../utils/security.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -717,11 +718,6 @@ export function getApiResponse(data = null, message = 'Success', status = 200) {
     timestamp: new Date().toISOString()
   }), {
     status,
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-    }
+    headers: getSecurityHeaders()
   });
 }
