@@ -132,15 +132,30 @@ ALLOWED_FILE_TYPES = "image/jpeg,image/png,image/gif,application/pdf,text/xml"
 ISR_RATE = "0.20"  # 20% ISR rate (simplified)
 IVA_RATE = "0.16"  # 16% IVA rate
 
+# Phase 31: Rate Limiting Configuration
+RATE_LIMIT_REQUESTS_PER_MINUTE = "100"
+RATE_LIMIT_AUTH_REQUESTS = "5"
+RATE_LIMIT_WRITE_REQUESTS = "50"
+
+# Phase 31: Caching Configuration
+CACHE_TTL_SECONDS = "300"
+CACHE_DASHBOARD_TTL = "300"
+CACHE_REPORTS_TTL = "600"
+
 # n8n Webhook Configuration
 # N8N_WEBHOOK_CLASSIFY = "https://n8n.your-domain.com/webhook/classify"
 # N8N_WEBHOOK_IMPORT = "https://n8n.your-domain.com/webhook/import"
 # N8N_NOTIFICATION_WEBHOOK = "https://n8n.your-domain.com/webhook/notify"
 # N8N_REMINDER_WEBHOOK = "https://n8n.your-domain.com/webhook/reminder"
-# ERROR_ALERT_WEBHOOK = "https://n8n.your-domain.com/webhook/alert"
+
+# Phase 31: Error Monitoring Webhooks
+# ERROR_ALERT_WEBHOOK = "https://n8n.your-domain.com/webhook/errors"
+# SECURITY_ALERT_WEBHOOK = "https://n8n.your-domain.com/webhook/security"
 
 # Note: Use wrangler secret for sensitive values:
 # wrangler secret put N8N_WEBHOOK_SECRET
+# wrangler secret put ERROR_ALERT_WEBHOOK
+# wrangler secret put SECURITY_ALERT_WEBHOOK
 
 # ============================================================================
 # PREVIEW ENVIRONMENT VARIABLES (for staging/testing)
@@ -297,6 +312,37 @@ bucket_name = "avanta-receipts"
 # ============================================================================
 
 # ============================================================================
+# PHASE 31: PRODUCTION INFRASTRUCTURE (OPTIONAL)
+# ============================================================================
+#
+# These bindings are OPTIONAL for production deployments.
+# The application works with in-memory implementations by default.
+# Uncomment and configure these for production-grade distributed storage.
+#
+# See PHASE_31_PRODUCTION_INFRASTRUCTURE.md for complete setup instructions.
+# ============================================================================
+
+# Phase 31: KV Namespace for Distributed Caching (OPTIONAL)
+# Uncomment after creating KV namespace with: wrangler kv:namespace create "CACHE_KV"
+# [[kv_namespaces]]
+# binding = "CACHE_KV"
+# id = "your-kv-namespace-id-here"
+# preview_id = "your-preview-kv-namespace-id-here"
+
+# Phase 31: Durable Objects for Distributed Rate Limiting (OPTIONAL)
+# Uncomment after creating Durable Object class in functions/durable-objects/rate-limiter.js
+# [[durable_objects.bindings]]
+# name = "RATE_LIMITER"
+# class_name = "RateLimiter"
+# script_name = "avanta-coinmaster"
+
+# Phase 31: Durable Objects Migration (OPTIONAL)
+# Uncomment when deploying Durable Objects for the first time
+# [[migrations]]
+# tag = "v1"
+# new_classes = ["RateLimiter"]
+
+# ============================================================================
 # NOTES
 # ============================================================================
 #
@@ -305,5 +351,6 @@ bucket_name = "avanta-receipts"
 # 3. Secrets: For sensitive data, use `wrangler secret put` instead of vars
 # 4. Custom Domain: Configure in Cloudflare Dashboard under Pages settings
 # 5. Analytics: Enable in Cloudflare Dashboard for detailed metrics
+# 6. Phase 31: KV and Durable Objects are OPTIONAL - app works without them
 #
 # ============================================================================
