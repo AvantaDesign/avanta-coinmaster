@@ -1,12 +1,10 @@
 // Financial Tasks API - Manage user financial task tracking
 // Phase 5: In-App Financial Activities and Workflows
+// Phase 36: Enhanced with automatic progress tracking and completion criteria
 
-const corsHeaders = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
+import { getUserFromRequest, corsHeaders } from '../utils/security.js';
+import { createErrorResponse, createSuccessResponse } from '../utils/errors.js';
+import { logInfo, logError } from '../utils/logging.js';
 
 // Default financial tasks by frequency
 const DEFAULT_TASKS = {
@@ -48,24 +46,32 @@ export async function onRequestGet(context) {
   
   try {
     if (!env.DB) {
-      return new Response(JSON.stringify({ 
-        error: 'Database not available',
-        code: 'DB_NOT_CONFIGURED'
-      }), {
-        status: 503,
-        headers: corsHeaders
-      });
+      return createErrorResponse('Database not available', 'DB_NOT_CONFIGURED', 503);
+    }
+
+    // Get authenticated user
+    const user = await getUserFromRequest(request, env);
+    if (!user) {
+      return createErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
 
     const url = new URL(request.url);
     const frequency = url.searchParams.get('frequency');
     const completed = url.searchParams.get('completed');
     const dueDate = url.searchParams.get('due_date');
-    const userId = 1; // In production, get from auth token
+    const taskType = url.searchParams.get('task_type');
 
-    // Build query
-    let query = 'SELECT * FROM financial_tasks WHERE user_id = ?';
-    const params = [userId];
+    // Build query with enhanced fields
+    let query = `
+      SELECT 
+        id, user_id, task_key, frequency, title, description,
+        category, due_date, is_completed, completed_at,
+        completion_criteria, progress_percentage, last_evaluated_at,
+        auto_update, task_type, notes, created_at, updated_at
+      FROM financial_tasks 
+      WHERE user_id = ?
+    `;
+    const params = [user.id];
 
     if (frequency) {
       query += ' AND frequency = ?';
@@ -82,42 +88,56 @@ export async function onRequestGet(context) {
       params.push(dueDate);
     }
 
-    query += ' ORDER BY due_date DESC, frequency, created_at DESC';
+    if (taskType) {
+      query += ' AND task_type = ?';
+      params.push(taskType);
+    }
+
+    query += ' ORDER BY is_completed ASC, due_date DESC, progress_percentage DESC, frequency, created_at DESC';
 
     const { results: tasks } = await env.DB.prepare(query)
       .bind(...params)
       .all();
 
-    // Get completion stats
+    // Parse completion_criteria JSON for each task
+    const parsedTasks = tasks.map(task => ({
+      ...task,
+      completion_criteria: task.completion_criteria ? JSON.parse(task.completion_criteria) : null
+    }));
+
+    // Get completion stats with progress
     const stats = await env.DB.prepare(`
       SELECT 
         frequency,
         COUNT(*) as total,
-        SUM(CASE WHEN is_completed = 1 THEN 1 ELSE 0 END) as completed
+        SUM(CASE WHEN is_completed = 1 THEN 1 ELSE 0 END) as completed,
+        AVG(progress_percentage) as avg_progress
       FROM financial_tasks 
       WHERE user_id = ?
       GROUP BY frequency
-    `).bind(userId).all();
+    `).bind(user.id).all();
 
-    return new Response(JSON.stringify({
-      tasks,
+    // Get task type breakdown
+    const typeStats = await env.DB.prepare(`
+      SELECT 
+        task_type,
+        COUNT(*) as count,
+        AVG(progress_percentage) as avg_progress
+      FROM financial_tasks 
+      WHERE user_id = ?
+      GROUP BY task_type
+    `).bind(user.id).all();
+
+    return createSuccessResponse({
+      tasks: parsedTasks,
       stats: stats.results || [],
+      typeStats: typeStats.results || [],
       defaultTasks: DEFAULT_TASKS
-    }), {
-      status: 200,
-      headers: corsHeaders
     });
 
   } catch (error) {
-    console.error('Error fetching tasks:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Failed to fetch tasks',
-      code: 'FETCH_ERROR',
-      details: error.message
-    }), {
-      status: 500,
-      headers: corsHeaders
-    });
+    logError('Fetch Tasks Error', { error: error.message });
+    return createErrorResponse('Failed to fetch tasks', 'FETCH_ERROR', 500);
   }
 }
 
@@ -126,74 +146,77 @@ export async function onRequestPost(context) {
   
   try {
     if (!env.DB) {
-      return new Response(JSON.stringify({ 
-        error: 'Database not available',
-        code: 'DB_NOT_CONFIGURED'
-      }), {
-        status: 503,
-        headers: corsHeaders
-      });
+      return createErrorResponse('Database not available', 'DB_NOT_CONFIGURED', 503);
+    }
+
+    // Get authenticated user
+    const user = await getUserFromRequest(request, env);
+    if (!user) {
+      return createErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
 
     const data = await request.json();
-    const userId = 1; // In production, get from auth token
 
     // Validate required fields
     if (!data.task_key || !data.frequency || !data.title) {
-      return new Response(JSON.stringify({ 
-        error: 'Missing required fields: task_key, frequency, title',
-        code: 'VALIDATION_ERROR'
-      }), {
-        status: 400,
-        headers: corsHeaders
-      });
+      return createErrorResponse(
+        'Missing required fields: task_key, frequency, title',
+        'VALIDATION_ERROR',
+        400
+      );
     }
 
     // Validate frequency
     const validFrequencies = ['daily', 'weekly', 'monthly', 'quarterly', 'annual'];
     if (!validFrequencies.includes(data.frequency)) {
-      return new Response(JSON.stringify({ 
-        error: `Invalid frequency. Must be one of: ${validFrequencies.join(', ')}`,
-        code: 'VALIDATION_ERROR'
-      }), {
-        status: 400,
-        headers: corsHeaders
-      });
+      return createErrorResponse(
+        `Invalid frequency. Must be one of: ${validFrequencies.join(', ')}`,
+        'VALIDATION_ERROR',
+        400
+      );
     }
 
     // Check if task already exists for this period
     if (data.due_date) {
       const existing = await env.DB.prepare(
         'SELECT id FROM financial_tasks WHERE user_id = ? AND task_key = ? AND due_date = ?'
-      ).bind(userId, data.task_key, data.due_date).first();
+      ).bind(user.id, data.task_key, data.due_date).first();
 
       if (existing) {
-        return new Response(JSON.stringify({ 
-          error: 'Task already exists for this period',
-          code: 'DUPLICATE_ERROR'
-        }), {
-          status: 409,
-          headers: corsHeaders
-        });
+        return createErrorResponse('Task already exists for this period', 'DUPLICATE_ERROR', 409);
       }
     }
 
-    // Insert task
+    // Prepare completion criteria
+    const criteria = data.completion_criteria 
+      ? (typeof data.completion_criteria === 'string' ? data.completion_criteria : JSON.stringify(data.completion_criteria))
+      : null;
+
+    // Determine task_type
+    const taskType = data.task_type || 'custom';
+
+    // Insert task with enhanced fields
     const result = await env.DB.prepare(`
       INSERT INTO financial_tasks (
         user_id, task_key, frequency, title, description, 
-        category, due_date, is_completed
+        category, due_date, is_completed, completion_criteria,
+        progress_percentage, auto_update, task_type, notes
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
-      userId,
+      user.id,
       data.task_key,
       data.frequency,
       data.title,
       data.description || null,
       data.category || null,
       data.due_date || null,
-      data.is_completed || 0
+      data.is_completed || 0,
+      criteria,
+      data.progress_percentage || 0,
+      data.auto_update !== undefined ? (data.auto_update ? 1 : 0) : 1,
+      taskType,
+      data.notes || null
     ).run();
 
     // Fetch the created task
@@ -201,21 +224,19 @@ export async function onRequestPost(context) {
       'SELECT * FROM financial_tasks WHERE id = ?'
     ).bind(result.meta.last_row_id).first();
 
-    return new Response(JSON.stringify(task), {
-      status: 201,
-      headers: corsHeaders
-    });
+    // Parse completion_criteria
+    const parsedTask = {
+      ...task,
+      completion_criteria: task.completion_criteria ? JSON.parse(task.completion_criteria) : null
+    };
+
+    logInfo('Task Created', { userId: user.id, taskId: result.meta.last_row_id });
+
+    return createSuccessResponse(parsedTask, 201);
 
   } catch (error) {
-    console.error('Error creating task:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Failed to create task',
-      code: 'CREATE_ERROR',
-      details: error.message
-    }), {
-      status: 500,
-      headers: corsHeaders
-    });
+    logError('Create Task Error', { error: error.message });
+    return createErrorResponse('Failed to create task', 'CREATE_ERROR', 500);
   }
 }
 
@@ -224,57 +245,47 @@ export async function onRequestPut(context) {
   
   try {
     if (!env.DB) {
-      return new Response(JSON.stringify({ 
-        error: 'Database not available',
-        code: 'DB_NOT_CONFIGURED'
-      }), {
-        status: 503,
-        headers: corsHeaders
-      });
+      return createErrorResponse('Database not available', 'DB_NOT_CONFIGURED', 503);
+    }
+
+    // Get authenticated user
+    const user = await getUserFromRequest(request, env);
+    if (!user) {
+      return createErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
 
     const url = new URL(request.url);
     const id = url.searchParams.get('id');
     const action = url.searchParams.get('action');
-    const userId = 1; // In production, get from auth token
 
     if (!id) {
-      return new Response(JSON.stringify({ 
-        error: 'Task ID is required',
-        code: 'VALIDATION_ERROR'
-      }), {
-        status: 400,
-        headers: corsHeaders
-      });
+      return createErrorResponse('Task ID is required', 'VALIDATION_ERROR', 400);
     }
 
     // Check if task exists
     const existing = await env.DB.prepare(
       'SELECT * FROM financial_tasks WHERE id = ? AND user_id = ?'
-    ).bind(id, userId).first();
+    ).bind(id, user.id).first();
 
     if (!existing) {
-      return new Response(JSON.stringify({ 
-        error: 'Task not found',
-        code: 'NOT_FOUND'
-      }), {
-        status: 404,
-        headers: corsHeaders
-      });
+      return createErrorResponse('Task not found', 'NOT_FOUND', 404);
     }
 
     // Handle different actions
     if (action === 'toggle') {
       const newCompleted = existing.is_completed ? 0 : 1;
-      const completedAt = newCompleted ? 'CURRENT_TIMESTAMP' : 'NULL';
+      const newProgress = newCompleted ? 100 : existing.progress_percentage || 0;
       
       await env.DB.prepare(`
         UPDATE financial_tasks 
         SET is_completed = ?, 
-            completed_at = ${completedAt},
+            progress_percentage = ?,
+            completed_at = CASE WHEN ? = 1 THEN CURRENT_TIMESTAMP ELSE NULL END,
             updated_at = CURRENT_TIMESTAMP 
         WHERE id = ? AND user_id = ?
-      `).bind(newCompleted, id, userId).run();
+      `).bind(newCompleted, newProgress, newCompleted, id, user.id).run();
+
+      logInfo('Task Toggled', { userId: user.id, taskId: id, completed: newCompleted });
     } else {
       // Regular update
       const data = await request.json();
@@ -297,26 +308,41 @@ export async function onRequestPut(context) {
         updates.push('due_date = ?');
         params.push(data.due_date);
       }
+      if (data.notes !== undefined) {
+        updates.push('notes = ?');
+        params.push(data.notes);
+      }
+      if (data.progress_percentage !== undefined) {
+        updates.push('progress_percentage = ?');
+        params.push(Math.max(0, Math.min(100, data.progress_percentage)));
+      }
+      if (data.auto_update !== undefined) {
+        updates.push('auto_update = ?');
+        params.push(data.auto_update ? 1 : 0);
+      }
+      if (data.completion_criteria !== undefined) {
+        updates.push('completion_criteria = ?');
+        params.push(typeof data.completion_criteria === 'string' 
+          ? data.completion_criteria 
+          : JSON.stringify(data.completion_criteria));
+      }
       if (data.is_completed !== undefined) {
         updates.push('is_completed = ?');
         params.push(data.is_completed ? 1 : 0);
         if (data.is_completed) {
           updates.push('completed_at = CURRENT_TIMESTAMP');
+          updates.push('progress_percentage = 100');
+        } else {
+          updates.push('completed_at = NULL');
         }
       }
 
       if (updates.length === 0) {
-        return new Response(JSON.stringify({ 
-          error: 'No valid fields to update',
-          code: 'VALIDATION_ERROR'
-        }), {
-          status: 400,
-          headers: corsHeaders
-        });
+        return createErrorResponse('No valid fields to update', 'VALIDATION_ERROR', 400);
       }
 
       updates.push('updated_at = CURRENT_TIMESTAMP');
-      params.push(id, userId);
+      params.push(id, user.id);
 
       const query = `
         UPDATE financial_tasks 
@@ -325,6 +351,8 @@ export async function onRequestPut(context) {
       `;
 
       await env.DB.prepare(query).bind(...params).run();
+
+      logInfo('Task Updated', { userId: user.id, taskId: id });
     }
 
     // Fetch updated task
@@ -332,21 +360,17 @@ export async function onRequestPut(context) {
       'SELECT * FROM financial_tasks WHERE id = ?'
     ).bind(id).first();
 
-    return new Response(JSON.stringify(updated), {
-      status: 200,
-      headers: corsHeaders
-    });
+    // Parse completion_criteria
+    const parsedTask = {
+      ...updated,
+      completion_criteria: updated.completion_criteria ? JSON.parse(updated.completion_criteria) : null
+    };
+
+    return createSuccessResponse(parsedTask);
 
   } catch (error) {
-    console.error('Error updating task:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Failed to update task',
-      code: 'UPDATE_ERROR',
-      details: error.message
-    }), {
-      status: 500,
-      headers: corsHeaders
-    });
+    logError('Update Task Error', { error: error.message });
+    return createErrorResponse('Failed to update task', 'UPDATE_ERROR', 500);
   }
 }
 
@@ -355,66 +379,44 @@ export async function onRequestDelete(context) {
   
   try {
     if (!env.DB) {
-      return new Response(JSON.stringify({ 
-        error: 'Database not available',
-        code: 'DB_NOT_CONFIGURED'
-      }), {
-        status: 503,
-        headers: corsHeaders
-      });
+      return createErrorResponse('Database not available', 'DB_NOT_CONFIGURED', 503);
+    }
+
+    // Get authenticated user
+    const user = await getUserFromRequest(request, env);
+    if (!user) {
+      return createErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
 
     const url = new URL(request.url);
     const id = url.searchParams.get('id');
-    const userId = 1; // In production, get from auth token
 
     if (!id) {
-      return new Response(JSON.stringify({ 
-        error: 'Task ID is required',
-        code: 'VALIDATION_ERROR'
-      }), {
-        status: 400,
-        headers: corsHeaders
-      });
+      return createErrorResponse('Task ID is required', 'VALIDATION_ERROR', 400);
     }
 
     // Check if task exists
     const existing = await env.DB.prepare(
       'SELECT * FROM financial_tasks WHERE id = ? AND user_id = ?'
-    ).bind(id, userId).first();
+    ).bind(id, user.id).first();
 
     if (!existing) {
-      return new Response(JSON.stringify({ 
-        error: 'Task not found',
-        code: 'NOT_FOUND'
-      }), {
-        status: 404,
-        headers: corsHeaders
-      });
+      return createErrorResponse('Task not found', 'NOT_FOUND', 404);
     }
 
-    // Delete task
+    // Delete task (cascade will delete task_progress records)
     await env.DB.prepare(
       'DELETE FROM financial_tasks WHERE id = ? AND user_id = ?'
-    ).bind(id, userId).run();
+    ).bind(id, user.id).run();
 
-    return new Response(JSON.stringify({ 
-      success: true,
+    logInfo('Task Deleted', { userId: user.id, taskId: id });
+
+    return createSuccessResponse({ 
       message: 'Task deleted successfully'
-    }), {
-      status: 200,
-      headers: corsHeaders
     });
 
   } catch (error) {
-    console.error('Error deleting task:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Failed to delete task',
-      code: 'DELETE_ERROR',
-      details: error.message
-    }), {
-      status: 500,
-      headers: corsHeaders
-    });
+    logError('Delete Task Error', { error: error.message });
+    return createErrorResponse('Failed to delete task', 'DELETE_ERROR', 500);
   }
 }
