@@ -44,6 +44,7 @@ import {
   ClipboardDocumentCheckIcon,
   ShieldCheckIcon,
   DocumentCheckIcon,
+  CalculatorIcon,
   
   // Status Icons
   CheckCircleIcon,
@@ -139,6 +140,7 @@ function getIconComponent(name, variant) {
     chevronRight: ChevronRightIcon,
     chevronUp: ChevronUpIcon,
     chevronDown: ChevronDownIcon,
+    'chevron-down': ChevronDownIcon,
     
     // Context
     user: UserIcon,
@@ -189,6 +191,7 @@ function getIconComponent(name, variant) {
     clipboardDocumentCheck: ClipboardDocumentCheckIcon,
     shieldCheck: ShieldCheckIcon,
     documentCheck: DocumentCheckIcon,
+    calculator: CalculatorIcon,
     
     // Status
     'check-circle': CheckCircleIcon,

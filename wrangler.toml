@@ -142,6 +142,9 @@ CACHE_TTL_SECONDS = "300"
 CACHE_DASHBOARD_TTL = "300"
 CACHE_REPORTS_TTL = "600"
 
+# JWT Secret for authentication
+JWT_SECRET = "avanta-coinmaster-secret-key-change-in-production"
+
 # n8n Webhook Configuration
 # N8N_WEBHOOK_CLASSIFY = "https://n8n.your-domain.com/webhook/classify"
 # N8N_WEBHOOK_IMPORT = "https://n8n.your-domain.com/webhook/import"
@@ -197,6 +200,9 @@ RATE_LIMIT_WRITE_REQUESTS = "50"
 CACHE_TTL_SECONDS = "300"
 CACHE_DASHBOARD_TTL = "300"
 CACHE_REPORTS_TTL = "600"
+
+# JWT Secret for authentication
+JWT_SECRET = "avanta-coinmaster-secret-key-change-in-production"
 
 # ============================================================================
 # CRITICAL: PREVIEW ENVIRONMENT DATABASE ISOLATION
