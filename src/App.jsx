@@ -34,7 +34,7 @@ const Debts = lazy(() => import('./components/Debts'));
 const Investments = lazy(() => import('./components/Investments'));
 const Tasks = lazy(() => import('./pages/Tasks'));
 const NotificationCenter = lazy(() => import('./components/NotificationCenter'));
-const HelpCenter = lazy(() => import('./components/HelpCenter'));
+const HelpCenter = lazy(() => import('./pages/HelpCenter'));
 const QuickActions = lazy(() => import('./components/QuickActions'));
 const OnboardingGuide = lazy(() => import('./components/OnboardingGuide'));
 const GlobalFilter = lazy(() => import('./components/GlobalFilter'));
