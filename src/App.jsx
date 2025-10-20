@@ -32,7 +32,7 @@ const RecurringServicesDashboard = lazy(() => import('./components/RecurringServ
 const CashFlowProjection = lazy(() => import('./components/CashFlowProjection'));
 const Debts = lazy(() => import('./components/Debts'));
 const Investments = lazy(() => import('./components/Investments'));
-const FinancialTasks = lazy(() => import('./components/FinancialTasks'));
+const Tasks = lazy(() => import('./pages/Tasks'));
 const NotificationCenter = lazy(() => import('./components/NotificationCenter'));
 const HelpCenter = lazy(() => import('./components/HelpCenter'));
 const QuickActions = lazy(() => import('./components/QuickActions'));
@@ -230,7 +230,7 @@ function NavigationBar() {
       type: 'dropdown',
       items: [
         { name: 'Centro de Ayuda', icon: '📚', path: '/help' },
-        { name: 'Tareas Financieras', icon: '📋', path: '/financial-tasks' },
+        { name: 'Centro de Tareas', icon: '📋', path: '/tasks' },
         { name: 'Acciones Rápidas', icon: '⚡', path: '/quick-actions' },
         { name: 'Registro de Auditoría', icon: '🔒', path: '/audit-log' }
       ]
@@ -598,7 +598,8 @@ function AuthenticatedApp() {
                 <Route path="/savings-goals" element={<SavingsGoals />} />
                 <Route path="/debts" element={<Debts />} />
                 <Route path="/investments" element={<Investments />} />
-                <Route path="/financial-tasks" element={<FinancialTasks />} />
+                <Route path="/tasks" element={<Tasks />} />
+                <Route path="/financial-tasks" element={<Tasks />} /> {/* Redirect old path */}
                 <Route path="/notifications" element={<NotificationCenter />} />
                 <Route path="/help" element={<HelpCenter />} />
                 <Route path="/quick-actions" element={<QuickActions />} />
