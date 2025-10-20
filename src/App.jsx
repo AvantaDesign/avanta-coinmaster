@@ -24,6 +24,9 @@ const FinancialDashboard = lazy(() => import('./components/FinancialDashboard'))
 const AdvancedAnalytics = lazy(() => import('./components/AdvancedAnalytics'));
 const AdvancedReports = lazy(() => import('./components/AdvancedReports'));
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
+// Phase 34: Admin Panel Components
+const AdminPanelDashboard = lazy(() => import('./pages/admin/Dashboard'));
+const AdminUsers = lazy(() => import('./pages/admin/Users'));
 const RecurringFreelancersDashboard = lazy(() => import('./components/RecurringFreelancersDashboard'));
 const RecurringServicesDashboard = lazy(() => import('./components/RecurringServicesDashboard'));
 const CashFlowProjection = lazy(() => import('./components/CashFlowProjection'));
@@ -231,6 +234,19 @@ function NavigationBar() {
       ]
     }
   ];
+
+  // Phase 34: Add admin navigation if user is admin
+  if (user?.role === 'admin') {
+    navigationModules.push({
+      name: 'Admin',
+      icon: '⚙️',
+      type: 'dropdown',
+      items: [
+        { name: 'Panel Admin', icon: '🎛️', path: '/admin' },
+        { name: 'Gestión de Usuarios', icon: '👥', path: '/admin/users' }
+      ]
+    });
+  }
 
   const toggleDropdown = (moduleName) => {
     setActiveDropdown(activeDropdown === moduleName ? null : moduleName);
@@ -507,6 +523,11 @@ function NavigationBar() {
 
 // Main authenticated app layout
 function AuthenticatedApp() {
+  const location = useLocation();
+  
+  // Phase 34: Hide GlobalFilter on admin routes
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
   return (
     <>
       <AnalyticsTracker />
@@ -515,12 +536,14 @@ function AuthenticatedApp() {
         <NavigationBar />
         <main id="main-content" className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
-            {/* Global Filter - shown on all pages */}
-            <Suspense fallback={null}>
-              <div className="mb-6">
-                <GlobalFilter />
-              </div>
-            </Suspense>
+            {/* Global Filter - hidden on admin routes (Phase 34) */}
+            {!isAdminRoute && (
+              <Suspense fallback={null}>
+                <div className="mb-6">
+                  <GlobalFilter />
+                </div>
+              </Suspense>
+            )}
             
             {/* Breadcrumbs - contextual navigation */}
             <Suspense fallback={null}>
@@ -555,7 +578,9 @@ function AuthenticatedApp() {
                 <Route path="/invoice-automation" element={<InvoiceAutomation />} />
                 <Route path="/analytics" element={<AdvancedAnalytics transactions={[]} financialData={{}} />} />
                 <Route path="/reports" element={<AdvancedReports data={{}} />} />
-                <Route path="/admin" element={<AdminDashboard />} />
+                {/* Phase 34: Admin Panel Routes */}
+                <Route path="/admin" element={<AdminPanelDashboard />} />
+                <Route path="/admin/users" element={<AdminUsers />} />
                 <Route path="/recurring-freelancers" element={<RecurringFreelancersDashboard />} />
                 <Route path="/recurring-services" element={<RecurringServicesDashboard />} />
                 <Route path="/cash-flow-projection" element={<CashFlowProjection />} />

@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
     password TEXT, -- For email/password auth (hashed)
     google_id TEXT UNIQUE, -- For Google OAuth
     avatar_url TEXT,
+    role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin')), -- Phase 34: Role-based access control
     is_active INTEGER DEFAULT 1 CHECK(is_active IN (0, 1)),
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     last_login_at TEXT,
