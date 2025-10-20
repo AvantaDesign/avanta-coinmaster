@@ -58,6 +58,9 @@ const TagManager = lazy(() => import('./components/TagManager'));
 const ComplianceDashboard = lazy(() => import('./components/ComplianceDashboard'));
 // Phase 35: Centralized Settings Panel
 const Settings = lazy(() => import('./pages/Settings'));
+// Phase 37: Advanced Demo Experience
+const Demo = lazy(() => import('./pages/Demo'));
+import DemoBanner from './components/demo/DemoBanner';
 
 // Loading fallback component
 function LoadingFallback() {
@@ -545,6 +548,10 @@ function AuthenticatedApp() {
       <ToastContainer />
       <div className="min-h-screen bg-gray-100 dark:bg-slate-900">
         <NavigationBar />
+        {/* Phase 37: Demo Mode Banner - shown when in demo mode */}
+        <Suspense fallback={null}>
+          <DemoBanner />
+        </Suspense>
         <main id="main-content" className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
             {/* Global Filter - hidden on admin routes (Phase 34) */}
@@ -609,6 +616,8 @@ function AuthenticatedApp() {
                 <Route path="/deductibility-rules" element={<DeductibilityRules />} />
                 {/* Phase 35: Centralized Settings Panel */}
                 <Route path="/settings" element={<Settings />} />
+                {/* Phase 37: Advanced Demo Experience */}
+                <Route path="/demo" element={<Demo />} />
               </Routes>
             </Suspense>
           </div>
