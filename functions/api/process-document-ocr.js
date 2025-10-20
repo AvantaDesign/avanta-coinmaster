@@ -16,7 +16,7 @@
 
 import { createErrorResponse, createSuccessResponse, ErrorType, HttpStatus } from '../utils/errors.js';
 import { withErrorHandling } from '../utils/errors.js';
-import { validateFileUpload } from '../utils/validation.js';
+import { validateFile } from '../utils/validation.js';
 import { logDebug, logError } from '../utils/logging.js';
 
 /**
@@ -59,10 +59,7 @@ export async function onRequestPost(context) {
       }
       
       // Validate file
-      const validation = validateFileUpload(file, {
-        maxSize: MAX_FILE_SIZE,
-        allowedTypes: ALLOWED_MIME_TYPES
-      });
+      const validation = validateFile(file, ALLOWED_MIME_TYPES, MAX_FILE_SIZE / (1024 * 1024));
       
       if (!validation.valid) {
         return createErrorResponse(
