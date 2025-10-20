@@ -25,9 +25,20 @@
 // Phase 30: Monetary values stored as INTEGER cents in database
 // - Incoming amounts (decimal) converted to cents before storage
 // - Outgoing amounts (cents) converted to decimal for API responses
+//
+// Phase 31: Backend Hardening and Security
+// - Integrated security headers and validation
+// - Rate limiting on write operations
+// - Comprehensive logging and audit trails
+// - Input sanitization for XSS/SQL injection prevention
 
 import { getUserIdFromToken } from './auth.js';
 import { toCents, fromCents, convertArrayFromCents, convertObjectFromCents, parseMonetaryInput, MONETARY_FIELDS } from '../utils/monetary.js';
+import { getSecurityHeaders } from '../utils/security.js';
+import { sanitizeString, validateTransactionData, validatePagination, validateSort, isSafeSqlValue } from '../utils/validation.js';
+import { logRequest, logError, logAuditEvent } from '../utils/logging.js';
+import { createErrorResponse, createValidationErrorResponse, createSuccessResponse } from '../utils/errors.js';
+import { checkRateLimit, getRateLimitConfig } from '../utils/rate-limiter.js';
 
 /**
  * GET /api/transactions
@@ -52,16 +63,15 @@ import { toCents, fromCents, convertArrayFromCents, convertObjectFromCents, pars
 export async function onRequestGet(context) {
   const { env, request } = context;
   const url = new URL(request.url);
+  const startTime = Date.now();
   
-  // CORS headers
-  const corsHeaders = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  };
+  // Phase 31: Security headers
+  const corsHeaders = getSecurityHeaders();
 
   try {
+    // Phase 31: Log request
+    logRequest(request, { endpoint: 'transactions', method: 'GET' }, env);
+
     // Get user ID from token
     const userId = await getUserIdFromToken(request, env);
     if (!userId) {
@@ -123,13 +133,23 @@ export async function onRequestGet(context) {
       }
     }
 
-    // Parse query parameters with validation
-    const limit = Math.min(Math.max(parseInt(url.searchParams.get('limit') || '50'), 1), 1000);
-    const offset = Math.max(parseInt(url.searchParams.get('offset') || '0'), 0);
+    // Phase 31: Validate pagination parameters
+    const limitParam = url.searchParams.get('limit') || '50';
+    const offsetParam = url.searchParams.get('offset') || '0';
+    const paginationValidation = validatePagination(limitParam, offsetParam);
+    
+    if (!paginationValidation.valid) {
+      return createValidationErrorResponse(paginationValidation.error);
+    }
+    
+    const limit = paginationValidation.limit;
+    const offset = paginationValidation.offset;
+    
+    // Parse and sanitize query parameters
     const category = url.searchParams.get('category');
     const type = url.searchParams.get('type');
     const account = url.searchParams.get('account');
-    const search = url.searchParams.get('search');
+    const search = sanitizeString(url.searchParams.get('search') || '');
     const dateFrom = url.searchParams.get('date_from');
     const dateTo = url.searchParams.get('date_to');
     const amountMin = url.searchParams.get('amount_min');
@@ -142,6 +162,12 @@ export async function onRequestGet(context) {
     const transactionType = url.searchParams.get('transaction_type');
     const categoryId = url.searchParams.get('category_id');
     const linkedInvoiceId = url.searchParams.get('linked_invoice_id');
+    
+    // Phase 31: Validate sort parameters
+    const sortValidation = validateSort(sortBy, sortOrder, ['date', 'amount', 'description', 'created_at']);
+    if (!sortValidation.valid) {
+      return createValidationErrorResponse(sortValidation.error);
+    }
 
     // Validate enum values
     if (category && !['personal', 'avanta'].includes(category)) {
@@ -446,15 +472,38 @@ export async function onRequestGet(context) {
  */
 export async function onRequestPost(context) {
   const { env, request } = context;
+  const startTime = Date.now();
   
-  const corsHeaders = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  };
+  // Phase 31: Security headers
+  const corsHeaders = getSecurityHeaders();
   
   try {
+    // Phase 31: Log request
+    logRequest(request, { endpoint: 'transactions', method: 'POST' }, env);
+    
+    // Phase 31: Rate limiting for write operations
+    const rateLimitConfig = getRateLimitConfig('POST', '/api/transactions');
+    const rateLimitResult = await checkRateLimit(request, rateLimitConfig, null, env);
+    
+    if (!rateLimitResult.allowed) {
+      return new Response(JSON.stringify({
+        error: true,
+        type: 'RATE_LIMIT_ERROR',
+        message: 'Too many requests. Please try again later.',
+        retryAfter: rateLimitResult.retryAfter,
+        timestamp: new Date().toISOString()
+      }), {
+        status: 429,
+        headers: {
+          ...corsHeaders,
+          'X-RateLimit-Limit': rateLimitConfig.maxRequests.toString(),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': rateLimitResult.resetAt.toString(),
+          'Retry-After': rateLimitResult.retryAfter.toString()
+        }
+      });
+    }
+    
     // Get user ID from token
     const userId = await getUserIdFromToken(request, env);
     if (!userId) {
@@ -491,6 +540,17 @@ export async function onRequestPost(context) {
         status: 400,
         headers: corsHeaders
       });
+    }
+    
+    // Phase 31: Sanitize string inputs
+    if (data.description) {
+      data.description = sanitizeString(data.description);
+    }
+    if (data.notes) {
+      data.notes = sanitizeString(data.notes);
+    }
+    if (data.economic_activity) {
+      data.economic_activity = sanitizeString(data.economic_activity);
     }
 
     const { date, description, amount, type, category, account, is_deductible, economic_activity, receipt_url, transaction_type, category_id, linked_invoice_id, notes, is_iva_deductible, is_isr_deductible, expense_type, client_type, client_rfc, currency, exchange_rate, payment_method, iva_rate, isr_retention, iva_retention, cfdi_uuid, issue_date, payment_date, economic_activity_code } = data;
@@ -754,6 +814,15 @@ export async function onRequestPost(context) {
 
       // Phase 30: Convert monetary values from cents to decimal
       const convertedTransaction = convertObjectFromCents(createdTransaction, MONETARY_FIELDS.TRANSACTIONS);
+      
+      // Phase 31: Log audit event
+      await logAuditEvent('CREATE', 'transaction', {
+        userId,
+        transactionId: result.meta.last_row_id,
+        type,
+        category,
+        amount: numAmount
+      }, env);
 
       // Prepare response
       const response = {
@@ -766,10 +835,18 @@ export async function onRequestPost(context) {
       if (complianceNote) {
         response.compliance_note = complianceNote;
       }
+      
+      // Phase 31: Add rate limit headers
+      const responseHeaders = {
+        ...corsHeaders,
+        'X-RateLimit-Limit': rateLimitConfig.maxRequests.toString(),
+        'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+        'X-RateLimit-Reset': rateLimitResult.resetAt.toString()
+      };
 
       return new Response(JSON.stringify(response), {
         status: 201,
-        headers: corsHeaders
+        headers: responseHeaders
       });
 
     } catch (dbError) {
@@ -793,15 +870,14 @@ export async function onRequestPost(context) {
   } catch (error) {
     console.error('Transactions POST Error:', error);
     
-    return new Response(JSON.stringify({ 
-      error: 'Internal server error',
-      message: error.message,
-      code: 'INTERNAL_ERROR',
-      timestamp: new Date().toISOString()
-    }), {
-      status: 500,
-      headers: corsHeaders
-    });
+    // Phase 31: Log error
+    await logError(error, { 
+      endpoint: 'transactions',
+      method: 'POST',
+      userId
+    }, env);
+    
+    return await createErrorResponse(error, request, env);
   }
 }
 
@@ -817,14 +893,35 @@ export async function onRequestPut(context) {
   const pathParts = url.pathname.split('/').filter(p => p);
   const id = pathParts[pathParts.length - 1];
   
-  const corsHeaders = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  };
+  // Phase 31: Security headers
+  const corsHeaders = getSecurityHeaders();
   
   try {
+    // Phase 31: Log request
+    logRequest(request, { endpoint: 'transactions', method: 'PUT', transactionId: id }, env);
+    
+    // Phase 31: Rate limiting for update operations
+    const rateLimitConfig = getRateLimitConfig('PUT', '/api/transactions');
+    const rateLimitResult = await checkRateLimit(request, rateLimitConfig, null, env);
+    
+    if (!rateLimitResult.allowed) {
+      return new Response(JSON.stringify({
+        error: true,
+        type: 'RATE_LIMIT_ERROR',
+        message: 'Too many requests. Please try again later.',
+        retryAfter: rateLimitResult.retryAfter,
+        timestamp: new Date().toISOString()
+      }), {
+        status: 429,
+        headers: {
+          ...corsHeaders,
+          'X-RateLimit-Limit': rateLimitConfig.maxRequests.toString(),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': rateLimitResult.resetAt.toString(),
+          'Retry-After': rateLimitResult.retryAfter.toString()
+        }
+      });
+    }
     // Get user ID from token
     const userId = await getUserIdFromToken(request, env);
     if (!userId) {
@@ -1175,6 +1272,13 @@ export async function onRequestPut(context) {
 
     // Phase 30: Convert monetary values from cents to decimal
     const convertedTransaction = convertObjectFromCents(updatedTransaction, MONETARY_FIELDS.TRANSACTIONS);
+    
+    // Phase 31: Log audit event
+    await logAuditEvent('UPDATE', 'transaction', {
+      userId,
+      transactionId: id,
+      updatedFields: Object.keys(data)
+    }, env);
 
     return new Response(JSON.stringify({
       success: true,
@@ -1188,15 +1292,15 @@ export async function onRequestPut(context) {
   } catch (error) {
     console.error('Transactions PUT Error:', error);
     
-    return new Response(JSON.stringify({ 
-      error: 'Internal server error',
-      message: error.message,
-      code: 'INTERNAL_ERROR',
-      timestamp: new Date().toISOString()
-    }), {
-      status: 500,
-      headers: corsHeaders
-    });
+    // Phase 31: Log error
+    await logError(error, { 
+      endpoint: 'transactions',
+      method: 'PUT',
+      transactionId: id,
+      userId
+    }, env);
+    
+    return await createErrorResponse(error, request, env);
   }
 }
 
@@ -1228,14 +1332,35 @@ export async function onRequestDelete(context) {
   const confirm = url.searchParams.get('confirm');
   const permanent = url.searchParams.get('permanent') === 'true';
   
-  const corsHeaders = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  };
+  // Phase 31: Security headers
+  const corsHeaders = getSecurityHeaders();
   
   try {
+    // Phase 31: Log request
+    logRequest(request, { endpoint: 'transactions', method: 'DELETE', transactionId: id }, env);
+    
+    // Phase 31: Rate limiting for delete operations
+    const rateLimitConfig = getRateLimitConfig('DELETE', '/api/transactions');
+    const rateLimitResult = await checkRateLimit(request, rateLimitConfig, null, env);
+    
+    if (!rateLimitResult.allowed) {
+      return new Response(JSON.stringify({
+        error: true,
+        type: 'RATE_LIMIT_ERROR',
+        message: 'Too many requests. Please try again later.',
+        retryAfter: rateLimitResult.retryAfter,
+        timestamp: new Date().toISOString()
+      }), {
+        status: 429,
+        headers: {
+          ...corsHeaders,
+          'X-RateLimit-Limit': rateLimitConfig.maxRequests.toString(),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': rateLimitResult.resetAt.toString(),
+          'Retry-After': rateLimitResult.retryAfter.toString()
+        }
+      });
+    }
     // Get user ID from token
     const userId = await getUserIdFromToken(request, env);
     if (!userId) {
@@ -1303,6 +1428,15 @@ export async function onRequestDelete(context) {
       // Hard delete - permanently remove from database (already verified ownership above)
       await env.DB.prepare('DELETE FROM transactions WHERE id = ? AND user_id = ?').bind(id, userId).run();
       
+      // Phase 31: Log audit event
+      await logAuditEvent('DELETE_PERMANENT', 'transaction', {
+        userId,
+        transactionId: id,
+        type: existingTransaction.type,
+        category: existingTransaction.category,
+        amount: fromCents(existingTransaction.amount)
+      }, env);
+      
       return new Response(JSON.stringify({
         success: true,
         message: 'Transaction permanently deleted',
@@ -1320,6 +1454,15 @@ export async function onRequestDelete(context) {
         'SELECT * FROM transactions WHERE id = ? AND user_id = ?'
       ).bind(id, userId).first();
       
+      // Phase 31: Log audit event
+      await logAuditEvent('DELETE_SOFT', 'transaction', {
+        userId,
+        transactionId: id,
+        type: existingTransaction.type,
+        category: existingTransaction.category,
+        amount: fromCents(existingTransaction.amount)
+      }, env);
+      
       return new Response(JSON.stringify({
         success: true,
         message: 'Transaction soft deleted successfully',
@@ -1333,15 +1476,15 @@ export async function onRequestDelete(context) {
   } catch (error) {
     console.error('Transactions DELETE Error:', error);
     
-    return new Response(JSON.stringify({ 
-      error: 'Internal server error',
-      message: error.message,
-      code: 'INTERNAL_ERROR',
-      timestamp: new Date().toISOString()
-    }), {
-      status: 500,
-      headers: corsHeaders
-    });
+    // Phase 31: Log error
+    await logError(error, { 
+      endpoint: 'transactions',
+      method: 'DELETE',
+      transactionId: id,
+      userId
+    }, env);
+    
+    return await createErrorResponse(error, request, env);
   }
 }
 
@@ -1350,13 +1493,9 @@ export async function onRequestDelete(context) {
  * Handle CORS preflight requests
  */
 export async function onRequestOptions(context) {
+  // Phase 31: Use security headers for OPTIONS
   return new Response(null, {
     status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      'Access-Control-Max-Age': '86400',
-    }
+    headers: getSecurityHeaders()
   });
 }
