@@ -41,7 +41,10 @@ export async function onRequest(context) {
     logRequest(request, { endpoint: 'budgets', method, path }, env);
     
     // Authenticate user
-    const userId = await authenticateRequest(request, env);
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return getApiResponse(null, 'Unauthorized', 401);
+    }
 
     // Route to appropriate handler
     if (path === '' || path === '/') {

@@ -7,6 +7,9 @@ import {
   fromCentsToDecimal,
   MONETARY_FIELDS 
 } from '../utils/monetary.js';
+import { getUserIdFromToken } from './auth.js';
+import { getSecurityHeaders } from '../utils/security.js';
+import { logRequest, logError } from '../utils/logging.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -101,20 +104,36 @@ function calculateHistoricalAverage(transactions, category = null, days = 30) {
 }
 
 export async function onRequestOptions(context) {
-  return new Response(null, { headers: corsHeaders });
+  return new Response(null, { headers: getSecurityHeaders() });
 }
 
 export async function onRequestGet(context) {
   const { env, request } = context;
   
   try {
+    // Authenticate user
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({ 
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: getSecurityHeaders()
+      });
+    }
+
+    // Log request
+    logRequest(request, { endpoint: 'cash-flow-projection', method: 'GET' }, env);
+
     if (!env.DB) {
       return new Response(JSON.stringify({ 
         error: 'Database not available',
         code: 'DB_NOT_CONFIGURED'
       }), {
         status: 503,
-        headers: corsHeaders
+        headers: getSecurityHeaders()
       });
     }
 
@@ -380,7 +399,7 @@ export async function onRequestGet(context) {
     };
 
     return new Response(JSON.stringify(response), {
-      headers: corsHeaders
+      headers: getSecurityHeaders()
     });
 
   } catch (error) {
@@ -390,7 +409,7 @@ export async function onRequestGet(context) {
       code: 'PROJECTION_ERROR'
     }), {
       status: 500,
-      headers: corsHeaders
+      headers: getSecurityHeaders()
     });
   }
 }
