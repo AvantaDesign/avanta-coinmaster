@@ -49,10 +49,25 @@ CREATE TABLE IF NOT EXISTS accounts (
     name TEXT NOT NULL,
     type TEXT NOT NULL CHECK(type IN ('checking', 'savings', 'credit', 'cash')),
     balance REAL DEFAULT 0,
+    opening_date TEXT, -- Phase 33: Account opening date for age tracking
     is_active INTEGER DEFAULT 1 CHECK(is_active IN (0, 1)),
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(user_id) REFERENCES users(id)
+);
+
+-- Account Initial Balances table: Historical initial balance snapshots
+-- Phase 33: Track account opening balances for accurate historical reporting
+CREATE TABLE IF NOT EXISTS account_initial_balances (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_id INTEGER NOT NULL,
+    balance_date TEXT NOT NULL, -- ISO 8601 date format (YYYY-MM-DD)
+    initial_balance INTEGER NOT NULL, -- Stored in cents (INTEGER) for precision
+    notes TEXT, -- Optional notes about this initial balance
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE,
+    UNIQUE(account_id, balance_date) -- One initial balance per account per date
 );
 
 -- Categories table: Custom transaction categories
