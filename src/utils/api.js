@@ -1386,3 +1386,57 @@ export async function getRuleExecutionLog(params = {}) {
   }
   return response.json();
 }
+
+// ============================================================================
+// Phase 33: Account Initial Balances API
+// ============================================================================
+
+export async function fetchAccountInitialBalances(accountId) {
+  const response = await authFetch(`${API_BASE}/accounts/${accountId}/initial-balances`);
+  if (!response.ok) throw new Error('Failed to fetch initial balances');
+  return response.json();
+}
+
+export async function createAccountInitialBalance(accountId, data) {
+  const response = await authFetch(`${API_BASE}/accounts/${accountId}/initial-balances`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to create initial balance');
+  }
+  return response.json();
+}
+
+export async function updateAccountInitialBalance(accountId, balanceId, data) {
+  const response = await authFetch(`${API_BASE}/accounts/${accountId}/initial-balances/${balanceId}`, {
+    method: 'PUT',
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to update initial balance');
+  }
+  return response.json();
+}
+
+export async function deleteAccountInitialBalance(accountId, balanceId) {
+  const response = await authFetch(`${API_BASE}/accounts/${accountId}/initial-balances/${balanceId}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to delete initial balance');
+  }
+  return response.json();
+}
