@@ -225,6 +225,12 @@ binding = "DB"
 database_name = "avanta-coinmaster-preview"
 database_id = "fb173697-b916-4ab9-a244-88e657fdcb9d"
 
+# R2 Bucket binding for preview environment
+# Using the same bucket as production with preview/ prefix for file paths
+[[env.preview.r2_buckets]]
+binding = "RECEIPTS"
+bucket_name = "avanta-receipts"
+
 # ============================================================================
 # PRODUCTION ENVIRONMENT (explicit configuration)
 # ============================================================================

@@ -196,8 +196,16 @@ export async function onRequestPost(context) {
       
       // Upload file to R2 storage
       try {
+        if (!env.RECEIPTS) {
+          return createErrorResponse(
+            { message: 'Storage not configured', type: ErrorType.STORAGE, statusCode: HttpStatus.INTERNAL_SERVER_ERROR },
+            request,
+            env
+          );
+        }
+        
         const arrayBuffer = await file.arrayBuffer();
-        await env.R2_BUCKET.put(storagePath, arrayBuffer, {
+        await env.RECEIPTS.put(storagePath, arrayBuffer, {
           httpMetadata: {
             contentType: file.type
           }
@@ -327,8 +335,10 @@ export async function onRequestDelete(context) {
       
       // Delete from R2 storage
       try {
-        await env.R2_BUCKET.delete(certificate.file_path);
-        logDebug('File deleted from R2', { filePath: certificate.file_path }, env);
+        if (env.RECEIPTS && certificate.file_path) {
+          await env.RECEIPTS.delete(certificate.file_path);
+          logDebug('File deleted from R2', { filePath: certificate.file_path }, env);
+        }
       } catch (error) {
         logError('Error deleting from R2 (continuing anyway)', error, env);
       }
