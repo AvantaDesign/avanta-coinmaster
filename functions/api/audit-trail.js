@@ -36,9 +36,10 @@ export async function onRequestOptions() {
 }
 
 /**
- * GET handler - List audit entries or get single entry
+ * GET handler - List audit entries with filtering, summary, or export
+ * Single entry operations moved to /api/audit-trail/[id].js
  */
-export async function onRequestGet({ request, env, params }) {
+export async function onRequestGet({ request, env }) {
   try {
     const userId = await getUserIdFromToken(request, env);
     if (!userId) {
@@ -59,11 +60,6 @@ export async function onRequestGet({ request, env, params }) {
     // Handle export endpoint
     if (pathname.includes('/export')) {
       return exportAuditTrail(env, userId, url);
-    }
-
-    // Handle single entry retrieval
-    if (params.id) {
-      return getSingleAuditEntry(env, userId, params.id);
     }
 
     // Handle list with filters
@@ -166,65 +162,6 @@ export async function onRequestPost({ request, env }) {
 }
 
 /**
- * DELETE handler - Delete audit entry (admin only)
- */
-export async function onRequestDelete({ request, env, params }) {
-  try {
-    const userId = await getUserIdFromToken(request, env);
-    if (!userId) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: corsHeaders
-      });
-    }
-
-    if (!params.id) {
-      return new Response(JSON.stringify({ error: 'Audit entry ID required' }), {
-        status: 400,
-        headers: corsHeaders
-      });
-    }
-
-    // Check if user is admin (for now, users can only delete their own entries)
-    const entry = await env.DB.prepare(`
-      SELECT * FROM audit_trail
-      WHERE id = ? AND user_id = ?
-    `).bind(params.id, userId).first();
-
-    if (!entry) {
-      return new Response(JSON.stringify({ error: 'Audit entry not found' }), {
-        status: 404,
-        headers: corsHeaders
-      });
-    }
-
-    // Note: In production, audit entries should rarely be deleted
-    // Consider marking as deleted instead of actual deletion
-    await env.DB.prepare(`
-      DELETE FROM audit_trail
-      WHERE id = ? AND user_id = ?
-    `).bind(params.id, userId).run();
-
-    return new Response(JSON.stringify({
-      success: true,
-      message: 'Audit entry deleted'
-    }), {
-      status: 200,
-      headers: corsHeaders
-    });
-  } catch (error) {
-    console.error('Error in audit-trail DELETE:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Internal server error',
-      details: error.message 
-    }), {
-      status: 500,
-      headers: corsHeaders
-    });
-  }
-}
-
-/**
  * Helper: List audit entries with filtering
  */
 async function listAuditEntries(env, userId, url) {
@@ -310,34 +247,6 @@ async function listAuditEntries(env, userId, url) {
       pages: Math.ceil(total / limit)
     }
   }), {
-    status: 200,
-    headers: corsHeaders
-  });
-}
-
-/**
- * Helper: Get single audit entry
- */
-async function getSingleAuditEntry(env, userId, entryId) {
-  const entry = await env.DB.prepare(`
-    SELECT * FROM audit_trail
-    WHERE id = ? AND user_id = ?
-  `).bind(entryId, userId).first();
-
-  if (!entry) {
-    return new Response(JSON.stringify({ error: 'Audit entry not found' }), {
-      status: 404,
-      headers: corsHeaders
-    });
-  }
-
-  // Parse JSON fields
-  entry.action_details = entry.action_details ? JSON.parse(entry.action_details) : null;
-  entry.old_values = entry.old_values ? JSON.parse(entry.old_values) : null;
-  entry.new_values = entry.new_values ? JSON.parse(entry.new_values) : null;
-  entry.metadata = entry.metadata ? JSON.parse(entry.metadata) : {};
-
-  return new Response(JSON.stringify(entry), {
     status: 200,
     headers: corsHeaders
   });
