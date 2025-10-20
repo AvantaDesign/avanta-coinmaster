@@ -1,5 +1,6 @@
 // Receivables API - Manage accounts receivable and payments
 // Phase 30: Monetary values stored as INTEGER cents in database
+// Phase 31: Backend Hardening and Security - Integrated security utilities
 
 import Decimal from 'decimal.js';
 import { 
@@ -10,22 +11,24 @@ import {
   parseMonetaryInput,
   MONETARY_FIELDS 
 } from '../utils/monetary.js';
-
-const corsHeaders = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
+import { getSecurityHeaders } from '../utils/security.js';
+import { logRequest, logError } from '../utils/logging.js';
+import { createErrorResponse } from '../utils/errors.js';
 
 export async function onRequestOptions(context) {
-  return new Response(null, { headers: corsHeaders });
+  // Phase 31: Use security headers
+  return new Response(null, { headers: getSecurityHeaders() });
 }
 
 export async function onRequestGet(context) {
   const { env, request } = context;
   
+  // Phase 31: Security headers
+  const corsHeaders = getSecurityHeaders();
+  
   try {
+    // Phase 31: Log request
+    logRequest(request, { endpoint: 'receivables', method: 'GET' }, env);
     if (!env.DB) {
       return new Response(JSON.stringify({ 
         error: 'Database not available',
