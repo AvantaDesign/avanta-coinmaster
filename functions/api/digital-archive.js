@@ -37,9 +37,10 @@ export async function onRequestOptions() {
 }
 
 /**
- * GET handler - List documents or get single document
+ * GET handler - List documents with filtering, search, or export
+ * Single document operations moved to /api/digital-archive/[id].js
  */
-export async function onRequestGet({ request, env, params }) {
+export async function onRequestGet({ request, env }) {
   try {
     const userId = await getUserIdFromToken(request, env);
     if (!userId) {
@@ -60,11 +61,6 @@ export async function onRequestGet({ request, env, params }) {
     // Handle export endpoint
     if (pathname.includes('/export')) {
       return handleExport(env, userId, url);
-    }
-
-    // Handle single document retrieval
-    if (params.id) {
-      return getSingleDocument(env, userId, params.id);
     }
 
     // Handle list with filters
@@ -216,210 +212,6 @@ export async function onRequestPost({ request, env }) {
 }
 
 /**
- * PUT handler - Update document metadata
- */
-export async function onRequestPut({ request, env, params }) {
-  try {
-    const userId = await getUserIdFromToken(request, env);
-    if (!userId) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: corsHeaders
-      });
-    }
-
-    if (!params.id) {
-      return new Response(JSON.stringify({ error: 'Document ID required' }), {
-        status: 400,
-        headers: corsHeaders
-      });
-    }
-
-    const body = await request.json();
-    const {
-      document_name,
-      expiration_date,
-      retention_period,
-      access_level,
-      tags,
-      metadata,
-      status
-    } = body;
-
-    // Get current document to verify ownership
-    const currentDoc = await env.DB.prepare(`
-      SELECT * FROM digital_archive
-      WHERE id = ? AND user_id = ?
-    `).bind(params.id, userId).first();
-
-    if (!currentDoc) {
-      return new Response(JSON.stringify({ error: 'Document not found' }), {
-        status: 404,
-        headers: corsHeaders
-      });
-    }
-
-    // Build update query dynamically
-    const updates = [];
-    const values = [];
-
-    if (document_name !== undefined) {
-      updates.push('document_name = ?');
-      values.push(document_name);
-    }
-    if (expiration_date !== undefined) {
-      updates.push('expiration_date = ?');
-      values.push(expiration_date);
-    }
-    if (retention_period !== undefined) {
-      updates.push('retention_period = ?');
-      values.push(retention_period);
-    }
-    if (access_level !== undefined) {
-      updates.push('access_level = ?');
-      values.push(access_level);
-    }
-    if (tags !== undefined) {
-      updates.push('tags = ?');
-      values.push(JSON.stringify(tags));
-    }
-    if (metadata !== undefined) {
-      updates.push('metadata = ?');
-      values.push(JSON.stringify(metadata));
-    }
-    if (status !== undefined) {
-      updates.push('status = ?');
-      values.push(status);
-    }
-
-    if (updates.length === 0) {
-      return new Response(JSON.stringify({ error: 'No fields to update' }), {
-        status: 400,
-        headers: corsHeaders
-      });
-    }
-
-    values.push(params.id);
-    values.push(userId);
-
-    await env.DB.prepare(`
-      UPDATE digital_archive
-      SET ${updates.join(', ')}
-      WHERE id = ? AND user_id = ?
-    `).bind(...values).run();
-
-    // Log audit trail
-    await logAuditTrail(env, userId, 'update', 'document', params.id, {
-      updated_fields: Object.keys(body)
-    });
-
-    return new Response(JSON.stringify({
-      success: true,
-      message: 'Document updated successfully'
-    }), {
-      status: 200,
-      headers: corsHeaders
-    });
-  } catch (error) {
-    console.error('Error in digital-archive PUT:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Internal server error',
-      details: error.message 
-    }), {
-      status: 500,
-      headers: corsHeaders
-    });
-  }
-}
-
-/**
- * DELETE handler - Delete or archive document
- */
-export async function onRequestDelete({ request, env, params }) {
-  try {
-    const userId = await getUserIdFromToken(request, env);
-    if (!userId) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: corsHeaders
-      });
-    }
-
-    if (!params.id) {
-      return new Response(JSON.stringify({ error: 'Document ID required' }), {
-        status: 400,
-        headers: corsHeaders
-      });
-    }
-
-    const url = new URL(request.url);
-    const permanent = url.searchParams.get('permanent') === 'true';
-
-    // Verify document exists and belongs to user
-    const document = await env.DB.prepare(`
-      SELECT * FROM digital_archive
-      WHERE id = ? AND user_id = ?
-    `).bind(params.id, userId).first();
-
-    if (!document) {
-      return new Response(JSON.stringify({ error: 'Document not found' }), {
-        status: 404,
-        headers: corsHeaders
-      });
-    }
-
-    if (permanent) {
-      // Permanent deletion
-      await env.DB.prepare(`
-        DELETE FROM digital_archive
-        WHERE id = ? AND user_id = ?
-      `).bind(params.id, userId).run();
-
-      await logAuditTrail(env, userId, 'delete', 'document', params.id, {
-        permanent: true,
-        document_name: document.document_name
-      });
-
-      return new Response(JSON.stringify({
-        success: true,
-        message: 'Document permanently deleted'
-      }), {
-        status: 200,
-        headers: corsHeaders
-      });
-    } else {
-      // Soft delete (mark as deleted)
-      await env.DB.prepare(`
-        UPDATE digital_archive
-        SET status = 'deleted'
-        WHERE id = ? AND user_id = ?
-      `).bind(params.id, userId).run();
-
-      await logAuditTrail(env, userId, 'archive', 'document', params.id, {
-        document_name: document.document_name
-      });
-
-      return new Response(JSON.stringify({
-        success: true,
-        message: 'Document archived'
-      }), {
-        status: 200,
-        headers: corsHeaders
-      });
-    }
-  } catch (error) {
-    console.error('Error in digital-archive DELETE:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Internal server error',
-      details: error.message 
-    }), {
-      status: 500,
-      headers: corsHeaders
-    });
-  }
-}
-
-/**
  * Helper: List documents with filtering
  */
 async function listDocuments(env, userId, url) {
@@ -479,37 +271,6 @@ async function listDocuments(env, userId, url) {
       pages: Math.ceil(total / limit)
     }
   }), {
-    status: 200,
-    headers: corsHeaders
-  });
-}
-
-/**
- * Helper: Get single document
- */
-async function getSingleDocument(env, userId, documentId) {
-  const document = await env.DB.prepare(`
-    SELECT * FROM digital_archive
-    WHERE id = ? AND user_id = ?
-  `).bind(documentId, userId).first();
-
-  if (!document) {
-    return new Response(JSON.stringify({ error: 'Document not found' }), {
-      status: 404,
-      headers: corsHeaders
-    });
-  }
-
-  // Parse JSON fields
-  document.tags = document.tags ? JSON.parse(document.tags) : [];
-  document.metadata = document.metadata ? JSON.parse(document.metadata) : {};
-
-  // Log read access
-  await logAuditTrail(env, userId, 'read', 'document', documentId, {
-    document_name: document.document_name
-  });
-
-  return new Response(JSON.stringify(document), {
     status: 200,
     headers: corsHeaders
   });

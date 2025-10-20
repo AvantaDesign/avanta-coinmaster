@@ -37,9 +37,10 @@ export async function onRequestOptions() {
 }
 
 /**
- * GET handler - List compliance checks or get single check
+ * GET handler - List compliance checks with filtering, alerts, or reports
+ * Single check operations moved to /api/compliance-monitoring/[id].js
  */
-export async function onRequestGet({ request, env, params }) {
+export async function onRequestGet({ request, env }) {
   try {
     const userId = await getUserIdFromToken(request, env);
     if (!userId) {
@@ -60,11 +61,6 @@ export async function onRequestGet({ request, env, params }) {
     // Handle reports endpoint
     if (pathname.includes('/reports')) {
       return generateComplianceReport(env, userId, url);
-    }
-
-    // Handle single check retrieval
-    if (params.id) {
-      return getSingleComplianceCheck(env, userId, params.id);
     }
 
     // Handle list with filters
@@ -171,169 +167,6 @@ export async function onRequestPost({ request, env }) {
 }
 
 /**
- * PUT handler - Update compliance status
- */
-export async function onRequestPut({ request, env, params }) {
-  try {
-    const userId = await getUserIdFromToken(request, env);
-    if (!userId) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: corsHeaders
-      });
-    }
-
-    if (!params.id) {
-      return new Response(JSON.stringify({ error: 'Compliance check ID required' }), {
-        status: 400,
-        headers: corsHeaders
-      });
-    }
-
-    const body = await request.json();
-    const {
-      status,
-      resolution_notes
-    } = body;
-
-    // Verify compliance check exists and belongs to user
-    const check = await env.DB.prepare(`
-      SELECT * FROM compliance_monitoring
-      WHERE id = ? AND user_id = ?
-    `).bind(params.id, userId).first();
-
-    if (!check) {
-      return new Response(JSON.stringify({ error: 'Compliance check not found' }), {
-        status: 404,
-        headers: corsHeaders
-      });
-    }
-
-    // Build update query
-    const updates = [];
-    const values = [];
-
-    if (status !== undefined) {
-      updates.push('status = ?');
-      values.push(status);
-      
-      if (status === 'resolved') {
-        updates.push('resolved_date = CURRENT_TIMESTAMP');
-        updates.push('resolved_by = ?');
-        values.push(userId);
-      }
-    }
-
-    if (resolution_notes !== undefined) {
-      updates.push('resolution_notes = ?');
-      values.push(resolution_notes);
-    }
-
-    if (updates.length === 0) {
-      return new Response(JSON.stringify({ error: 'No fields to update' }), {
-        status: 400,
-        headers: corsHeaders
-      });
-    }
-
-    values.push(params.id);
-    values.push(userId);
-
-    await env.DB.prepare(`
-      UPDATE compliance_monitoring
-      SET ${updates.join(', ')}
-      WHERE id = ? AND user_id = ?
-    `).bind(...values).run();
-
-    // Log audit trail
-    await logAuditTrail(env, userId, 'update', 'compliance', params.id, {
-      updated_fields: Object.keys(body),
-      new_status: status
-    });
-
-    return new Response(JSON.stringify({
-      success: true,
-      message: 'Compliance check updated successfully'
-    }), {
-      status: 200,
-      headers: corsHeaders
-    });
-  } catch (error) {
-    console.error('Error in compliance-monitoring PUT:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Internal server error',
-      details: error.message 
-    }), {
-      status: 500,
-      headers: corsHeaders
-    });
-  }
-}
-
-/**
- * DELETE handler - Delete compliance check
- */
-export async function onRequestDelete({ request, env, params }) {
-  try {
-    const userId = await getUserIdFromToken(request, env);
-    if (!userId) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: corsHeaders
-      });
-    }
-
-    if (!params.id) {
-      return new Response(JSON.stringify({ error: 'Compliance check ID required' }), {
-        status: 400,
-        headers: corsHeaders
-      });
-    }
-
-    // Verify compliance check exists and belongs to user
-    const check = await env.DB.prepare(`
-      SELECT * FROM compliance_monitoring
-      WHERE id = ? AND user_id = ?
-    `).bind(params.id, userId).first();
-
-    if (!check) {
-      return new Response(JSON.stringify({ error: 'Compliance check not found' }), {
-        status: 404,
-        headers: corsHeaders
-      });
-    }
-
-    await env.DB.prepare(`
-      DELETE FROM compliance_monitoring
-      WHERE id = ? AND user_id = ?
-    `).bind(params.id, userId).run();
-
-    // Log audit trail
-    await logAuditTrail(env, userId, 'delete', 'compliance', params.id, {
-      compliance_type: check.compliance_type,
-      period: `${check.period_year}-${check.period_month || 'annual'}`
-    });
-
-    return new Response(JSON.stringify({
-      success: true,
-      message: 'Compliance check deleted'
-    }), {
-      status: 200,
-      headers: corsHeaders
-    });
-  } catch (error) {
-    console.error('Error in compliance-monitoring DELETE:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Internal server error',
-      details: error.message 
-    }), {
-      status: 500,
-      headers: corsHeaders
-    });
-  }
-}
-
-/**
  * Helper: List compliance checks with filtering
  */
 async function listComplianceChecks(env, userId, url) {
@@ -400,33 +233,6 @@ async function listComplianceChecks(env, userId, url) {
       pages: Math.ceil(total / limit)
     }
   }), {
-    status: 200,
-    headers: corsHeaders
-  });
-}
-
-/**
- * Helper: Get single compliance check
- */
-async function getSingleComplianceCheck(env, userId, checkId) {
-  const check = await env.DB.prepare(`
-    SELECT * FROM compliance_monitoring
-    WHERE id = ? AND user_id = ?
-  `).bind(checkId, userId).first();
-
-  if (!check) {
-    return new Response(JSON.stringify({ error: 'Compliance check not found' }), {
-      status: 404,
-      headers: corsHeaders
-    });
-  }
-
-  // Parse JSON fields
-  check.issues_found = check.issues_found ? JSON.parse(check.issues_found) : [];
-  check.recommendations = check.recommendations ? JSON.parse(check.recommendations) : [];
-  check.metadata = check.metadata ? JSON.parse(check.metadata) : {};
-
-  return new Response(JSON.stringify(check), {
     status: 200,
     headers: corsHeaders
   });
