@@ -1,9 +1,9 @@
 // Declaration Guide API - Interactive Declaration Assistance
 // Phase 36: Task System Redesign as Interactive Guide
 
-import { getUserFromRequest, corsHeaders } from '../utils/security.js';
+import { getUserIdFromToken } from './auth.js';
+import { getSecurityHeaders } from '../utils/security.js';
 import { createErrorResponse, createSuccessResponse } from '../utils/errors.js';
-import { validateRequired } from '../utils/validation.js';
 import { logInfo, logError } from '../utils/logging.js';
 
 /**
@@ -18,6 +18,7 @@ import { logInfo, logError } from '../utils/logging.js';
  */
 
 export async function onRequestOptions(context) {
+  const corsHeaders = getSecurityHeaders();
   return new Response(null, { headers: corsHeaders });
 }
 
@@ -29,8 +30,8 @@ export async function onRequestGet(context) {
   const { env, request } = context;
 
   try {
-    const user = await getUserFromRequest(request, env);
-    if (!user) {
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
       return createErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
 
@@ -41,7 +42,7 @@ export async function onRequestGet(context) {
 
     if (action === 'progress') {
       // Get user's progress for this declaration type
-      return await getDeclarationProgress(env, user.id, type);
+      return await getDeclarationProgress(env, userId, type);
     }
 
     // Get declaration steps
@@ -88,8 +89,8 @@ export async function onRequestPost(context) {
   const { env, request } = context;
 
   try {
-    const user = await getUserFromRequest(request, env);
-    if (!user) {
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
       return createErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
 
@@ -99,10 +100,10 @@ export async function onRequestPost(context) {
     const type = pathParts[pathParts.indexOf('declaration-guide') + 1];
 
     if (action === 'start') {
-      return await startDeclaration(env, user.id, type, request);
+      return await startDeclaration(env, userId, type, request);
     } else if (action.startsWith('step')) {
       const stepId = pathParts[pathParts.length - 1];
-      return await completeDeclarationStep(env, user.id, type, stepId, request);
+      return await completeDeclarationStep(env, userId, type, stepId, request);
     }
 
     return createErrorResponse('Invalid action', 'INVALID_ACTION', 400);
@@ -121,8 +122,8 @@ export async function onRequestPut(context) {
   const { env, request } = context;
 
   try {
-    const user = await getUserFromRequest(request, env);
-    if (!user) {
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
       return createErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
 
@@ -131,7 +132,7 @@ export async function onRequestPut(context) {
     const stepId = pathParts[pathParts.length - 1];
     const type = pathParts[pathParts.indexOf('declaration-guide') + 1];
 
-    return await completeDeclarationStep(env, user.id, type, stepId, request);
+    return await completeDeclarationStep(env, userId, type, stepId, request);
 
   } catch (error) {
     logError('Complete Step Error', { error: error.message });

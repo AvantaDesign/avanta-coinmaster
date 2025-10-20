@@ -1,9 +1,9 @@
 // Task Engine API - Automatic Task Progress Evaluation
 // Phase 36: Task System Redesign as Interactive Guide
 
-import { getUserFromRequest, corsHeaders } from '../utils/security.js';
+import { getUserIdFromToken } from './auth.js';
+import { getSecurityHeaders } from '../utils/security.js';
 import { createErrorResponse, createSuccessResponse } from '../utils/errors.js';
-import { validateRequired } from '../utils/validation.js';
 import { logInfo, logError } from '../utils/logging.js';
 
 /**
@@ -18,6 +18,7 @@ import { logInfo, logError } from '../utils/logging.js';
  */
 
 export async function onRequestOptions(context) {
+  const corsHeaders = getSecurityHeaders();
   return new Response(null, { headers: corsHeaders });
 }
 
@@ -29,8 +30,8 @@ export async function onRequestPost(context) {
   const { env, request } = context;
 
   try {
-    const user = await getUserFromRequest(request, env);
-    if (!user) {
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
       return createErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
 
@@ -38,7 +39,7 @@ export async function onRequestPost(context) {
     const action = url.searchParams.get('action') || 'evaluate-all';
 
     if (action === 'evaluate-all') {
-      return await evaluateAllTasks(env, user.id);
+      return await evaluateAllTasks(env, userId);
     } else if (action === 'evaluate-task') {
       const body = await request.json();
       const { taskId } = body;
@@ -47,10 +48,10 @@ export async function onRequestPost(context) {
         return createErrorResponse('Task ID is required', 'VALIDATION_ERROR', 400);
       }
       
-      return await evaluateTask(env, user.id, taskId);
+      return await evaluateTask(env, userId, taskId);
     } else if (action === 'update-progress') {
       const body = await request.json();
-      return await manualProgressUpdate(env, user.id, body);
+      return await manualProgressUpdate(env, userId, body);
     }
 
     return createErrorResponse('Invalid action', 'INVALID_ACTION', 400);
@@ -69,8 +70,8 @@ export async function onRequestGet(context) {
   const { env, request } = context;
 
   try {
-    const user = await getUserFromRequest(request, env);
-    if (!user) {
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
       return createErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
 

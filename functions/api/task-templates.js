@@ -1,9 +1,9 @@
 // Task Templates API - Manage Task Templates
 // Phase 36: Task System Redesign as Interactive Guide
 
-import { getUserFromRequest, corsHeaders } from '../utils/security.js';
+import { getUserIdFromToken } from './auth.js';
+import { getSecurityHeaders } from '../utils/security.js';
 import { createErrorResponse, createSuccessResponse } from '../utils/errors.js';
-import { validateRequired } from '../utils/validation.js';
 import { logInfo, logError } from '../utils/logging.js';
 
 /**
@@ -11,6 +11,7 @@ import { logInfo, logError } from '../utils/logging.js';
  */
 
 export async function onRequestOptions(context) {
+  const corsHeaders = getSecurityHeaders();
   return new Response(null, { headers: corsHeaders });
 }
 
@@ -22,8 +23,8 @@ export async function onRequestGet(context) {
   const { env, request } = context;
 
   try {
-    const user = await getUserFromRequest(request, env);
-    if (!user) {
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
       return createErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
 
@@ -100,8 +101,8 @@ export async function onRequestPost(context) {
   const { env, request } = context;
 
   try {
-    const user = await getUserFromRequest(request, env);
-    if (!user) {
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
       return createErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
 
@@ -159,7 +160,7 @@ export async function onRequestPost(context) {
         progress_percentage, auto_update, task_type
       ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, 0, ?, ?)
     `).bind(
-      user.id,
+      userId,
       template.template_name,
       taskFrequency,
       template.template_name,
@@ -176,7 +177,7 @@ export async function onRequestPost(context) {
     `).bind(result.meta.last_row_id).first();
 
     logInfo('Task Created from Template', {
-      userId: user.id,
+      userId: userId,
       templateId: template_id,
       taskId: result.meta.last_row_id
     });
@@ -209,7 +210,13 @@ export async function onRequestPut(context) {
   const { env, request } = context;
 
   try {
-    const user = await getUserFromRequest(request, env);
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return createErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
+    }
+
+    // Check if user is admin
+    const user = await env.DB.prepare('SELECT role FROM users WHERE id = ?').bind(userId).first();
     if (!user || user.role !== 'admin') {
       return createErrorResponse('Unauthorized - Admin access required', 'UNAUTHORIZED', 403);
     }
@@ -290,7 +297,7 @@ export async function onRequestPut(context) {
       SELECT * FROM task_templates WHERE id = ?
     `).bind(templateId).first();
 
-    logInfo('Template Updated', { userId: user.id, templateId });
+    logInfo('Template Updated', { userId: userId, templateId });
 
     return createSuccessResponse({
       message: 'Template updated successfully',
@@ -314,7 +321,13 @@ export async function onRequestDelete(context) {
   const { env, request } = context;
 
   try {
-    const user = await getUserFromRequest(request, env);
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return createErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
+    }
+
+    // Check if user is admin
+    const user = await env.DB.prepare('SELECT role FROM users WHERE id = ?').bind(userId).first();
     if (!user || user.role !== 'admin') {
       return createErrorResponse('Unauthorized - Admin access required', 'UNAUTHORIZED', 403);
     }
@@ -334,7 +347,7 @@ export async function onRequestDelete(context) {
       WHERE id = ?
     `).bind(templateId).run();
 
-    logInfo('Template Deactivated', { userId: user.id, templateId });
+    logInfo('Template Deactivated', { userId: userId, templateId });
 
     return createSuccessResponse({
       message: 'Template deactivated successfully'

@@ -2,7 +2,8 @@
 // Phase 5: In-App Financial Activities and Workflows
 // Phase 36: Enhanced with automatic progress tracking and completion criteria
 
-import { getUserFromRequest, corsHeaders } from '../utils/security.js';
+import { getUserIdFromToken } from './auth.js';
+import { getSecurityHeaders } from '../utils/security.js';
 import { createErrorResponse, createSuccessResponse } from '../utils/errors.js';
 import { logInfo, logError } from '../utils/logging.js';
 
@@ -38,6 +39,7 @@ const DEFAULT_TASKS = {
 };
 
 export async function onRequestOptions(context) {
+  const corsHeaders = getSecurityHeaders();
   return new Response(null, { headers: corsHeaders });
 }
 
@@ -50,8 +52,8 @@ export async function onRequestGet(context) {
     }
 
     // Get authenticated user
-    const user = await getUserFromRequest(request, env);
-    if (!user) {
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
       return createErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
 
@@ -71,7 +73,7 @@ export async function onRequestGet(context) {
       FROM financial_tasks 
       WHERE user_id = ?
     `;
-    const params = [user.id];
+    const params = [userId];
 
     if (frequency) {
       query += ' AND frequency = ?';
@@ -115,7 +117,7 @@ export async function onRequestGet(context) {
       FROM financial_tasks 
       WHERE user_id = ?
       GROUP BY frequency
-    `).bind(user.id).all();
+    `).bind(userId).all();
 
     // Get task type breakdown
     const typeStats = await env.DB.prepare(`
@@ -126,7 +128,7 @@ export async function onRequestGet(context) {
       FROM financial_tasks 
       WHERE user_id = ?
       GROUP BY task_type
-    `).bind(user.id).all();
+    `).bind(userId).all();
 
     return createSuccessResponse({
       tasks: parsedTasks,
@@ -150,8 +152,8 @@ export async function onRequestPost(context) {
     }
 
     // Get authenticated user
-    const user = await getUserFromRequest(request, env);
-    if (!user) {
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
       return createErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
 
@@ -180,7 +182,7 @@ export async function onRequestPost(context) {
     if (data.due_date) {
       const existing = await env.DB.prepare(
         'SELECT id FROM financial_tasks WHERE user_id = ? AND task_key = ? AND due_date = ?'
-      ).bind(user.id, data.task_key, data.due_date).first();
+      ).bind(userId, data.task_key, data.due_date).first();
 
       if (existing) {
         return createErrorResponse('Task already exists for this period', 'DUPLICATE_ERROR', 409);
@@ -204,7 +206,7 @@ export async function onRequestPost(context) {
       )
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
-      user.id,
+      userId,
       data.task_key,
       data.frequency,
       data.title,
@@ -230,7 +232,7 @@ export async function onRequestPost(context) {
       completion_criteria: task.completion_criteria ? JSON.parse(task.completion_criteria) : null
     };
 
-    logInfo('Task Created', { userId: user.id, taskId: result.meta.last_row_id });
+    logInfo('Task Created', { userId: userId, taskId: result.meta.last_row_id });
 
     return createSuccessResponse(parsedTask, 201);
 
@@ -249,8 +251,8 @@ export async function onRequestPut(context) {
     }
 
     // Get authenticated user
-    const user = await getUserFromRequest(request, env);
-    if (!user) {
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
       return createErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
 
@@ -265,7 +267,7 @@ export async function onRequestPut(context) {
     // Check if task exists
     const existing = await env.DB.prepare(
       'SELECT * FROM financial_tasks WHERE id = ? AND user_id = ?'
-    ).bind(id, user.id).first();
+    ).bind(id, userId).first();
 
     if (!existing) {
       return createErrorResponse('Task not found', 'NOT_FOUND', 404);
@@ -283,9 +285,9 @@ export async function onRequestPut(context) {
             completed_at = CASE WHEN ? = 1 THEN CURRENT_TIMESTAMP ELSE NULL END,
             updated_at = CURRENT_TIMESTAMP 
         WHERE id = ? AND user_id = ?
-      `).bind(newCompleted, newProgress, newCompleted, id, user.id).run();
+      `).bind(newCompleted, newProgress, newCompleted, id, userId).run();
 
-      logInfo('Task Toggled', { userId: user.id, taskId: id, completed: newCompleted });
+      logInfo('Task Toggled', { userId: userId, taskId: id, completed: newCompleted });
     } else {
       // Regular update
       const data = await request.json();
@@ -342,7 +344,7 @@ export async function onRequestPut(context) {
       }
 
       updates.push('updated_at = CURRENT_TIMESTAMP');
-      params.push(id, user.id);
+      params.push(id, userId);
 
       const query = `
         UPDATE financial_tasks 
@@ -352,7 +354,7 @@ export async function onRequestPut(context) {
 
       await env.DB.prepare(query).bind(...params).run();
 
-      logInfo('Task Updated', { userId: user.id, taskId: id });
+      logInfo('Task Updated', { userId: userId, taskId: id });
     }
 
     // Fetch updated task
@@ -383,8 +385,8 @@ export async function onRequestDelete(context) {
     }
 
     // Get authenticated user
-    const user = await getUserFromRequest(request, env);
-    if (!user) {
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
       return createErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
 
@@ -398,7 +400,7 @@ export async function onRequestDelete(context) {
     // Check if task exists
     const existing = await env.DB.prepare(
       'SELECT * FROM financial_tasks WHERE id = ? AND user_id = ?'
-    ).bind(id, user.id).first();
+    ).bind(id, userId).first();
 
     if (!existing) {
       return createErrorResponse('Task not found', 'NOT_FOUND', 404);
@@ -407,9 +409,9 @@ export async function onRequestDelete(context) {
     // Delete task (cascade will delete task_progress records)
     await env.DB.prepare(
       'DELETE FROM financial_tasks WHERE id = ? AND user_id = ?'
-    ).bind(id, user.id).run();
+    ).bind(id, userId).run();
 
-    logInfo('Task Deleted', { userId: user.id, taskId: id });
+    logInfo('Task Deleted', { userId: userId, taskId: id });
 
     return createSuccessResponse({ 
       message: 'Task deleted successfully'
