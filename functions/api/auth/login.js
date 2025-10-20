@@ -260,6 +260,7 @@ async function handleLogin(request, env) {
         id: user.id,
         email: user.email,
         name: user.name,
+        role: user.role || 'user',
         created_at: user.created_at,
       }
     }), {
