@@ -23,8 +23,23 @@
  *   });
  */
 
-import { logger } from './errorMonitoring';
-
+// Safe import of logger from errorMonitoring, with fallback
+let logger;
+try {
+  // Try to import logger from errorMonitoring
+  ({ logger } = require('./errorMonitoring'));
+} catch (e) {
+  // Module not found or import failed
+  logger = undefined;
+}
+// Fallback logger if import failed or logger is undefined
+if (!logger) {
+  logger = {
+    info: console.info,
+    warn: console.warn,
+    error: console.error,
+  };
+}
 /**
  * Default retry policy configuration
  */
