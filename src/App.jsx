@@ -241,6 +241,13 @@ function NavigationBar() {
         { name: 'Registro de Auditoría', icon: '🔒', path: '/audit-log' }
       ]
     },
+    // Phase 37: Demo Mode Access
+    {
+      name: 'Demo',
+      icon: '🎓',
+      path: '/demo',
+      type: 'single'
+    },
     // Phase 35: Centralized Settings Panel
     {
       name: 'Configuración',

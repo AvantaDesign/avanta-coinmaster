@@ -279,15 +279,27 @@ export default function LoginForm() {
           </div>
         )}
 
-        {/* Demo Credentials */}
-        <div className="mt-4">
-          <button
-            type="button"
-            onClick={fillDemoCredentials}
-            className="w-full text-center text-sm text-primary-600 hover:text-primary-800 hover:underline"
-          >
-            Usar credenciales de demostración
-          </button>
+        {/* Demo Credentials - More Prominent */}
+        <div className="mt-6">
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div className="text-center">
+              <div className="text-2xl mb-2">🎓</div>
+              <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                Modo Demostración
+              </h3>
+              <p className="text-sm text-blue-700 dark:text-blue-300 mb-4">
+                Explora el sistema con datos de ejemplo. Incluye escenarios de negocio saludable y en crisis.
+              </p>
+              <button
+                type="button"
+                onClick={fillDemoCredentials}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center"
+              >
+                <span className="mr-2">🚀</span>
+                Probar Demo Gratis
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Footer */}
