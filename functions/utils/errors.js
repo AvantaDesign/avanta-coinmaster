@@ -12,40 +12,10 @@
 
 import { getSecurityHeaders } from './security.js';
 import { logError } from './logging.js';
+import { getErrorCode, createStandardError, mapHttpStatusToErrorCode, HttpStatus, ErrorType } from './error-codes.js';
 
-/**
- * Error types for categorization
- */
-export const ErrorType = {
-  VALIDATION: 'VALIDATION_ERROR',
-  AUTHENTICATION: 'AUTHENTICATION_ERROR',
-  AUTHORIZATION: 'AUTHORIZATION_ERROR',
-  NOT_FOUND: 'NOT_FOUND',
-  CONFLICT: 'CONFLICT',
-  DATABASE: 'DATABASE_ERROR',
-  EXTERNAL_SERVICE: 'EXTERNAL_SERVICE_ERROR',
-  RATE_LIMIT: 'RATE_LIMIT_ERROR',
-  SERVER: 'INTERNAL_SERVER_ERROR',
-  BAD_REQUEST: 'BAD_REQUEST'
-};
-
-/**
- * HTTP status codes
- */
-export const HttpStatus = {
-  OK: 200,
-  CREATED: 201,
-  NO_CONTENT: 204,
-  BAD_REQUEST: 400,
-  UNAUTHORIZED: 401,
-  FORBIDDEN: 403,
-  NOT_FOUND: 404,
-  CONFLICT: 409,
-  UNPROCESSABLE_ENTITY: 422,
-  TOO_MANY_REQUESTS: 429,
-  INTERNAL_SERVER_ERROR: 500,
-  SERVICE_UNAVAILABLE: 503
-};
+// Re-export for backward compatibility
+export { HttpStatus, ErrorType };
 
 /**
  * Custom error class with additional context
@@ -74,25 +44,34 @@ export async function createErrorResponse(error, request = null, env = null) {
   let errorType = ErrorType.SERVER;
   let message = 'An unexpected error occurred';
   let details = null;
+  let errorCode = 'UNKNOWN_ERROR';
   
   if (error instanceof AppError) {
     statusCode = error.statusCode;
     errorType = error.type;
     message = error.message;
     details = error.context;
+    errorCode = error.context?.code || mapHttpStatusToErrorCode(statusCode);
   } else if (error.name === 'ValidationError') {
     statusCode = HttpStatus.BAD_REQUEST;
     errorType = ErrorType.VALIDATION;
     message = error.message;
+    errorCode = 'VAL_INVALID_INPUT';
   } else if (error.message) {
     message = error.message;
+    errorCode = mapHttpStatusToErrorCode(statusCode);
   }
+  
+  // Get standardized error info
+  const standardError = getErrorCode(errorCode);
   
   // Log error for monitoring
   if (env) {
     await logError(error, {
       type: errorType,
       statusCode,
+      errorCode,
+      severity: standardError?.severity,
       request: request ? {
         method: request.method,
         url: request.url,
@@ -104,8 +83,11 @@ export async function createErrorResponse(error, request = null, env = null) {
   // Create response body
   const responseBody = {
     error: true,
+    code: errorCode,
     type: errorType,
-    message: sanitizeErrorMessage(message, statusCode),
+    message: sanitizeErrorMessage(standardError?.message || message, statusCode),
+    recoverable: standardError?.recoverable ?? true,
+    retryable: standardError?.retryable ?? false,
     timestamp: new Date().toISOString()
   };
   
@@ -113,6 +95,7 @@ export async function createErrorResponse(error, request = null, env = null) {
   if (env?.ENVIRONMENT === 'preview' || env?.ENABLE_DEBUG_LOGS === 'true') {
     responseBody.details = details;
     responseBody.stack = error.stack;
+    responseBody.messageEn = standardError?.messageEn;
   }
   
   return new Response(JSON.stringify(responseBody), {

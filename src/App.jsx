@@ -7,6 +7,7 @@ import ToastContainer from './components/ToastNotification';
 import { initializeAnalytics, trackPageView } from './utils/analytics';
 import { initializeErrorMonitoring } from './utils/errorMonitoring';
 import { fetchNotifications } from './utils/api';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Lazy load pages and heavy components for better performance
 const Home = lazy(() => import('./pages/Home'));
@@ -653,21 +654,25 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <AuthProvider>
-        <Routes>
-          <Route path="/login" element={<LoginForm />} />
-          <Route 
-            path="/*" 
-            element={
-              <ProtectedRoute>
-                <AuthenticatedApp />
-              </ProtectedRoute>
-            } 
-          />
-        </Routes>
-      </AuthProvider>
-    </Router>
+    <ErrorBoundary context="app-root">
+      <Router>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<LoginForm />} />
+            <Route 
+              path="/*" 
+              element={
+                <ProtectedRoute>
+                  <ErrorBoundary context="authenticated-app">
+                    <AuthenticatedApp />
+                  </ErrorBoundary>
+                </ProtectedRoute>
+              } 
+            />
+          </Routes>
+        </AuthProvider>
+      </Router>
+    </ErrorBoundary>
   );
 }
 
