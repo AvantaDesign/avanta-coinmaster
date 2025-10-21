@@ -3,7 +3,7 @@
 // Handles: GET, PUT, DELETE /api/compliance-monitoring/:id
 
 import { getUserIdFromToken } from '../auth.js';
-import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../../utils/logging.js';
 
 // CORS headers
 const corsHeaders = {

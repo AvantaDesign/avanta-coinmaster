@@ -3,7 +3,7 @@
 // SECURITY: Uses Web Crypto API for password hashing and jose library for JWT
 
 import { SignJWT, jwtVerify } from 'jose';
-import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../../utils/logging.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',

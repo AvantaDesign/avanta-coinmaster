@@ -12,7 +12,7 @@
 // - User isolation for security
 
 import { getUserIdFromToken } from '../auth.js';
-import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../../utils/logging.js';
 
 /**
  * POST /api/transactions/bulk-update
