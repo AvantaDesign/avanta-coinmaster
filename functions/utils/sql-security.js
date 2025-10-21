@@ -356,7 +356,7 @@ export const SQL_SECURITY_GUIDELINES = {
     {
       rule: 'Never concatenate user input into SQL',
       description: 'String concatenation with user input creates SQL injection vulnerabilities',
-      bad: 'SELECT * FROM users WHERE name = "' + userName + '"',
+      bad: 'SELECT * FROM users WHERE name = "' + 'userName' + '"',
       good: 'env.DB.prepare("SELECT * FROM users WHERE name = ?").bind(userName)'
     },
     {
