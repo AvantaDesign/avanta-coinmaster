@@ -1,9 +1,11 @@
 // Authentication API - Handle user login, token validation, and session management
 // Supports multiple authentication methods: email/password, Google OAuth
 // SECURITY: Uses Web Crypto API for password hashing and jose library for JWT
+// Phase 42: Structured logging implementation
 
 import { SignJWT, jwtVerify } from 'jose';
 import { getSecurityHeaders } from '../utils/security.js';
+import { logInfo, logError, logDebug, logAuthEvent, logSecurityEvent, getCorrelationId } from '../utils/logging.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -82,7 +84,7 @@ async function verifyPassword(password, storedHash) {
     
     return result === 0;
   } catch (error) {
-    console.error('Error verifying password:', error);
+    // Silent error - don't log password verification attempts for security
     return false;
   }
 }
@@ -126,7 +128,7 @@ async function verifyJWT(token, secret) {
     
     return payload;
   } catch (error) {
-    console.error('Error verifying JWT:', error);
+    // Silent error - invalid tokens are expected
     return null;
   }
 }
@@ -136,19 +138,15 @@ async function verifyJWT(token, secret) {
  */
 export async function getUserIdFromToken(request, env) {
   const authHeader = request.headers.get('Authorization');
-  console.log('getUserIdFromToken: authHeader:', authHeader);
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    console.log('getUserIdFromToken: No valid auth header');
     return null;
   }
   
   const token = authHeader.substring(7);
-  console.log('getUserIdFromToken: token length:', token.length);
   
   const secret = env.JWT_SECRET || 'avanta-coinmaster-secret-key-change-in-production';
   const payload = await verifyJWT(token, secret);
-  console.log('getUserIdFromToken: payload:', payload);
   
   return payload?.sub || payload?.user_id || null;
 }
@@ -262,7 +260,13 @@ async function handleRegister(request, env) {
     });
     
   } catch (error) {
-    console.error('Registration error:', error);
+    await logError(error, {
+      endpoint: '/api/auth/register',
+      method: 'POST',
+      correlationId: getCorrelationId(request),
+      category: 'auth'
+    }, env);
+    
     return new Response(JSON.stringify({
       error: 'Registration failed',
       message: error.message,
@@ -378,7 +382,13 @@ async function handleLogin(request, env) {
     });
     
   } catch (error) {
-    console.error('Login error:', error);
+    await logError(error, {
+      endpoint: '/api/auth/login',
+      method: 'POST',
+      correlationId: getCorrelationId(request),
+      category: 'auth'
+    }, env);
+    
     return new Response(JSON.stringify({
       error: 'Login failed',
       message: error.message,
@@ -484,7 +494,13 @@ async function handleGoogleLogin(request, env) {
     });
     
   } catch (error) {
-    console.error('Google login error:', error);
+    await logError(error, {
+      endpoint: '/api/auth/google',
+      method: 'POST',
+      correlationId: getCorrelationId(request),
+      category: 'auth'
+    }, env);
+    
     return new Response(JSON.stringify({
       error: 'Google login failed',
       message: error.message,
@@ -558,7 +574,13 @@ async function handleRefreshToken(request, env) {
     });
     
   } catch (error) {
-    console.error('Token refresh error:', error);
+    await logError(error, {
+      endpoint: '/api/auth/refresh',
+      method: 'POST',
+      correlationId: getCorrelationId(request),
+      category: 'auth'
+    }, env);
+    
     return new Response(JSON.stringify({
       error: 'Token refresh failed',
       message: error.message,
@@ -616,7 +638,13 @@ async function handleGetCurrentUser(request, env) {
     });
     
   } catch (error) {
-    console.error('Get user error:', error);
+    await logError(error, {
+      endpoint: '/api/auth/me',
+      method: 'GET',
+      correlationId: getCorrelationId(request),
+      category: 'auth'
+    }, env);
+    
     return new Response(JSON.stringify({
       error: 'Failed to get user',
       message: error.message,

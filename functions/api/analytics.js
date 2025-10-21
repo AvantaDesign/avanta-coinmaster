@@ -2,6 +2,7 @@
  * Analytics API Endpoint
  * Phase 30: No monetary data handling required - tracks events and user metrics only
  * Phase 41: Authentication hardening - Added getUserIdFromToken for all endpoints
+ * Phase 42: Structured logging implementation
  * 
  * Collects and stores custom analytics events from the frontend.
  * Provides endpoints for:
@@ -16,6 +17,7 @@
  */
 
 import { getUserIdFromToken } from './auth.js';
+import { logInfo, logError, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 
 // CORS headers
 const corsHeaders = {
@@ -76,7 +78,12 @@ export async function onRequestGet(context) {
       });
     }
   } catch (error) {
-    console.error('Analytics GET Error:', error);
+    await logError(error, {
+      endpoint: '/api/analytics',
+      method: 'GET',
+      correlationId: getCorrelationId(request),
+      category: 'api'
+    }, env);
     
     return new Response(JSON.stringify({
       error: 'Internal Server Error',
@@ -133,8 +140,13 @@ export async function onRequestPost(context) {
       viewport: eventData.properties?.viewport || null
     };
 
-    // For now, just log the event (in production, store in D1 or KV)
-    console.log('Analytics Event:', JSON.stringify(event, null, 2));
+    // Log the analytics event
+    logBusinessEvent('analytics_event_tracked', {
+      eventName: event.event_name,
+      userId,
+      correlationId: getCorrelationId(request),
+      endpoint: '/api/analytics'
+    }, env);
 
     // In production, store in database:
     // await env.DB.prepare(`
@@ -151,7 +163,12 @@ export async function onRequestPost(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Analytics POST Error:', error);
+    await logError(error, {
+      endpoint: '/api/analytics',
+      method: 'POST',
+      correlationId: getCorrelationId(request),
+      category: 'api'
+    }, env);
     
     return new Response(JSON.stringify({
       error: 'Internal Server Error',
@@ -195,7 +212,11 @@ async function getAnalyticsStats(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Analytics Stats Error:', error);
+    await logError(error, {
+      endpoint: '/api/analytics/stats',
+      method: 'GET',
+      category: 'api'
+    }, env);
     
     return new Response(JSON.stringify({
       error: 'Internal Server Error',
@@ -230,7 +251,11 @@ async function getAnalyticsEvents(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Analytics Events Error:', error);
+    await logError(error, {
+      endpoint: '/api/analytics/events',
+      method: 'GET',
+      category: 'api'
+    }, env);
     
     return new Response(JSON.stringify({
       error: 'Internal Server Error',
