@@ -277,6 +277,29 @@ ALLOWED_FILE_TYPES = "pdf,jpg,jpeg,png,xml,csv"
 ISR_RATE = "0.20"
 IVA_RATE = "0.16"
 
+# Implementation Plan V9 Status
+IMPLEMENTATION_PLAN = "V9"
+CURRENT_PHASE = "46"
+PHASE_NAME = "Integration Testing & Quality Assurance"
+
+# Database Health Monitoring
+DB_HEALTH_MONITORING = "true"
+DB_SCHEMA_VALIDATION = "true"
+DB_MIGRATION_TRACKING = "true"
+
+# Rate Limiting Configuration
+RATE_LIMIT_REQUESTS_PER_MINUTE = "100"
+RATE_LIMIT_AUTH_REQUESTS = "5"
+RATE_LIMIT_WRITE_REQUESTS = "50"
+
+# Caching Configuration
+CACHE_TTL_SECONDS = "300"
+CACHE_DASHBOARD_TTL = "300"
+CACHE_REPORTS_TTL = "600"
+
+# JWT Secret for authentication
+JWT_SECRET = "avanta-coinmaster-secret-key-change-in-production"
+
 # D1 Database binding for production
 [[env.production.d1_databases]]
 binding = "DB"

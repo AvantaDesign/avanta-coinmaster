@@ -19,13 +19,8 @@ export default defineConfig({
       }
     },
     // Optimize bundle size
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true
-      }
-    }
+    minify: 'esbuild',
+    // esbuild is faster and doesn't require additional dependencies
   },
   // Development server configuration
   server: {
