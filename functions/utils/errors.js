@@ -12,41 +12,10 @@
 
 import { getSecurityHeaders } from './security.js';
 import { logError } from './logging.js';
-import { getErrorCode, createStandardError, mapHttpStatusToErrorCode } from './error-codes.js';
+import { getErrorCode, createStandardError, mapHttpStatusToErrorCode, HttpStatus, ErrorType } from './error-codes.js';
 
-/**
- * Error types for categorization
- */
-export const ErrorType = {
-  VALIDATION: 'VALIDATION_ERROR',
-  AUTHENTICATION: 'AUTHENTICATION_ERROR',
-  AUTHORIZATION: 'AUTHORIZATION_ERROR',
-  NOT_FOUND: 'NOT_FOUND',
-  CONFLICT: 'CONFLICT',
-  DATABASE: 'DATABASE_ERROR',
-  EXTERNAL_SERVICE: 'EXTERNAL_SERVICE_ERROR',
-  RATE_LIMIT: 'RATE_LIMIT_ERROR',
-  SERVER: 'INTERNAL_SERVER_ERROR',
-  BAD_REQUEST: 'BAD_REQUEST'
-};
-
-/**
- * HTTP status codes
- */
-export const HttpStatus = {
-  OK: 200,
-  CREATED: 201,
-  NO_CONTENT: 204,
-  BAD_REQUEST: 400,
-  UNAUTHORIZED: 401,
-  FORBIDDEN: 403,
-  NOT_FOUND: 404,
-  CONFLICT: 409,
-  UNPROCESSABLE_ENTITY: 422,
-  TOO_MANY_REQUESTS: 429,
-  INTERNAL_SERVER_ERROR: 500,
-  SERVICE_UNAVAILABLE: 503
-};
+// Re-export for backward compatibility
+export { HttpStatus, ErrorType };
 
 /**
  * Custom error class with additional context
