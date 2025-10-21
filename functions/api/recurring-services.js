@@ -165,6 +165,19 @@ export async function onRequestPost(context) {
   const { env, request } = context;
   
   try {
+    // Phase 41: Authentication check
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     if (!env.DB) {
       return new Response(JSON.stringify({ 
         error: 'Database not available',
@@ -241,8 +254,8 @@ export async function onRequestPost(context) {
     const result = await env.DB.prepare(
       `INSERT INTO recurring_services (
         service_name, provider, amount, frequency, payment_day,
-        description, category, next_payment_date, status, type
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', ?)`
+        description, category, next_payment_date, status, type, user_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)`
     ).bind(
       service_name,
       provider,
@@ -252,7 +265,8 @@ export async function onRequestPost(context) {
       description || null,
       category || null,
       nextPaymentDate,
-      type
+      type,
+      userId  // Phase 41: Use authenticated user_id
     ).run();
 
     return new Response(JSON.stringify({
@@ -281,6 +295,19 @@ export async function onRequestPut(context) {
   const { env, request } = context;
   
   try {
+    // Phase 41: Authentication check
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     if (!env.DB) {
       return new Response(JSON.stringify({ 
         error: 'Database not available',
@@ -304,10 +331,10 @@ export async function onRequestPut(context) {
       });
     }
 
-    // Get current record
+    // Get current record - Phase 41: Verify ownership
     const service = await env.DB.prepare(
-      'SELECT * FROM recurring_services WHERE id = ?'
-    ).bind(id).first();
+      'SELECT * FROM recurring_services WHERE id = ? AND user_id = ?'
+    ).bind(id, userId).first();
 
     if (!service) {
       return new Response(JSON.stringify({ 
@@ -373,9 +400,10 @@ export async function onRequestPut(context) {
 
     updates.push('updated_at = CURRENT_TIMESTAMP');
     values.push(id);
+    values.push(userId);  // Phase 41: Add user_id for ownership check
 
     await env.DB.prepare(
-      `UPDATE recurring_services SET ${updates.join(', ')} WHERE id = ?`
+      `UPDATE recurring_services SET ${updates.join(', ')} WHERE id = ? AND user_id = ?`
     ).bind(...values).run();
 
     return new Response(JSON.stringify({
@@ -402,6 +430,19 @@ export async function onRequestDelete(context) {
   const { env, request } = context;
   
   try {
+    // Phase 41: Authentication check
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     if (!env.DB) {
       return new Response(JSON.stringify({ 
         error: 'Database not available',
@@ -425,10 +466,10 @@ export async function onRequestDelete(context) {
       });
     }
 
-    // Delete recurring service
+    // Delete recurring service - Phase 41: Delete with user_id check for ownership
     await env.DB.prepare(
-      'DELETE FROM recurring_services WHERE id = ?'
-    ).bind(id).run();
+      'DELETE FROM recurring_services WHERE id = ? AND user_id = ?'
+    ).bind(id, userId).run();
 
     return new Response(JSON.stringify({
       success: true,
