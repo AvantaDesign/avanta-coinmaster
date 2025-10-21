@@ -12,6 +12,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
+    "test:ci": "vitest run --coverage",
     "test:coverage": "vitest run --coverage",
     "test:api": "vitest run tests/api",
     "test:components": "vitest run tests/components",

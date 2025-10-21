@@ -9,8 +9,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   plugins: [react()],
   test: {
-    // Use jsdom for DOM testing (React components)
-    environment: 'jsdom',
+    // Use happy-dom for DOM testing (faster and avoids webidl-conversions issues)
+    environment: 'happy-dom',
     
     // Setup files to run before tests
     setupFiles: ['./tests/setup.js'],
@@ -21,13 +21,6 @@ export default defineConfig({
     
     // Global test utilities
     globals: true,
-    
-    // Environment options for jsdom
-    environmentOptions: {
-      jsdom: {
-        resources: 'usable',
-      },
-    },
     
     // Coverage configuration
     coverage: {
