@@ -104,7 +104,7 @@ function checkRuleConditions(ruleConditions, transactionData) {
       evaluateCondition({ [field]: rule }, transactionData)
     );
   } catch (error) {
-    await logError(error, { endpoint: 'Error evaluating rule conditions', category: 'api' }, env);
+    logError(error, { endpoint: 'Error evaluating rule conditions', category: 'api' });
     return false;
   }
 }
@@ -150,7 +150,7 @@ function applyRuleActions(ruleActions, transactionData) {
       messages
     };
   } catch (error) {
-    await logError(error, { endpoint: 'Error applying rule actions', category: 'api' }, env);
+    logError(error, { endpoint: 'Error applying rule actions', category: 'api' });
     return { changes: {}, messages: { warnings: [], errors: [], info: [] } };
   }
 }
@@ -231,7 +231,7 @@ async function logRuleExecution(userId, ruleId, entityType, entityId, executionR
       executionResult.applied ? 1 : 0
     ).run();
   } catch (error) {
-    await logError(error, { endpoint: 'Error logging rule execution', category: 'api' }, env);
+    logError(error, { endpoint: 'Error logging rule execution', category: 'api' });
   }
 }
 
@@ -256,7 +256,7 @@ async function createSuggestion(userId, entityType, entityId, suggestion, db) {
       suggestion.action || null
     ).run();
   } catch (error) {
-    await logError(error, { endpoint: 'Error creating suggestion', category: 'api' }, env);
+    logError(error, { endpoint: 'Error creating suggestion', category: 'api' });
   }
 }
 
