@@ -334,6 +334,7 @@ export function validatePagination(limit, offset) {
 
 /**
  * SQL injection prevention - validate query parameters
+ * Enhanced in Phase 43 with comprehensive detection
  * @param {string} value - Value to validate
  * @returns {boolean} True if safe
  */
@@ -342,21 +343,75 @@ export function isSafeSqlValue(value) {
   
   // Check for SQL injection patterns
   const dangerousPatterns = [
-    /(\bOR\b|\bAND\b).*=.*=/i,
-    /UNION.*SELECT/i,
-    /DROP.*TABLE/i,
-    /INSERT.*INTO/i,
-    /DELETE.*FROM/i,
-    /UPDATE.*SET/i,
-    /EXEC(\s|\+)+(s|x)p\w+/i,
-    /--/,
-    /\/\*/,
-    /\*\//,
-    /;.*--/,
-    /xp_/i
+    /(\bOR\b|\bAND\b)\s+\d+\s*=\s*\d+/i,  // Boolean-based injection
+    /UNION\s+(ALL\s+)?SELECT/i,            // UNION-based injection
+    /DROP\s+(TABLE|DATABASE|SCHEMA)/i,     // DROP statements
+    /INSERT\s+INTO/i,                      // INSERT statements
+    /DELETE\s+FROM/i,                      // DELETE statements
+    /UPDATE\s+\w+\s+SET/i,                 // UPDATE statements
+    /EXEC(\s|\+)+(s|x)p\w+/i,             // Stored procedure execution
+    /--\s*$/m,                             // SQL comments
+    /\/\*.*\*\//s,                         // Comment blocks
+    /;\s*(DROP|DELETE|UPDATE|INSERT)/i,    // Statement chaining
+    /xp_cmdshell/i,                        // Command execution
+    /SLEEP\s*\(/i,                         // Time-based injection
+    /BENCHMARK\s*\(/i,                     // Time-based injection
+    /WAITFOR\s+DELAY/i                     // Time-based injection
   ];
   
   return !dangerousPatterns.some(pattern => pattern.test(value));
+}
+
+/**
+ * Detect and report SQL injection attempts
+ * Phase 43: Enhanced detection with detailed reporting
+ * @param {string} input - User input to check
+ * @returns {{ safe: boolean, reason: string|null }}
+ */
+export function detectSqlInjection(input) {
+  if (typeof input !== 'string') {
+    return { safe: true, reason: null };
+  }
+  
+  const dangerousPatterns = [
+    { pattern: /(\bOR\b|\bAND\b)\s+\d+\s*=\s*\d+/i, reason: 'Boolean-based SQL injection detected' },
+    { pattern: /UNION\s+(ALL\s+)?SELECT/i, reason: 'UNION-based SQL injection detected' },
+    { pattern: /DROP\s+(TABLE|DATABASE|SCHEMA)/i, reason: 'DROP statement detected' },
+    { pattern: /INSERT\s+INTO/i, reason: 'INSERT statement detected' },
+    { pattern: /DELETE\s+FROM/i, reason: 'DELETE statement detected' },
+    { pattern: /UPDATE\s+\w+\s+SET/i, reason: 'UPDATE statement detected' },
+    { pattern: /EXEC(\s|\+)+(s|x)p\w+/i, reason: 'Stored procedure execution detected' },
+    { pattern: /--\s*$/m, reason: 'SQL comment detected' },
+    { pattern: /\/\*.*\*\//s, reason: 'SQL comment block detected' },
+    { pattern: /;\s*(DROP|DELETE|UPDATE|INSERT)/i, reason: 'Statement chaining detected' },
+    { pattern: /xp_cmdshell/i, reason: 'Command execution attempt detected' },
+    { pattern: /SLEEP\s*\(/i, reason: 'Time-based injection detected' },
+    { pattern: /BENCHMARK\s*\(/i, reason: 'Time-based injection detected' },
+    { pattern: /WAITFOR\s+DELAY/i, reason: 'Time-based injection detected' }
+  ];
+  
+  for (const { pattern, reason } of dangerousPatterns) {
+    if (pattern.test(input)) {
+      return { safe: false, reason };
+    }
+  }
+  
+  return { safe: true, reason: null };
+}
+
+/**
+ * Sanitize SQL identifier (table/column name)
+ * Phase 43: Added for safe dynamic identifier handling
+ * @param {string} identifier - Identifier to sanitize
+ * @returns {string} Sanitized identifier
+ */
+export function sanitizeSqlIdentifier(identifier) {
+  if (typeof identifier !== 'string') {
+    return '';
+  }
+  
+  // Only allow alphanumeric and underscore
+  return identifier.replace(/[^a-zA-Z0-9_]/g, '').toLowerCase();
 }
 
 /**

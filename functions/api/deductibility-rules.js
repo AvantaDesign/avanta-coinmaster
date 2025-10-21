@@ -16,6 +16,7 @@
 
 import { getUserIdFromToken } from './auth.js';
 import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
+import { buildSafeOrderBy } from '../utils/sql-security.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -101,10 +102,21 @@ export async function onRequestGet(context) {
       params.push(isActive === 'true' ? 1 : 0);
     }
     
-    // Add sorting
-    const validSortFields = ['priority', 'name', 'created_at'];
-    const sortField = validSortFields.includes(sortBy) ? sortBy : 'priority';
-    query += ` ORDER BY ${sortField} ${sortOrder.toUpperCase()}`;
+    // Add sorting - Phase 43: Fixed SQL injection vulnerability
+    // Use validated ORDER BY clause instead of string concatenation
+    const orderByResult = buildSafeOrderBy('deductibility_rules', sortBy || 'priority', sortOrder || 'asc');
+    if (orderByResult.valid) {
+      query += orderByResult.clause;
+    } else {
+      // Log validation error and use default sorting
+      await logWarn('Invalid sort parameters', {
+        endpoint: '/api/deductibility-rules',
+        error: orderByResult.error,
+        sortBy,
+        sortOrder
+      }, env);
+      query += ' ORDER BY priority ASC';
+    }
     
     // Execute query
     const result = await env.DB.prepare(query).bind(...params).all();

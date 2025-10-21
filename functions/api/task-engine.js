@@ -5,6 +5,7 @@ import { getUserIdFromToken } from './auth.js';
 import { getSecurityHeaders } from '../utils/security.js';
 import { createErrorResponse, createSuccessResponse } from '../utils/errors.js';
 import { logInfo, logError } from '../utils/logging.js';
+import { validateTableName, validateFieldName } from '../utils/sql-security.js';
 
 /**
  * Task Engine: Evaluates task completion criteria and updates progress
@@ -280,15 +281,27 @@ async function evaluateSingleTask(db, userId, task) {
 /**
  * Evaluate count-based criteria
  * Example: {type: 'count', resource: 'invoices', field: 'status', value: 'uploaded', min: 5}
+ * Phase 43: Fixed SQL injection vulnerability with table/field validation
  */
 async function evaluateCountCriteria(db, userId, criteria) {
   const { resource, field, value, min } = criteria;
 
-  let query = `SELECT COUNT(*) as count FROM ${resource} WHERE user_id = ?`;
+  // Phase 43: Validate table name against whitelist
+  const tableValidation = validateTableName(resource);
+  if (!tableValidation.valid) {
+    throw new Error(`Invalid resource table: ${tableValidation.error}`);
+  }
+
+  let query = `SELECT COUNT(*) as count FROM ${tableValidation.sanitized} WHERE user_id = ?`;
   const params = [userId];
 
   if (field && value) {
-    query += ` AND ${field} = ?`;
+    // Phase 43: Validate field name against whitelist
+    const fieldValidation = validateFieldName(tableValidation.sanitized, field);
+    if (!fieldValidation.valid) {
+      throw new Error(`Invalid field for ${resource}: ${fieldValidation.error}`);
+    }
+    query += ` AND ${fieldValidation.sanitized} = ?`;
     params.push(value);
   }
 
@@ -312,16 +325,29 @@ async function evaluateCountCriteria(db, userId, criteria) {
 /**
  * Evaluate percentage-based criteria
  * Example: {type: 'percentage', resource: 'transactions', field: 'is_reconciled', min: 95}
+ * Phase 43: Fixed SQL injection vulnerability with table/field validation
  */
 async function evaluatePercentageCriteria(db, userId, criteria) {
   const { resource, field, min } = criteria;
 
+  // Phase 43: Validate table name against whitelist
+  const tableValidation = validateTableName(resource);
+  if (!tableValidation.valid) {
+    throw new Error(`Invalid resource table: ${tableValidation.error}`);
+  }
+
+  // Phase 43: Validate field name against whitelist
+  const fieldValidation = validateFieldName(tableValidation.sanitized, field);
+  if (!fieldValidation.valid) {
+    throw new Error(`Invalid field for ${resource}: ${fieldValidation.error}`);
+  }
+
   const totalResult = await db.prepare(
-    `SELECT COUNT(*) as count FROM ${resource} WHERE user_id = ?`
+    `SELECT COUNT(*) as count FROM ${tableValidation.sanitized} WHERE user_id = ?`
   ).bind(userId).first();
 
   const completeResult = await db.prepare(
-    `SELECT COUNT(*) as count FROM ${resource} WHERE user_id = ? AND ${field} = 1`
+    `SELECT COUNT(*) as count FROM ${tableValidation.sanitized} WHERE user_id = ? AND ${fieldValidation.sanitized} = 1`
   ).bind(userId).first();
 
   const total = totalResult?.count || 0;
@@ -368,12 +394,25 @@ async function evaluateBooleanCriteria(db, userId, criteria) {
 
 /**
  * Evaluate date-based criteria
+ * Phase 43: Fixed SQL injection vulnerability with table/field validation
  */
 async function evaluateDateCriteria(db, userId, criteria) {
   const { resource, field, required } = criteria;
 
+  // Phase 43: Validate table name against whitelist
+  const tableValidation = validateTableName(resource);
+  if (!tableValidation.valid) {
+    throw new Error(`Invalid resource table: ${tableValidation.error}`);
+  }
+
+  // Phase 43: Validate field name against whitelist
+  const fieldValidation = validateFieldName(tableValidation.sanitized, field);
+  if (!fieldValidation.valid) {
+    throw new Error(`Invalid field for ${resource}: ${fieldValidation.error}`);
+  }
+
   const result = await db.prepare(
-    `SELECT ${field} FROM ${resource} WHERE user_id = ? ORDER BY ${field} DESC LIMIT 1`
+    `SELECT ${fieldValidation.sanitized} FROM ${tableValidation.sanitized} WHERE user_id = ? ORDER BY ${fieldValidation.sanitized} DESC LIMIT 1`
   ).bind(userId).first();
 
   const hasDate = result && result[field];
