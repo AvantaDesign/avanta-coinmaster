@@ -6,9 +6,17 @@
   "scripts": {
     "dev": "vite",
     "dev:frontend": "vite",
+    "dev:full": "npm run build && wrangler pages dev dist --d1 DB=avanta-coinmaster --r2 RECEIPTS=avanta-receipts --port 8788",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "npm run build && wrangler pages deploy dist"
+    "deploy": "npm run build && wrangler pages deploy dist",
+    "deploy:preview": "npm run build && wrangler pages deploy dist --env preview",
+    "db:health": "curl http://127.0.0.1:8788/api/health",
+    "db:check": "wrangler d1 execute avanta-coinmaster --command=\"SELECT COUNT(*) as table_count FROM sqlite_master WHERE type='table'\"",
+    "db:list": "wrangler d1 execute avanta-coinmaster --command=\"SELECT name FROM sqlite_master WHERE type='table' ORDER BY name\"",
+    "db:views": "wrangler d1 execute avanta-coinmaster --command=\"SELECT name FROM sqlite_master WHERE type='view' ORDER BY name\"",
+    "test:api": "curl https://avanta-coinmaster.pages.dev/api/health",
+    "test:local": "npm run dev:full & sleep 5 && npm run db:health"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

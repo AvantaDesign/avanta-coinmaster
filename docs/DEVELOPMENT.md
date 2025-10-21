@@ -1,47 +1,68 @@
 # Development Guide - Avanta Finance
 
-This guide helps developers understand the codebase and contribute to Avanta Finance.
+This guide helps developers understand the codebase and contribute to Avanta Finance during Implementation Plan V9.
 
 ## Project Structure
 
 ```
 avanta-finance/
 ├── functions/              # Cloudflare Workers Functions (Backend)
-│   └── api/
-│       ├── dashboard.js    # GET balance and summary
-│       ├── transactions.js # CRUD for transactions
-│       ├── accounts.js     # Manage bank accounts
-│       ├── fiscal.js       # Calculate ISR/IVA
-│       ├── invoices.js     # Manage CFDI invoices
-│       └── upload.js       # File uploads to R2
+│   ├── api/                # 78+ API endpoints
+│   │   ├── dashboard.js    # GET balance and summary
+│   │   ├── transactions.js # CRUD for transactions
+│   │   ├── accounts.js     # Manage bank accounts
+│   │   ├── fiscal.js       # Calculate ISR/IVA
+│   │   ├── invoices.js     # Manage CFDI invoices
+│   │   ├── upload.js       # File uploads to R2
+│   │   ├── health.js       # Database health monitoring
+│   │   └── [70+ more endpoints]
+│   ├── utils/              # Backend utilities & middleware
+│   │   ├── database-resilience.js
+│   │   ├── security.js
+│   │   ├── validation.js
+│   │   └── [10+ more utilities]
+│   └── durable-objects/    # Rate limiting & state management
 │
-├── src/                    # React Frontend
+├── src/                    # React Frontend (114+ components)
 │   ├── pages/              # Main pages
 │   │   ├── Home.jsx        # Dashboard with summary
 │   │   ├── Transactions.jsx # Transaction list/CRUD
 │   │   ├── Fiscal.jsx      # Tax calculations view
-│   │   └── Invoices.jsx    # Invoice management
+│   │   ├── Invoices.jsx    # Invoice management
+│   │   ├── Admin/          # Admin dashboard
+│   │   └── [10+ more pages]
 │   │
-│   ├── components/         # Reusable components
+│   ├── components/         # 114+ reusable components
 │   │   ├── AddTransaction.jsx
 │   │   ├── TransactionTable.jsx
 │   │   ├── BalanceCard.jsx
 │   │   ├── MonthlyChart.jsx
-│   │   └── FileUpload.jsx
+│   │   ├── FileUpload.jsx
+│   │   └── [100+ more components]
 │   │
-│   ├── utils/              # Utility functions
+│   ├── utils/              # 40+ utility functions
 │   │   ├── api.js          # API client functions
-│   │   └── calculations.js # Fiscal calculations
+│   │   ├── calculations.js # Fiscal calculations
+│   │   └── [35+ more utilities]
+│   │
+│   ├── stores/             # Zustand state management
+│   │   ├── useTransactionStore.js
+│   │   ├── useAccountStore.js
+│   │   └── [2+ more stores]
 │   │
 │   ├── App.jsx             # Main app with routing
 │   ├── main.jsx            # Entry point
 │   └── index.css           # Global styles
 │
+├── migrations/             # 46 database migration files
 ├── public/                 # Static assets
-├── schema.sql             # Database schema
+├── schema.sql             # Database schema (43 tables + 7 views)
 ├── wrangler.toml          # Cloudflare config
 ├── package.json           # Dependencies
-└── vite.config.js         # Build config
+├── vite.config.js         # Build config
+├── DATABASE_TRACKING_SYSTEM.md # Database management system
+├── .cursorrules           # AI agent development rules
+└── IMPLEMENTATION_PLAN_V9.md # Current implementation plan
 ```
 
 ## Technology Stack
@@ -213,7 +234,24 @@ cd avanta-coinmaster
 npm install
 ```
 
-### 2. Local Development
+### 2. Database Setup (CRITICAL)
+
+```bash
+# Check database status first
+wrangler d1 execute avanta-coinmaster --command="SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;"
+
+# Apply schema if needed
+wrangler d1 execute avanta-coinmaster --file=schema.sql
+
+# Apply migrations
+wrangler d1 execute avanta-coinmaster --file=migrations/001_initial_schema.sql
+# ... apply all 46 migrations in order
+
+# Verify database health
+curl http://127.0.0.1:8788/api/health
+```
+
+### 3. Local Development
 
 ```bash
 # Frontend only (fast, no Workers)
@@ -221,22 +259,30 @@ npm run dev
 
 # Full stack (with Workers, slower)
 npm run build
-npx wrangler pages dev dist --d1 DB=avanta-finance --r2 RECEIPTS=avanta-receipts
+npx wrangler pages dev dist --d1 DB=avanta-coinmaster --r2 RECEIPTS=avanta-receipts --port 8788
 ```
 
-### 3. Make Changes
+### 4. Make Changes
 
 - Edit files in `src/` for frontend changes
 - Edit files in `functions/api/` for backend changes
 - Edit `schema.sql` for database changes (then re-run migrations)
+- **ALWAYS** update `DATABASE_TRACKING_SYSTEM.md` when adding tables/views
+- **ALWAYS** update `README.md` statistics when adding components/endpoints
 
-### 4. Test
+### 5. Test
 
 ```bash
 npm run build  # Check for build errors
+
+# Test database health
+curl http://127.0.0.1:8788/api/health
+
+# Test critical endpoints
+./scripts/test-production.sh
 ```
 
-### 5. Commit and Push
+### 6. Commit and Push
 
 ```bash
 git add .

@@ -2,6 +2,9 @@
 
 This guide walks you through deploying Avanta Finance to Cloudflare Pages with D1 database and R2 storage.
 
+**Implementation Plan V9 Status:** Phase 46 - Integration Testing & Quality Assurance  
+**Database:** 43 tables + 7 views | **API Endpoints:** 78+ | **Components:** 114+
+
 ## Prerequisites
 
 - Node.js 18+ installed
@@ -25,12 +28,12 @@ This will open a browser window to authenticate with your Cloudflare account.
 ## Step 3: Create D1 Database
 
 ```bash
-wrangler d1 create avanta-finance
+wrangler d1 create avanta-coinmaster
 ```
 
 You'll see output like:
 ```
-✅ Successfully created DB 'avanta-finance'
+✅ Successfully created DB 'avanta-coinmaster'
 database_id = "abc123-def456-ghi789"
 ```
 
@@ -39,19 +42,30 @@ Copy the `database_id` and update it in `wrangler.toml`:
 ```toml
 [[d1_databases]]
 binding = "DB"
-database_name = "avanta-finance"
+database_name = "avanta-coinmaster"
 database_id = "your-database-id-here"  # Replace with your ID
 ```
 
 ## Step 4: Run Database Migrations
 
 ```bash
-wrangler d1 execute avanta-finance --file=schema.sql
+# Apply main schema
+wrangler d1 execute avanta-coinmaster --file=schema.sql
+
+# Apply all 46 migrations in order
+wrangler d1 execute avanta-coinmaster --file=migrations/001_initial_schema.sql
+wrangler d1 execute avanta-coinmaster --file=migrations/002_add_users.sql
+# ... continue with all 46 migrations
 ```
 
-Verify the tables were created:
+Verify the tables were created (should show 43 tables):
 ```bash
-wrangler d1 execute avanta-finance --command="SELECT name FROM sqlite_master WHERE type='table'"
+wrangler d1 execute avanta-coinmaster --command="SELECT COUNT(*) as table_count FROM sqlite_master WHERE type='table'"
+```
+
+Verify the views were created (should show 7 views):
+```bash
+wrangler d1 execute avanta-coinmaster --command="SELECT COUNT(*) as view_count FROM sqlite_master WHERE type='view'"
 ```
 
 ## Step 5: Create R2 Bucket
@@ -110,7 +124,9 @@ Visit your deployed URL and test:
 - ✅ Dashboard loads
 - ✅ Can add transactions
 - ✅ Fiscal calculations work
-- ✅ Can add invoices
+- ✅ Database health check: `curl https://avanta-coinmaster.pages.dev/api/health`
+- ✅ All 78+ API endpoints functional
+- ✅ All 114+ React components working
 
 ## Continuous Deployment with GitHub Actions (Optional)
 
@@ -194,15 +210,17 @@ npm run build
 
 ## Production Checklist
 
-- [ ] D1 database created and migrated
+- [ ] D1 database created and migrated (43 tables + 7 views)
 - [ ] R2 bucket created
 - [ ] wrangler.toml updated with correct IDs
-- [ ] Application builds successfully
+- [ ] Application builds successfully (114+ components)
 - [ ] Deployed to Cloudflare Pages
 - [ ] Bindings configured in dashboard
 - [ ] All pages load correctly
-- [ ] API endpoints working
+- [ ] All 78+ API endpoints working
 - [ ] File uploads working
+- [ ] Database health check passing
+- [ ] Implementation Plan V9 Phase 46 requirements met
 
 ## Costs
 

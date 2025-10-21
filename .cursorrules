@@ -1,0 +1,147 @@
+# .cursorrules - Avanta Coinmaster Development Rules & Guidelines
+
+## 🚨 CRITICAL DEVELOPMENT RULES FOR AI AGENTS
+
+### **MANDATORY: Check System Status First**
+- **ALWAYS** read `DATABASE_TRACKING_SYSTEM.md` before any development work
+- **ALWAYS** read `IMPLEMENTATION_PLAN_V9.md` for current phase context
+- **NEVER** assume tables exist without verification
+- **ALWAYS** verify database requirements before coding API endpoints
+- **ALWAYS** apply migrations before testing
+
+### **Project Evolution Tracking**
+- **ALWAYS** update documentation when adding features
+- **ALWAYS** update project structure references
+- **ALWAYS** maintain implementation phase tracking
+- **ALWAYS** update statistics and metrics
+- **ALWAYS** document new components, endpoints, and utilities
+
+### **Database Verification Commands**
+```bash
+# Check existing tables
+wrangler d1 execute avanta-coinmaster --command="SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;"
+
+# Check existing views  
+wrangler d1 execute avanta-coinmaster --command="SELECT name FROM sqlite_master WHERE type='view' ORDER BY name;"
+
+# Apply migration
+wrangler d1 execute avanta-coinmaster --file=migrations/XXX_migration_name.sql
+
+# Check table structure
+wrangler d1 execute avanta-coinmaster --command="PRAGMA table_info(table_name);"
+
+# Test database health
+curl http://127.0.0.1:8788/api/health
+```
+
+### **Before Any API Development**
+1. Check `DATABASE_TRACKING_SYSTEM.md` for required tables
+2. Verify tables exist using database commands
+3. Apply any missing migrations
+4. Test API endpoint functionality
+
+### **Database Schema Requirements**
+- **43 Tables** must exist (see tracking system)
+- **7 Views** must exist (see tracking system)
+- **All migrations** must be applied
+- **All API endpoints** must have their required tables
+
+### **Common Database Issues to Avoid**
+- ❌ Creating API endpoints without required tables
+- ❌ Assuming tables exist without verification
+- ❌ Forgetting to apply migrations
+- ❌ Not updating the tracking system
+
+### **Required Tables by Feature**
+- **Transactions**: `transactions`, `users`, `categories`, `accounts`
+- **SAT Declarations**: `sat_declarations`, `diot_operations`, `contabilidad_electronica_files`
+- **Tax Calculations**: `tax_calculations`, `fiscal_parameters`
+- **Tax Simulations**: `tax_simulations`, `tax_deductions`, `tax_credits`, `simulation_results`
+- **Receipts**: `receipts`, `transactions`, `users`
+- **Audit Logging**: `audit_log`, `users`
+- **Help System**: `help_categories`, `help_articles`, `help_feedback`
+- **Task Engine**: `financial_tasks`, `task_templates`, `task_progress`
+
+### **Migration Management**
+- Check `migrations/` directory for available migrations
+- Apply migrations in correct order
+- Test after each migration
+- Update tracking system after changes
+
+### **Testing Requirements**
+- Test database health endpoint: `/api/health`
+- Test critical API endpoints after changes
+- Verify all tables exist after migrations
+- Check for foreign key constraints
+
+### **Documentation Requirements**
+- Update `DATABASE_TRACKING_SYSTEM.md` when adding tables/views
+- Document API endpoint database requirements
+- Maintain migration log
+- Keep change log updated
+
+### **Emergency Database Recovery**
+If database issues occur:
+1. Check `DATABASE_TRACKING_SYSTEM.md` for current state
+2. Reapply migrations in order
+3. Verify all tables exist
+4. Test API endpoints
+5. Update tracking system
+
+### **Development Workflow**
+1. **Read** `DATABASE_TRACKING_SYSTEM.md`
+2. **Verify** database requirements
+3. **Apply** necessary migrations
+4. **Develop** feature
+5. **Test** thoroughly
+6. **Update** tracking system
+7. **Document** changes
+
+### **Quality Assurance**
+- All API endpoints must work without database errors
+- All tables must have proper foreign key relationships
+- All views must be functional
+- Database health check must pass
+- All new features must be documented
+- Project structure must be updated
+
+### **Implementation Plan V9 Context**
+- **Current Phase:** 46 - Integration Testing & Quality Assurance
+- **Focus:** Database health testing, comprehensive QA
+- **Next Phases:** 47-60 Production Excellence & Advanced Features
+- **Database Monitoring:** Critical for all phases
+- **Testing:** Must be comprehensive and automated
+
+### **Project Structure Evolution**
+- **Components:** Currently 114+ React components
+- **API Endpoints:** Currently 78+ endpoints
+- **Database Tables:** Currently 43 tables
+- **Database Views:** Currently 7 views
+- **Migration Files:** Currently 46 migrations
+- **Documentation:** Currently 100+ files
+
+### **Code Quality Standards**
+- Use functional components with hooks
+- Implement proper error handling
+- Add comprehensive logging
+- Follow security best practices
+- Maintain accessibility standards
+- Optimize for performance
+
+### **Vibe Coding Guidelines**
+- Maintain consistent code style
+- Use descriptive variable names
+- Add comments for complex logic
+- Follow existing patterns
+- Keep components focused and reusable
+- Implement proper state management
+
+---
+
+## 🎯 **Remember: Database First, Code Second, Documentation Always**
+
+The previous development phases had database setup issues because tables weren't created during implementation. This system prevents that from happening again.
+
+**ALWAYS CHECK THE DATABASE TRACKING SYSTEM FIRST!**  
+**ALWAYS UPDATE DOCUMENTATION WHEN MAKING CHANGES!**  
+**ALWAYS FOLLOW THE IMPLEMENTATION PLAN V9 CONTEXT!**
