@@ -74,7 +74,8 @@ test.describe('User Journey - Transaction Management', () => {
       await addButton.click();
 
       // Wait for form to appear
-      await page.waitForTimeout(1000);
+      const dateInput = page.locator('input[type="date"], input[name="date"]').first();
+      await expect(dateInput).toBeVisible();
     }
   });
 
