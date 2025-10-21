@@ -155,13 +155,15 @@ echo ""
 
 echo "8. Running tests..."
 echo -e "${YELLOW}Running test suite...${NC}"
-if npm run test:run > /tmp/test-output.txt 2>&1; then
-    TEST_COUNT=$(grep -o "Tests.*passed" /tmp/test-output.txt | head -1)
+TEST_OUTPUT_FILE=$(mktemp ./test-output.XXXXXX)
+if npm run test:run > "$TEST_OUTPUT_FILE" 2>&1; then
+    TEST_COUNT=$(grep -o "Tests.*passed" "$TEST_OUTPUT_FILE" | head -1)
     echo -e "${GREEN}✓${NC} All tests passed: $TEST_COUNT"
     ((PASSED++))
+    rm -f "$TEST_OUTPUT_FILE"
 else
     echo -e "${RED}✗${NC} Some tests failed"
-    echo "Check /tmp/test-output.txt for details"
+    echo "Check $TEST_OUTPUT_FILE for details"
     ((FAILED++))
 fi
 echo ""
