@@ -1,4 +1,7 @@
 // Bank Reconciliation Matches API - Manage reconciliation matches and suggestions
+// Phase 41: Authentication hardening - Added getUserIdFromToken for all endpoints
+
+import { getUserIdFromToken } from '../auth.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -14,7 +17,6 @@ const corsHeaders = {
 export async function onRequestGet(context) {
   const { env, request } = context;
   const url = new URL(request.url);
-  const userId = url.searchParams.get('user_id');
   const status = url.searchParams.get('status');
   const matchType = url.searchParams.get('match_type');
   const minConfidence = parseFloat(url.searchParams.get('min_confidence')) || 0;
@@ -23,20 +25,24 @@ export async function onRequestGet(context) {
   const offset = (page - 1) * limit;
 
   try {
+    // Phase 41: Authentication check
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     if (!env.DB) {
       return new Response(JSON.stringify({
         error: 'Database connection not available'
       }), {
         status: 503,
-        headers: corsHeaders
-      });
-    }
-
-    if (!userId) {
-      return new Response(JSON.stringify({
-        error: 'user_id is required'
-      }), {
-        status: 400,
         headers: corsHeaders
       });
     }
@@ -132,6 +138,19 @@ export async function onRequestPost(context) {
   const { env, request } = context;
 
   try {
+    // Phase 41: Authentication check
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     if (!env.DB) {
       return new Response(JSON.stringify({
         error: 'Database connection not available'
@@ -142,11 +161,11 @@ export async function onRequestPost(context) {
     }
 
     const data = await request.json();
-    const { userId, bankStatementId, transactionId, notes } = data;
+    const { bankStatementId, transactionId, notes } = data;
 
-    if (!userId || !bankStatementId || !transactionId) {
+    if (!bankStatementId || !transactionId) {
       return new Response(JSON.stringify({
-        error: 'Missing required fields: userId, bankStatementId, transactionId'
+        error: 'Missing required fields: bankStatementId, transactionId'
       }), {
         status: 400,
         headers: corsHeaders
