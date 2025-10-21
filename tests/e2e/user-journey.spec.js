@@ -54,10 +54,10 @@ test.describe('User Journey - Transaction Management', () => {
     await page.goto('/transactions');
 
     // Wait for transactions to load
-    await page.waitForTimeout(2000);
+    const transactionList = page.locator('[data-testid="transaction-list"], table, .transaction-row').first();
+    await expect(transactionList).toBeVisible();
 
     // Check for transaction table or list
-    const transactionList = page.locator('[data-testid="transaction-list"], table, .transaction-row').first();
     
     // Check if list exists
     const exists = await transactionList.count() > 0;
