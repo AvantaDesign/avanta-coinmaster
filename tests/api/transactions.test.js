@@ -252,6 +252,9 @@ describe('Transactions API', () => {
       expect(sanitized).toBe('alert("xss")');
     });
 
+    // Business rule: Amounts are stored as integer cents in the database to avoid floating-point errors.
+    // All monetary values must be converted from dollars (float) to cents (integer) before storage.
+    // Conversion strategy: multiply by 100 and round to nearest integer.
     it('should convert amount to cents for storage', () => {
       const amount = 100.50;
       const cents = Math.round(amount * 100);
