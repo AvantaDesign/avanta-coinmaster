@@ -45,7 +45,7 @@ export default function DemoBanner() {
     }
   };
 
-  const handleScenarioSwitch = async () => {
+  const handleScenarioSwitch = async (targetScenarioId) => {
     if (switching) return;
     
     setSwitching(true);
@@ -53,9 +53,6 @@ export default function DemoBanner() {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      // Determine the target scenario (switch between healthy and critical)
-      const targetScenarioId = currentScenario.scenario_type === 'healthy' ? 2 : 1; // 1=healthy, 2=critical
-      
       // Activate the scenario
       const activateResponse = await fetch(`/api/demo-scenarios/${targetScenarioId}/activate`, {
         method: 'POST',
@@ -90,18 +87,40 @@ export default function DemoBanner() {
     }
   };
 
+  const getNextScenario = () => {
+    if (!currentScenario) return 1;
+    
+    // Cycle through scenarios: 1 -> 2 -> 3 -> 1
+    const currentId = currentScenario.id;
+    return currentId === 3 ? 1 : currentId + 1;
+  };
+
+  const getScenarioInfo = (scenarioId) => {
+    switch (scenarioId) {
+      case 1: return { name: 'Excelente', icon: '✅', color: 'green' };
+      case 2: return { name: 'Regular', icon: '⚖️', color: 'blue' };
+      case 3: return { name: 'Problemas', icon: '⚠️', color: 'red' };
+      default: return { name: 'Desconocido', icon: '❓', color: 'gray' };
+    }
+  };
+
   if (loading || dismissed || !currentScenario) {
     return null;
   }
 
   const getScenarioColor = () => {
-    return currentScenario.scenario_type === 'healthy' 
-      ? 'bg-green-50 border-green-200 text-green-900'
-      : 'bg-amber-50 border-amber-200 text-amber-900';
+    const scenarioInfo = getScenarioInfo(currentScenario.id);
+    switch (scenarioInfo.color) {
+      case 'green': return 'bg-green-50 border-green-200 text-green-900';
+      case 'blue': return 'bg-blue-50 border-blue-200 text-blue-900';
+      case 'red': return 'bg-red-50 border-red-200 text-red-900';
+      default: return 'bg-gray-50 border-gray-200 text-gray-900';
+    }
   };
 
   const getScenarioIcon = () => {
-    return currentScenario.scenario_type === 'healthy' ? '✅' : '⚠️';
+    const scenarioInfo = getScenarioInfo(currentScenario.id);
+    return scenarioInfo.icon;
   };
 
   return (
@@ -122,29 +141,57 @@ export default function DemoBanner() {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Scenario Switcher Toggle */}
-            <button
-              onClick={handleScenarioSwitch}
-              disabled={switching}
-              className={`inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md transition-colors ${
-                currentScenario.scenario_type === 'healthy'
-                  ? 'text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500'
-                  : 'text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500'
-              } ${switching ? 'opacity-50 cursor-not-allowed' : ''}`}
-              title={currentScenario.scenario_type === 'healthy' ? 'Cambiar a Negocio en Crisis' : 'Cambiar a Negocio Saludable'}
-            >
-              {switching ? (
-                <>
-                  <ArrowPathIcon className="h-4 w-4 mr-1 animate-spin" />
-                  Cambiando...
-                </>
-              ) : (
-                <>
-                  <ArrowPathIcon className="h-4 w-4 mr-1" />
-                  {currentScenario.scenario_type === 'healthy' ? '⚠️ Crisis' : '✅ Saludable'}
-                </>
+            {/* 3-Position Scenario Switcher */}
+            <div className="flex items-center gap-1 bg-white rounded-lg p-1 shadow-sm border">
+              {/* Scenario 1: Excelente */}
+              <button
+                onClick={() => handleScenarioSwitch(1)}
+                disabled={switching}
+                className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
+                  currentScenario.id === 1
+                    ? 'bg-green-100 text-green-800 border border-green-300'
+                    : 'text-gray-600 hover:bg-gray-100'
+                } ${switching ? 'opacity-50 cursor-not-allowed' : ''}`}
+                title="Negocio Excelente (+$100,000)"
+              >
+                ✅
+              </button>
+              
+              {/* Scenario 2: Regular */}
+              <button
+                onClick={() => handleScenarioSwitch(2)}
+                disabled={switching}
+                className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
+                  currentScenario.id === 2
+                    ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                    : 'text-gray-600 hover:bg-gray-100'
+                } ${switching ? 'opacity-50 cursor-not-allowed' : ''}`}
+                title="Negocio Regular (+$10,000)"
+              >
+                ⚖️
+              </button>
+              
+              {/* Scenario 3: Problemas */}
+              <button
+                onClick={() => handleScenarioSwitch(3)}
+                disabled={switching}
+                className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
+                  currentScenario.id === 3
+                    ? 'bg-red-100 text-red-800 border border-red-300'
+                    : 'text-gray-600 hover:bg-gray-100'
+                } ${switching ? 'opacity-50 cursor-not-allowed' : ''}`}
+                title="Negocio en Problemas (-$20,000)"
+              >
+                ⚠️
+              </button>
+              
+              {/* Loading indicator */}
+              {switching && (
+                <div className="px-2 py-1">
+                  <ArrowPathIcon className="h-4 w-4 animate-spin text-gray-400" />
+                </div>
               )}
-            </button>
+            </div>
             
             {/* Advanced Demo Page Link */}
             <Link
