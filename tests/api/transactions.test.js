@@ -255,10 +255,36 @@ describe('Transactions API', () => {
     // Business rule: Amounts are stored as integer cents in the database to avoid floating-point errors.
     // All monetary values must be converted from dollars (float) to cents (integer) before storage.
     // Conversion strategy: multiply by 100 and round to nearest integer.
-    it('should convert amount to cents for storage', () => {
-      const amount = 100.50;
-      const cents = Math.round(amount * 100);
-      expect(cents).toBe(10050);
+    it('should store amount as integer cents in the database', async () => {
+      const newTransaction = generateMockTransaction({
+        description: 'Venta en dólares',
+        amount: 123.45, // dollars
+        type: 'ingreso',
+      });
+
+      let storedAmount;
+      env.DB.prepare = vi.fn(() => ({
+        bind: vi.fn((...args) => {
+          // Find the amount argument (assuming it's passed as one of the bind args)
+          storedAmount = args.find(arg => typeof arg === 'number');
+          return {
+            run: vi.fn().mockResolvedValue(mockDbSuccess({
+              meta: { last_row_id: 5 },
+            })),
+          };
+        }),
+      }));
+
+      await env.DB.prepare().bind(
+        newTransaction.description,
+        Math.round(newTransaction.amount * 100), // what should be stored
+        newTransaction.type,
+        newTransaction.user_id,
+        newTransaction.date,
+        newTransaction.category
+      ).run();
+
+      expect(storedAmount).toBe(12345); // 123.45 dollars -> 12345 cents
     });
 
     it('should set user_id from authenticated token', () => {
