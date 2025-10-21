@@ -1,6 +1,9 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // https://vitest.dev/config/
 export default defineConfig({
@@ -19,10 +22,19 @@ export default defineConfig({
     // Global test utilities
     globals: true,
     
+    // Environment options for jsdom
+    environmentOptions: {
+      jsdom: {
+        resources: 'usable',
+      },
+    },
+    
     // Coverage configuration
     coverage: {
+      enabled: false, // Explicitly control when coverage runs
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
+      reportsDirectory: './coverage',
       include: ['src/**/*.{js,jsx}', 'functions/**/*.js'],
       exclude: [
         'node_modules/',
@@ -32,6 +44,7 @@ export default defineConfig({
         '**/main.jsx',
         '**/index.jsx',
       ],
+      all: true,
       lines: 80,
       functions: 80,
       branches: 80,
@@ -46,6 +59,17 @@ export default defineConfig({
     
     // Retry failed tests once
     retry: 1,
+    
+    // Silence console logs in tests
+    silent: false,
+    
+    // Pool options
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        singleThread: false,
+      },
+    },
   },
   
   resolve: {
