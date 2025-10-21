@@ -1,7 +1,9 @@
 // Investments API - Manage investment portfolio and performance tracking
 // Phase 30: Monetary values stored as INTEGER cents in database
+// Phase 41: Authentication hardening - Added getUserIdFromToken for all endpoints
 
 import Decimal from 'decimal.js';
+import { getUserIdFromToken } from './auth.js';
 import { 
   toCents, 
   fromCents, 
@@ -16,7 +18,7 @@ const corsHeaders = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
 // Calculate ROI and performance metrics
@@ -56,6 +58,19 @@ export async function onRequestGet(context) {
   const { env, request } = context;
   
   try {
+    // Phase 41: Authentication check
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     if (!env.DB) {
       return new Response(JSON.stringify({ 
         error: 'Database not available',
@@ -76,8 +91,8 @@ export async function onRequestGet(context) {
     // Get portfolio summary
     if (getPortfolioSummary === 'true') {
       const investments = await env.DB.prepare(
-        'SELECT * FROM investments WHERE status = ?'
-      ).bind('active').all();
+        'SELECT * FROM investments WHERE status = ? AND user_id = ?'
+      ).bind('active', userId).all();
 
       let totalInvested = new Decimal(0);
       let totalCurrentValue = new Decimal(0);
@@ -156,8 +171,8 @@ export async function onRequestGet(context) {
     // Get specific investment
     if (id) {
       const investment = await env.DB.prepare(
-        'SELECT * FROM investments WHERE id = ?'
-      ).bind(id).first();
+        'SELECT * FROM investments WHERE id = ? AND user_id = ?'
+      ).bind(id, userId).first();
 
       if (!investment) {
         return new Response(JSON.stringify({ 
@@ -213,9 +228,9 @@ export async function onRequestGet(context) {
       });
     }
 
-    // Build query for list
-    let query = 'SELECT * FROM investments WHERE 1=1';
-    const params = [];
+    // Build query for list - Phase 41: Filter by user_id
+    let query = 'SELECT * FROM investments WHERE user_id = ?';
+    const params = [userId];
 
     if (status) {
       query += ' AND status = ?';
@@ -270,6 +285,19 @@ export async function onRequestPost(context) {
   const { env, request } = context;
   
   try {
+    // Phase 41: Authentication check
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     if (!env.DB) {
       return new Response(JSON.stringify({ 
         error: 'Database not available',
@@ -365,7 +393,7 @@ export async function onRequestPost(context) {
       data.risk_level || null,
       data.description || null,
       data.notes || null,
-      data.user_id || null,
+      userId,  // Phase 41: Use authenticated user_id
       metadataStr
     ).run();
 
@@ -425,6 +453,19 @@ export async function onRequestPut(context) {
   const { env, request } = context;
   
   try {
+    // Phase 41: Authentication check
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     if (!env.DB) {
       return new Response(JSON.stringify({ 
         error: 'Database not available',
@@ -443,6 +484,21 @@ export async function onRequestPut(context) {
         code: 'VALIDATION_ERROR'
       }), {
         status: 400,
+        headers: corsHeaders
+      });
+    }
+
+    // Phase 41: Verify ownership
+    const existingInvestment = await env.DB.prepare(
+      'SELECT id FROM investments WHERE id = ? AND user_id = ?'
+    ).bind(data.id, userId).first();
+
+    if (!existingInvestment) {
+      return new Response(JSON.stringify({
+        error: 'Investment not found or access denied',
+        code: 'NOT_FOUND'
+      }), {
+        status: 404,
         headers: corsHeaders
       });
     }
@@ -511,8 +567,9 @@ export async function onRequestPut(context) {
 
     updates.push('updated_at = CURRENT_TIMESTAMP');
     params.push(data.id);
+    params.push(userId);  // Phase 41: Add user_id for ownership check
 
-    const query = `UPDATE investments SET ${updates.join(', ')} WHERE id = ?`;
+    const query = `UPDATE investments SET ${updates.join(', ')} WHERE id = ? AND user_id = ?`;
     const result = await env.DB.prepare(query).bind(...params).run();
 
     if (result.meta.changes === 0) {
@@ -567,6 +624,19 @@ export async function onRequestDelete(context) {
   const { env, request } = context;
   
   try {
+    // Phase 41: Authentication check
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     if (!env.DB) {
       return new Response(JSON.stringify({ 
         error: 'Database not available',
@@ -590,9 +660,10 @@ export async function onRequestDelete(context) {
       });
     }
 
+    // Phase 41: Delete with user_id check for ownership
     const result = await env.DB.prepare(
-      'DELETE FROM investments WHERE id = ?'
-    ).bind(id).run();
+      'DELETE FROM investments WHERE id = ? AND user_id = ?'
+    ).bind(id, userId).run();
 
     if (result.meta.changes === 0) {
       return new Response(JSON.stringify({ 

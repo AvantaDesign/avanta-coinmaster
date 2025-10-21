@@ -1,6 +1,7 @@
 /**
  * Analytics API Endpoint
  * Phase 30: No monetary data handling required - tracks events and user metrics only
+ * Phase 41: Authentication hardening - Added getUserIdFromToken for all endpoints
  * 
  * Collects and stores custom analytics events from the frontend.
  * Provides endpoints for:
@@ -14,12 +15,14 @@
  *   GET /api/analytics/events - Get recent events
  */
 
+import { getUserIdFromToken } from './auth.js';
+
 // CORS headers
 const corsHeaders = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
 /**
@@ -41,6 +44,19 @@ export async function onRequestGet(context) {
   const pathname = url.pathname;
 
   try {
+    // Phase 41: Authentication check
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     // Route to appropriate handler
     if (pathname.includes('/stats')) {
       return getAnalyticsStats(context);
@@ -79,6 +95,19 @@ export async function onRequestPost(context) {
   const { request, env } = context;
 
   try {
+    // Phase 41: Authentication check
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     const eventData = await request.json();
 
     // Validate event data
@@ -95,6 +124,7 @@ export async function onRequestPost(context) {
     // Extract relevant data
     const event = {
       event_name: eventData.event,
+      user_id: userId, // Phase 41: Associate event with user
       properties: JSON.stringify(eventData.properties || {}),
       timestamp: eventData.properties?.timestamp || new Date().toISOString(),
       url: eventData.properties?.url || null,
@@ -108,9 +138,9 @@ export async function onRequestPost(context) {
 
     // In production, store in database:
     // await env.DB.prepare(`
-    //   INSERT INTO analytics_events (event_name, properties, timestamp, url, user_agent)
-    //   VALUES (?, ?, ?, ?, ?)
-    // `).bind(event.event_name, event.properties, event.timestamp, event.url, event.user_agent).run();
+    //   INSERT INTO analytics_events (event_name, user_id, properties, timestamp, url, user_agent)
+    //   VALUES (?, ?, ?, ?, ?, ?)
+    // `).bind(event.event_name, event.user_id, event.properties, event.timestamp, event.url, event.user_agent).run();
 
     return new Response(JSON.stringify({
       success: true,

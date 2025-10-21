@@ -1,6 +1,7 @@
 /**
  * Advanced Reports API Endpoint
  * Phase 30: Monetary values stored as INTEGER cents in database
+ * Phase 41: Authentication hardening - Added getUserIdFromToken for all endpoints
  * 
  * Provides backend support for report generation:
  * - Generate custom reports from database
@@ -16,6 +17,7 @@
  */
 
 import Decimal from 'decimal.js';
+import { getUserIdFromToken } from './auth.js';
 import { 
   fromCents, 
   fromCentsToDecimal,
@@ -28,7 +30,7 @@ const corsHeaders = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
 /**
@@ -50,6 +52,19 @@ export async function onRequestGet(context) {
   const pathname = url.pathname;
 
   try {
+    // Phase 41: Authentication check
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     // Route to appropriate handler
     if (pathname.includes('/daily-dashboard')) {
       return generateDailyDashboardReport(context);
