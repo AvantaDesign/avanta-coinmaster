@@ -116,7 +116,8 @@ test.describe('User Journey - Transaction Management', () => {
       await submitButton.click();
 
       // Check for validation errors
-      await page.waitForTimeout(500);
+      // Wait for validation error message to appear
+      await expect(page.locator('.error-message, [data-testid="validation-error"], .form-error')).toBeVisible();
     }
   });
 
