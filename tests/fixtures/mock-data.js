@@ -1,0 +1,272 @@
+/**
+ * Mock Data Fixtures for Testing
+ * Realistic test data for various entities
+ */
+
+export const mockUsers = {
+  regular: {
+    id: 'user-123',
+    email: 'user@example.com',
+    name: 'Regular User',
+    role: 'user',
+    is_active: 1,
+    created_at: '2024-01-01T00:00:00Z',
+    last_login_at: '2024-01-15T10:00:00Z',
+    preferences: JSON.stringify({
+      language: 'es',
+      currency: 'MXN',
+      timezone: 'America/Mexico_City',
+    }),
+  },
+  admin: {
+    id: 'admin-456',
+    email: 'admin@example.com',
+    name: 'Admin User',
+    role: 'admin',
+    is_active: 1,
+    created_at: '2023-12-01T00:00:00Z',
+    last_login_at: '2024-01-15T11:00:00Z',
+    preferences: JSON.stringify({
+      language: 'es',
+      currency: 'MXN',
+      timezone: 'America/Mexico_City',
+    }),
+  },
+  inactive: {
+    id: 'user-789',
+    email: 'inactive@example.com',
+    name: 'Inactive User',
+    role: 'user',
+    is_active: 0,
+    created_at: '2023-11-01T00:00:00Z',
+    last_login_at: '2023-12-01T10:00:00Z',
+  },
+};
+
+export const mockTransactions = [
+  {
+    id: 1,
+    user_id: 'user-123',
+    date: '2024-01-15',
+    description: 'Venta de servicios profesionales',
+    amount: 15000.00,
+    type: 'ingreso',
+    category: 'avanta',
+    account: 'Cuenta de cheques',
+    is_deductible: 0,
+    transaction_type: 'business',
+    is_iva_deductible: 0,
+    is_isr_deductible: 0,
+    created_at: '2024-01-15T10:00:00Z',
+  },
+  {
+    id: 2,
+    user_id: 'user-123',
+    date: '2024-01-16',
+    description: 'Compra de equipo de cómputo',
+    amount: 25000.00,
+    type: 'gasto',
+    category: 'avanta',
+    account: 'Tarjeta de crédito',
+    is_deductible: 1,
+    transaction_type: 'business',
+    is_iva_deductible: 1,
+    is_isr_deductible: 1,
+    expense_type: 'national',
+    created_at: '2024-01-16T14:30:00Z',
+  },
+  {
+    id: 3,
+    user_id: 'user-123',
+    date: '2024-01-17',
+    description: 'Compra de supermercado',
+    amount: 1500.00,
+    type: 'gasto',
+    category: 'personal',
+    account: 'Efectivo',
+    is_deductible: 0,
+    transaction_type: 'personal',
+    created_at: '2024-01-17T18:00:00Z',
+  },
+];
+
+export const mockAccounts = [
+  {
+    id: 1,
+    user_id: 'user-123',
+    name: 'Cuenta de cheques',
+    type: 'checking',
+    balance: 50000.00,
+    opening_date: '2023-01-01',
+    is_active: 1,
+    created_at: '2023-01-01T00:00:00Z',
+    updated_at: '2024-01-15T00:00:00Z',
+  },
+  {
+    id: 2,
+    user_id: 'user-123',
+    name: 'Tarjeta de crédito',
+    type: 'credit',
+    balance: -15000.00,
+    opening_date: '2023-03-15',
+    is_active: 1,
+    created_at: '2023-03-15T00:00:00Z',
+    updated_at: '2024-01-15T00:00:00Z',
+  },
+  {
+    id: 3,
+    user_id: 'user-123',
+    name: 'Efectivo',
+    type: 'cash',
+    balance: 5000.00,
+    opening_date: '2023-01-01',
+    is_active: 1,
+    created_at: '2023-01-01T00:00:00Z',
+    updated_at: '2024-01-15T00:00:00Z',
+  },
+];
+
+export const mockCategories = [
+  {
+    id: 1,
+    user_id: 'user-123',
+    name: 'Servicios profesionales',
+    description: 'Ingresos por servicios profesionales',
+    color: '#10B981',
+    icon: '💼',
+    type: 'income',
+    is_active: 1,
+    created_at: '2024-01-01T00:00:00Z',
+  },
+  {
+    id: 2,
+    user_id: 'user-123',
+    name: 'Equipo de oficina',
+    description: 'Gastos en equipo de oficina',
+    color: '#EF4444',
+    icon: '🖥️',
+    type: 'expense',
+    is_deductible: 1,
+    is_active: 1,
+    created_at: '2024-01-01T00:00:00Z',
+  },
+  {
+    id: 3,
+    user_id: 'user-123',
+    name: 'Gastos personales',
+    description: 'Gastos personales no deducibles',
+    color: '#6B7280',
+    icon: '🏠',
+    type: 'expense',
+    is_deductible: 0,
+    is_active: 1,
+    created_at: '2024-01-01T00:00:00Z',
+  },
+];
+
+export const mockInvoices = [
+  {
+    id: 1,
+    user_id: 'user-123',
+    folio: 'A-001',
+    uuid: '123e4567-e89b-12d3-a456-426614174000',
+    issue_date: '2024-01-15',
+    cfdi_type: 'I',
+    total: 17400.00,
+    subtotal: 15000.00,
+    iva: 2400.00,
+    status: 'active',
+    rfc_emisor: 'ABC123456DEF',
+    rfc_receptor: 'XYZ987654CBA',
+    xml_url: 'https://example.com/xml/invoice1.xml',
+    pdf_url: 'https://example.com/pdf/invoice1.pdf',
+    created_at: '2024-01-15T10:00:00Z',
+  },
+];
+
+export const mockBudgets = [
+  {
+    id: 1,
+    user_id: 'user-123',
+    name: 'Presupuesto Q1 2024',
+    period: 'monthly',
+    start_date: '2024-01-01',
+    end_date: '2024-03-31',
+    total_amount: 50000.00,
+    is_active: 1,
+    created_at: '2024-01-01T00:00:00Z',
+  },
+];
+
+export const mockTaxCalculations = {
+  monthly: {
+    user_id: 'user-123',
+    period: '2024-01',
+    income: 50000.00,
+    expenses: 15000.00,
+    deductible_expenses: 12000.00,
+    taxable_income: 38000.00,
+    isr: 5700.00,
+    iva_collected: 8000.00,
+    iva_paid: 2400.00,
+    iva_payable: 5600.00,
+    calculated_at: '2024-02-01T00:00:00Z',
+  },
+  annual: {
+    user_id: 'user-123',
+    year: 2024,
+    total_income: 600000.00,
+    total_expenses: 180000.00,
+    total_deductible: 150000.00,
+    taxable_income: 450000.00,
+    isr_annual: 75000.00,
+    isr_payments: 68000.00,
+    isr_balance: 7000.00,
+    calculated_at: '2025-01-01T00:00:00Z',
+  },
+};
+
+export const mockAuditLog = [
+  {
+    id: 1,
+    user_id: 'user-123',
+    action: 'transaction.create',
+    entity_type: 'transaction',
+    entity_id: '1',
+    changes: JSON.stringify({
+      description: 'Venta de servicios',
+      amount: 15000.00,
+    }),
+    ip_address: '192.168.1.1',
+    user_agent: 'Mozilla/5.0',
+    created_at: '2024-01-15T10:00:00Z',
+  },
+  {
+    id: 2,
+    user_id: 'admin-456',
+    action: 'user.update',
+    entity_type: 'user',
+    entity_id: 'user-123',
+    changes: JSON.stringify({
+      role: 'admin',
+    }),
+    ip_address: '192.168.1.2',
+    user_agent: 'Mozilla/5.0',
+    created_at: '2024-01-16T11:00:00Z',
+  },
+];
+
+export const mockSettings = {
+  user_id: 'user-123',
+  fiscal_regime: '612',
+  rfc: 'ABC123456DEF',
+  business_name: 'Mi Negocio SC',
+  tax_rate_isr: 0.30,
+  tax_rate_iva: 0.16,
+  accounting_method: 'cash',
+  fiscal_year_end: '12-31',
+  notifications_enabled: 1,
+  email_reports: 1,
+  created_at: '2024-01-01T00:00:00Z',
+  updated_at: '2024-01-15T00:00:00Z',
+};
