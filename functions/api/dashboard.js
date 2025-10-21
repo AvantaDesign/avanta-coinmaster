@@ -92,7 +92,7 @@ export async function onRequestGet(context) {
       // Phase 30: Convert balance from cents to decimal
       dashboardData.totalBalance = fromCents(accountsResult?.totalBalance || 0);
     } catch (error) {
-      console.error('Error fetching account balance:', error);
+      await logError(error, { endpoint: 'Error fetching account balance', category: 'api' }, env);
       dashboardData.totalBalance = "0.00";
       dashboardData.warnings = dashboardData.warnings || [];
       dashboardData.warnings.push('Could not fetch account balance');
@@ -132,7 +132,7 @@ export async function onRequestGet(context) {
       dashboardData.thisMonth.net = income - expenses;
       dashboardData.thisMonth.transaction_count = monthSummary?.transaction_count || 0;
     } catch (error) {
-      console.error('Error fetching period summary:', error);
+      await logError(error, { endpoint: 'Error fetching period summary', category: 'api' }, env);
       dashboardData.warnings = dashboardData.warnings || [];
       dashboardData.warnings.push('Could not fetch period summary');
     }
@@ -158,7 +158,7 @@ export async function onRequestGet(context) {
           total: fromCents(item.total)
         }));
       } catch (error) {
-        console.error('Error fetching category breakdown:', error);
+        await logError(error, { endpoint: 'Error fetching category breakdown', category: 'api' }, env);
         dashboardData.warnings = dashboardData.warnings || [];
         dashboardData.warnings.push('Could not fetch category breakdown');
       }
@@ -174,7 +174,7 @@ export async function onRequestGet(context) {
         // Phase 30: Convert balance from cents to decimal
         dashboardData.accounts = convertArrayFromCents(accounts.results || [], MONETARY_FIELDS.ACCOUNTS);
       } catch (error) {
-        console.error('Error fetching accounts:', error);
+        await logError(error, { endpoint: 'Error fetching accounts', category: 'api' }, env);
         dashboardData.warnings = dashboardData.warnings || [];
         dashboardData.warnings.push('Could not fetch accounts');
       }
@@ -210,7 +210,7 @@ export async function onRequestGet(context) {
         
         dashboardData.trends = trendsData;
       } catch (error) {
-        console.error('Error fetching trends:', error);
+        await logError(error, { endpoint: 'Error fetching trends', category: 'api' }, env);
         dashboardData.warnings = dashboardData.warnings || [];
         dashboardData.warnings.push('Could not fetch spending trends');
       }
@@ -228,7 +228,7 @@ export async function onRequestGet(context) {
         MONETARY_FIELDS.TRANSACTIONS
       );
     } catch (error) {
-      console.error('Error fetching recent transactions:', error);
+      await logError(error, { endpoint: 'Error fetching recent transactions', category: 'api' }, env);
       dashboardData.warnings = dashboardData.warnings || [];
       dashboardData.warnings.push('Could not fetch recent transactions');
     }
@@ -249,7 +249,7 @@ export async function onRequestGet(context) {
         count: deductibleSummary?.deductible_count || 0
       };
     } catch (error) {
-      console.error('Error fetching deductible summary:', error);
+      await logError(error, { endpoint: 'Error fetching deductible summary', category: 'api' }, env);
       dashboardData.warnings = dashboardData.warnings || [];
       dashboardData.warnings.push('Could not fetch deductible expenses');
     }
@@ -271,7 +271,7 @@ export async function onRequestGet(context) {
     });
 
   } catch (error) {
-    console.error('Dashboard API Error:', error);
+    await logError(error, { endpoint: 'Dashboard API Error', category: 'api' }, env);
     
     // Phase 31: Log error
     await logError(error, { 

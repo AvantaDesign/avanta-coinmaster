@@ -17,6 +17,7 @@
 // - DELETE /api/compliance-monitoring/:id - Delete compliance check
 
 import { getUserIdFromToken } from './auth.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 
 // CORS headers
 const corsHeaders = {
@@ -66,7 +67,7 @@ export async function onRequestGet({ request, env }) {
     // Handle list with filters
     return listComplianceChecks(env, userId, url);
   } catch (error) {
-    console.error('Error in compliance-monitoring GET:', error);
+    await logError(error, { endpoint: 'Error in compliance-monitoring GET', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       details: error.message 
@@ -155,7 +156,7 @@ export async function onRequestPost({ request, env }) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Error in compliance-monitoring POST:', error);
+    await logError(error, { endpoint: 'Error in compliance-monitoring POST', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       details: error.message 
@@ -571,6 +572,6 @@ async function logAuditTrail(env, userId, actionType, entityType, entityId, deta
       JSON.stringify(details)
     ).run();
   } catch (error) {
-    console.error('Error logging audit trail:', error);
+    await logError(error, { endpoint: 'Error logging audit trail', category: 'api' }, env);
   }
 }

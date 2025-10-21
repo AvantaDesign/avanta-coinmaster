@@ -27,6 +27,8 @@ const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 // Phase 34: Admin Panel Components
 const AdminPanelDashboard = lazy(() => import('./pages/admin/Dashboard'));
 const AdminUsers = lazy(() => import('./pages/admin/Users'));
+// Phase 42: Monitoring Dashboard
+const AdminMonitoring = lazy(() => import('./pages/admin/Monitoring'));
 const RecurringFreelancersDashboard = lazy(() => import('./components/RecurringFreelancersDashboard'));
 const RecurringServicesDashboard = lazy(() => import('./components/RecurringServicesDashboard'));
 const CashFlowProjection = lazy(() => import('./components/CashFlowProjection'));
@@ -257,7 +259,8 @@ function NavigationBar() {
       type: 'dropdown',
       items: [
         { name: 'Panel Admin', icon: '🎛️', path: '/admin' },
-        { name: 'Gestión de Usuarios', icon: '👥', path: '/admin/users' }
+        { name: 'Gestión de Usuarios', icon: '👥', path: '/admin/users' },
+        { name: 'Monitoreo del Sistema', icon: '📊', path: '/admin/monitoring' }
       ]
     });
   }
@@ -599,6 +602,8 @@ function AuthenticatedApp() {
                 {/* Phase 34: Admin Panel Routes */}
                 <Route path="/admin" element={<AdminPanelDashboard />} />
                 <Route path="/admin/users" element={<AdminUsers />} />
+                {/* Phase 42: Monitoring Dashboard */}
+                <Route path="/admin/monitoring" element={<AdminMonitoring />} />
                 <Route path="/recurring-freelancers" element={<RecurringFreelancersDashboard />} />
                 <Route path="/recurring-services" element={<RecurringServicesDashboard />} />
                 <Route path="/cash-flow-projection" element={<CashFlowProjection />} />

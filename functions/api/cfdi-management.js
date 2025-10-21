@@ -17,6 +17,7 @@
 // - DELETE /api/cfdi-management/:id - Delete CFDI record
 
 import { getUserIdFromToken } from './auth.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 import { 
   toCents, 
   convertArrayFromCents, 
@@ -95,7 +96,7 @@ export async function onRequestGet(context) {
     return await listCFDIs(env, userId, url);
 
   } catch (error) {
-    console.error('Error in cfdi-management GET:', error);
+    await logError(error, { endpoint: 'Error in cfdi-management GET', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       message: error.message,
@@ -309,7 +310,7 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
-    console.error('Error in cfdi-management POST:', error);
+    await logError(error, { endpoint: 'Error in cfdi-management POST', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to create CFDI record',
       message: error.message,
@@ -467,7 +468,7 @@ export async function onRequestPut(context) {
     });
 
   } catch (error) {
-    console.error('Error in cfdi-management PUT:', error);
+    await logError(error, { endpoint: 'Error in cfdi-management PUT', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to update CFDI',
       message: error.message,
@@ -543,7 +544,7 @@ export async function onRequestDelete(context) {
     });
 
   } catch (error) {
-    console.error('Error in cfdi-management DELETE:', error);
+    await logError(error, { endpoint: 'Error in cfdi-management DELETE', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to delete CFDI',
       message: error.message,

@@ -13,6 +13,7 @@
 // - GET /api/tax-reports/declaration/:year/:month - Get declaration summary
 
 import { getUserIdFromToken } from './auth.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 import { 
   fromCents, 
   convertArrayFromCents,
@@ -334,7 +335,7 @@ export async function onRequestGet(context) {
     });
     
   } catch (error) {
-    console.error('Error generating tax report:', error);
+    await logError(error, { endpoint: 'Error generating tax report', category: 'api' }, env);
     return new Response(JSON.stringify({
       error: 'Internal server error',
       message: error.message,

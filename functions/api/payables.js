@@ -137,7 +137,7 @@ export async function onRequestGet(context) {
     });
 
   } catch (error) {
-    console.error('Payables GET error:', error);
+    await logError(error, { endpoint: 'Payables GET error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to fetch payables',
       message: error.message,
@@ -242,7 +242,7 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
-    console.error('Payables POST error:', error);
+    await logError(error, { endpoint: 'Payables POST error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to create payable',
       message: error.message,
@@ -355,7 +355,7 @@ export async function onRequestPut(context) {
     });
 
   } catch (error) {
-    console.error('Payables PUT error:', error);
+    await logError(error, { endpoint: 'Payables PUT error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to update payable',
       message: error.message,
@@ -412,7 +412,7 @@ export async function onRequestDelete(context) {
     });
 
   } catch (error) {
-    console.error('Payables DELETE error:', error);
+    await logError(error, { endpoint: 'Payables DELETE error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to delete payable',
       message: error.message,

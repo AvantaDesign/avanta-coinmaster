@@ -403,7 +403,7 @@ export async function onRequestGet(context) {
     });
 
   } catch (error) {
-    console.error('Error generating cash flow projection:', error);
+    await logError(error, { endpoint: 'Error generating cash flow projection', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: error.message,
       code: 'PROJECTION_ERROR'

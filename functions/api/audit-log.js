@@ -18,6 +18,7 @@
 // - Admin-only access for sensitive operations
 
 import { getUserIdFromToken } from './auth.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 
 /**
  * GET /api/audit-log - List audit log entries with filtering
@@ -85,7 +86,7 @@ export async function onRequestGet(context) {
     return handleList(env, userId, url, corsHeaders);
 
   } catch (error) {
-    console.error('Audit log GET error:', error);
+    await logError(error, { endpoint: 'Audit log GET error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       message: error.message
@@ -177,7 +178,7 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
-    console.error('Audit log POST error:', error);
+    await logError(error, { endpoint: 'Audit log POST error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to create audit log',
       message: error.message

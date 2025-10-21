@@ -2,6 +2,7 @@
 // SECURITY: Only authenticated users can change their own password
 
 import { getUserIdFromToken } from '../auth.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../../utils/logging.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -64,7 +65,7 @@ async function verifyPassword(password, storedHash) {
     
     return result === 0;
   } catch (error) {
-    console.error('Password verification error:', error);
+    await logError(error, { endpoint: 'Password verification error', category: 'api' }, env);
     return false;
   }
 }
@@ -77,14 +78,10 @@ export async function onRequestPost(context) {
   const { request, env } = context;
   
   try {
-    console.log('Change password endpoint called');
-    console.log('Request headers:', Object.fromEntries(request.headers.entries()));
-    
     const userId = await getUserIdFromToken(request, env);
-    console.log('Extracted userId:', userId);
     
     if (!userId) {
-      console.log('No userId found, returning 401');
+      logInfo('No userId found, returning 401', { category: 'api' });
       return new Response(JSON.stringify({
         error: 'Unauthorized',
         code: 'AUTH_REQUIRED'
@@ -178,7 +175,7 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
-    console.error('Change password error:', error);
+    await logError(error, { endpoint: 'Change password error', category: 'api' }, env);
     return new Response(JSON.stringify({
       error: 'Failed to change password',
       message: error.message,

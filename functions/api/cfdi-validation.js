@@ -8,6 +8,7 @@
 // - Business rule validation
 
 import { getUserIdFromToken } from './auth.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -109,7 +110,7 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
-    console.error('Error in cfdi-validation POST:', error);
+    await logError(error, { endpoint: 'Error in cfdi-validation POST', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Validation failed',
       message: error.message,
@@ -168,7 +169,7 @@ export async function onRequestGet(context) {
     });
 
   } catch (error) {
-    console.error('Error in cfdi-validation GET:', error);
+    await logError(error, { endpoint: 'Error in cfdi-validation GET', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to check duplicates',
       message: error.message,

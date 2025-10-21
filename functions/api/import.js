@@ -8,6 +8,7 @@
 
 import { getUserIdFromToken } from './auth.js';
 import { parseCSV, detectColumns, parseDate, parseAmount, detectTransactionType, detectDuplicates } from '../../src/utils/csvParser.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -52,7 +53,7 @@ export async function onRequestPost(context) {
     }
 
   } catch (error) {
-    console.error('Import POST error:', error);
+    await logError(error, { endpoint: 'Import POST error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to process import',
       message: error.message,
@@ -193,7 +194,7 @@ async function handleParseCSV(env, userId, request) {
     });
 
   } catch (error) {
-    console.error('CSV parse error:', error);
+    await logError(error, { endpoint: 'CSV parse error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to parse CSV',
       message: error.message,
@@ -263,7 +264,7 @@ async function handleConfirmImport(env, userId, request) {
 
         recordsImported++;
       } catch (error) {
-        console.error('Transaction insert error:', error);
+        await logError(error, { endpoint: 'Transaction insert error', category: 'api' }, env);
         recordsFailed++;
       }
     }
@@ -306,7 +307,7 @@ async function handleConfirmImport(env, userId, request) {
     });
 
   } catch (error) {
-    console.error('Import confirm error:', error);
+    await logError(error, { endpoint: 'Import confirm error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to import transactions',
       message: error.message,
@@ -386,7 +387,7 @@ export async function onRequestGet(context) {
     });
 
   } catch (error) {
-    console.error('Import GET error:', error);
+    await logError(error, { endpoint: 'Import GET error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to fetch import history',
       message: error.message,
@@ -433,7 +434,7 @@ async function handleGetImportDetails(env, userId, importId) {
     });
 
   } catch (error) {
-    console.error('Import details error:', error);
+    await logError(error, { endpoint: 'Import details error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to fetch import details',
       message: error.message,
@@ -524,7 +525,7 @@ export async function onRequestDelete(context) {
     });
 
   } catch (error) {
-    console.error('Import DELETE error:', error);
+    await logError(error, { endpoint: 'Import DELETE error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to delete import',
       message: error.message,

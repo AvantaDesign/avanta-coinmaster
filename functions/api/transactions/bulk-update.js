@@ -12,6 +12,7 @@
 // - User isolation for security
 
 import { getUserIdFromToken } from '../auth.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../../utils/logging.js';
 
 /**
  * POST /api/transactions/bulk-update
@@ -157,7 +158,11 @@ export async function onRequestPost(context) {
         results.successful++;
 
       } catch (error) {
-        console.error(`Error updating transaction ${update.id}:`, error);
+        await logError(error, {
+          context: 'Error updating transaction in bulk',
+          transactionId: update.id,
+          category: 'database'
+        }, env);
         results.failed.push({
           id: update.id,
           error: error.message
@@ -175,7 +180,7 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
-    console.error('Bulk update error:', error);
+    await logError(error, { endpoint: 'Bulk update error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to process bulk update',
       message: error.message

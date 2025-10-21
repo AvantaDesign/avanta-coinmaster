@@ -155,7 +155,7 @@ export async function onRequestGet(context) {
     });
 
   } catch (error) {
-    console.error('Error fetching reconciliation summary:', error);
+    await logError(error, { endpoint: 'Error fetching reconciliation summary', category: 'api' }, env);
     return new Response(JSON.stringify({
       error: 'Failed to fetch reconciliation summary',
       details: error.message

@@ -1,5 +1,6 @@
 // Tax Simulation API - Declaración Anual Simulator
 import { getUserIdFromToken } from './auth.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -108,7 +109,7 @@ export async function onRequestGet(context) {
     });
 
   } catch (error) {
-    console.error('Tax simulation GET error:', error);
+    await logError(error, { endpoint: 'Tax simulation GET error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to fetch simulations',
       details: error.message 
@@ -239,7 +240,7 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
-    console.error('Tax simulation POST error:', error);
+    await logError(error, { endpoint: 'Tax simulation POST error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to create simulation',
       details: error.message 
@@ -310,7 +311,7 @@ export async function onRequestPut(context) {
     });
 
   } catch (error) {
-    console.error('Tax simulation PUT error:', error);
+    await logError(error, { endpoint: 'Tax simulation PUT error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to update simulation',
       details: error.message 
@@ -368,7 +369,7 @@ export async function onRequestDelete(context) {
     });
 
   } catch (error) {
-    console.error('Tax simulation DELETE error:', error);
+    await logError(error, { endpoint: 'Tax simulation DELETE error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to delete simulation',
       details: error.message 

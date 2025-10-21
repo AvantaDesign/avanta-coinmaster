@@ -1,4 +1,5 @@
 // Upload API - Handle file uploads to R2 and file downloads
+// Phase 42: Structured logging implementation
 //
 // Features:
 // - Upload files to R2 storage
@@ -7,6 +8,8 @@
 // - File size validation
 // - Secure filename sanitization
 // - CORS support
+
+import { logInfo, logError, logWarn, logDebug } from '../utils/logging.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -41,7 +44,7 @@ export async function onRequestPost(context) {
   try {
     // Validate R2 connection
     if (!env.RECEIPTS) {
-      console.error('[Upload] R2 binding not configured');
+      logError('[Upload] R2 binding not configured', { category: 'api' }, env);
       return new Response(JSON.stringify({ 
         error: 'Storage not available',
         details: 'R2 bucket binding is not configured. Please check wrangler.toml',
@@ -56,7 +59,10 @@ export async function onRequestPost(context) {
     const file = formData.get('file');
     
     if (!file) {
-      console.warn('[Upload] No file in request');
+      logWarn('No file in upload request', {
+        endpoint: '/api/upload',
+        category: 'api'
+      });
       return new Response(JSON.stringify({ 
         error: 'No file provided',
         details: 'Please select a file to upload',
@@ -67,11 +73,22 @@ export async function onRequestPost(context) {
       });
     }
 
-    console.log(`[Upload] Processing file: ${file.name} (${file.size} bytes, ${file.type})`);
+    logInfo('Processing file upload', {
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+      endpoint: '/api/upload',
+      category: 'api'
+    });
 
     // Validate file type
     if (!ALLOWED_TYPES[file.type]) {
-      console.warn(`[Upload] Invalid file type: ${file.type}`);
+      logWarn('Invalid file type', {
+        fileType: file.type,
+        fileName: file.name,
+        endpoint: '/api/upload',
+        category: 'api'
+      });
       return new Response(JSON.stringify({ 
         error: 'Invalid file type',
         details: `File type "${file.type}" is not allowed`,
@@ -86,7 +103,13 @@ export async function onRequestPost(context) {
 
     // Validate file size
     if (file.size > MAX_FILE_SIZE) {
-      console.warn(`[Upload] File too large: ${file.size} bytes (max: ${MAX_FILE_SIZE})`);
+      logWarn('File too large', {
+        fileSize: file.size,
+        maxSize: MAX_FILE_SIZE,
+        fileName: file.name,
+        endpoint: '/api/upload',
+        category: 'api'
+      });
       return new Response(JSON.stringify({ 
         error: 'File too large',
         details: `File size ${(file.size / 1024 / 1024).toFixed(2)} MB exceeds maximum of ${MAX_FILE_SIZE / 1024 / 1024} MB`,
@@ -123,7 +146,11 @@ export async function onRequestPost(context) {
     
     // Upload to R2
     try {
-      console.log(`[Upload] Uploading to R2: ${filename}`);
+      logInfo('Uploading to R2', {
+        filename,
+        endpoint: '/api/upload',
+        category: 'storage'
+      });
       await env.RECEIPTS.put(filename, file.stream(), {
         httpMetadata: {
           contentType: file.type
@@ -136,9 +163,19 @@ export async function onRequestPost(context) {
       });
       
       const uploadDuration = Date.now() - uploadStartTime;
-      console.log(`[Upload] Successfully uploaded ${filename} in ${uploadDuration}ms`);
+      logInfo('Successfully uploaded file', {
+        filename,
+        duration: uploadDuration,
+        endpoint: '/api/upload',
+        category: 'storage'
+      });
     } catch (r2Error) {
-      console.error('[Upload] R2 upload error:', r2Error);
+      await logError(r2Error, {
+        context: 'R2 upload error',
+        filename,
+        endpoint: '/api/upload',
+        category: 'storage'
+      }, env);
       return new Response(JSON.stringify({ 
         error: 'Failed to upload file to storage',
         details: 'An error occurred while saving the file. Please try again.',
@@ -175,7 +212,7 @@ export async function onRequestPost(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('[Upload] Unexpected error:', error);
+    await logError(error, { endpoint: '[Upload] Unexpected error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to process upload',
       details: 'An unexpected error occurred. Please try again.',
@@ -209,11 +246,15 @@ export async function onRequestGet(context) {
       });
     }
     
-    console.log(`[Download] Retrieving file: ${filename}`);
+    logInfo('Retrieving file', {
+      filename,
+      endpoint: '/api/upload',
+      category: 'storage'
+    });
     
     // Validate R2 connection
     if (!env.RECEIPTS) {
-      console.error('[Download] R2 binding not configured');
+      logError('[Download] R2 binding not configured', { category: 'api' }, env);
       return new Response(JSON.stringify({ 
         error: 'Storage not available',
         code: 'R2_NOT_CONFIGURED'
@@ -227,7 +268,11 @@ export async function onRequestGet(context) {
     const object = await env.RECEIPTS.get(filename);
     
     if (!object) {
-      console.warn(`[Download] File not found: ${filename}`);
+      logWarn('File not found', {
+        filename,
+        endpoint: '/api/upload',
+        category: 'storage'
+      });
       return new Response(JSON.stringify({ 
         error: 'File not found',
         details: `The file "${filename}" does not exist`,
@@ -239,7 +284,11 @@ export async function onRequestGet(context) {
       });
     }
     
-    console.log(`[Download] Successfully retrieved ${filename}`);
+    logInfo('Successfully retrieved file', {
+      filename,
+      endpoint: '/api/upload',
+      category: 'storage'
+    });
     
     // Return file with appropriate headers
     const headers = new Headers();
@@ -259,7 +308,7 @@ export async function onRequestGet(context) {
     return new Response(object.body, { headers });
     
   } catch (error) {
-    console.error('[Download] Error:', error);
+    await logError(error, { endpoint: '[Download] Error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to download file',
       details: 'An error occurred while retrieving the file',

@@ -3,6 +3,7 @@
 
 import { getUserIdFromToken } from './auth.js';
 import Decimal from 'decimal.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 import { 
   fromCents, 
   fromCentsToDecimal
@@ -183,7 +184,7 @@ export async function onRequestGet(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Fiscal GET error:', error);
+    await logError(error, { endpoint: 'Fiscal GET error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to calculate fiscal data',
       message: error.message,

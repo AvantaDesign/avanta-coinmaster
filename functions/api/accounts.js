@@ -68,7 +68,7 @@ export async function onRequestGet(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Accounts GET error:', error);
+    await logError(error, { endpoint: 'Accounts GET error', category: 'api' }, env);
     
     // Phase 31: Log error
     await logError(error, { 
@@ -247,7 +247,7 @@ export async function onRequestPut(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Accounts PUT error:', error);
+    await logError(error, { endpoint: 'Accounts PUT error', category: 'api' }, env);
     
     // Phase 31: Log error
     await logError(error, { 
@@ -397,7 +397,7 @@ export async function onRequestPost(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Accounts POST error:', error);
+    await logError(error, { endpoint: 'Accounts POST error', category: 'api' }, env);
     
     // Phase 31: Log error
     await logError(error, { 
@@ -503,7 +503,7 @@ export async function onRequestDelete(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Accounts DELETE error:', error);
+    await logError(error, { endpoint: 'Accounts DELETE error', category: 'api' }, env);
     
     // Phase 31: Log error
     await logError(error, { 

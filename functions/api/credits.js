@@ -19,6 +19,7 @@
 // - interest: Interest charges on balance
 
 import { getUserIdFromToken } from './auth.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 import { 
   toCents, 
   fromCents, 
@@ -261,7 +262,7 @@ export async function onRequestGet(context) {
     });
 
   } catch (error) {
-    console.error('Credits GET error:', error);
+    await logError(error, { endpoint: 'Credits GET error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to fetch credits',
       message: error.message,
@@ -496,7 +497,7 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
-    console.error('Credits POST error:', error);
+    await logError(error, { endpoint: 'Credits POST error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to create credit or movement',
       message: error.message,
@@ -713,7 +714,7 @@ export async function onRequestPut(context) {
     });
 
   } catch (error) {
-    console.error('Credits PUT error:', error);
+    await logError(error, { endpoint: 'Credits PUT error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to update credit',
       message: error.message,
@@ -800,7 +801,7 @@ export async function onRequestDelete(context) {
     });
 
   } catch (error) {
-    console.error('Credits DELETE error:', error);
+    await logError(error, { endpoint: 'Credits DELETE error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to delete credit',
       message: error.message,

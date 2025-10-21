@@ -87,7 +87,7 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
-    console.error('Transactions RESTORE Error:', error);
+    await logError(error, { endpoint: 'Transactions RESTORE Error', category: 'api' }, env);
     
     return new Response(JSON.stringify({ 
       error: 'Internal server error',

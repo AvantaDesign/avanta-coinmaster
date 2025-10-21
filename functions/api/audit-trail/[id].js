@@ -3,6 +3,7 @@
 // Handles: GET /api/audit-trail/:id and DELETE /api/audit-trail/:id
 
 import { getUserIdFromToken } from '../auth.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../../utils/logging.js';
 
 // CORS headers
 const corsHeaders = {
@@ -66,7 +67,7 @@ export async function onRequestGet({ request, env, params }) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Error in audit-trail GET:', error);
+    await logError(error, { endpoint: 'Error in audit-trail GET', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       details: error.message 
@@ -126,7 +127,7 @@ export async function onRequestDelete({ request, env, params }) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Error in audit-trail DELETE:', error);
+    await logError(error, { endpoint: 'Error in audit-trail DELETE', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       details: error.message 

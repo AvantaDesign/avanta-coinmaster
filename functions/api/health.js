@@ -36,7 +36,7 @@ export async function onRequestGet(context) {
         health.checks.database = 'not_configured';
       }
     } catch (error) {
-      console.error('Database health check failed:', error);
+      await logError(error, { endpoint: 'Database health check failed', category: 'api' }, env);
       health.checks.database = 'unhealthy';
       health.status = 'degraded';
     }
@@ -49,7 +49,7 @@ export async function onRequestGet(context) {
         health.checks.storage = 'not_configured';
       }
     } catch (error) {
-      console.error('Storage health check failed:', error);
+      await logError(error, { endpoint: 'Storage health check failed', category: 'api' }, env);
       health.checks.storage = 'unhealthy';
       health.status = 'degraded';
     }
@@ -68,7 +68,7 @@ export async function onRequestGet(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Health check error:', error);
+    await logError(error, { endpoint: 'Health check error', category: 'api' }, env);
     
     return new Response(JSON.stringify({
       status: 'unhealthy',

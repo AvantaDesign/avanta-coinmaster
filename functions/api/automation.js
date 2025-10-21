@@ -98,7 +98,7 @@ export async function onRequestGet(context) {
     });
 
   } catch (error) {
-    console.error('Automation GET error:', error);
+    await logError(error, { endpoint: 'Automation GET error', category: 'api' }, env);
     logError(error, { endpoint: 'automation', method: 'GET' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to fetch automation rules',
@@ -223,7 +223,7 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
-    console.error('Automation POST error:', error);
+    await logError(error, { endpoint: 'Automation POST error', category: 'api' }, env);
     logError(error, { endpoint: 'automation', method: 'POST' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to create automation rule',
@@ -331,7 +331,7 @@ export async function onRequestPut(context) {
     });
 
   } catch (error) {
-    console.error('Automation PUT error:', error);
+    await logError(error, { endpoint: 'Automation PUT error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to update automation rule',
       message: error.message,
@@ -383,7 +383,7 @@ export async function onRequestDelete(context) {
     });
 
   } catch (error) {
-    console.error('Automation DELETE error:', error);
+    await logError(error, { endpoint: 'Automation DELETE error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to delete automation rule',
       message: error.message,

@@ -15,6 +15,7 @@
 // - Multi-tenancy with user isolation
 
 import { getUserIdFromToken } from './auth.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -117,7 +118,7 @@ export async function onRequestGet(context) {
     });
 
   } catch (error) {
-    console.error('Deductibility Rules GET Error:', error);
+    await logError(error, { endpoint: 'Deductibility Rules GET Error', category: 'api' }, env);
     
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
@@ -273,12 +274,15 @@ export async function onRequestPost(context) {
       });
 
     } catch (dbError) {
-      console.error('Database error creating rule:', dbError);
+      await logError(dbError, {
+        context: 'Database error creating deductibility rule',
+        category: 'database'
+      }, env);
       throw dbError;
     }
 
   } catch (error) {
-    console.error('Deductibility Rules POST Error:', error);
+    await logError(error, { endpoint: 'Deductibility Rules POST Error', category: 'api' }, env);
     
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
@@ -465,7 +469,7 @@ export async function onRequestPut(context) {
     });
 
   } catch (error) {
-    console.error('Deductibility Rules PUT Error:', error);
+    await logError(error, { endpoint: 'Deductibility Rules PUT Error', category: 'api' }, env);
     
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
@@ -558,7 +562,7 @@ export async function onRequestDelete(context) {
     });
 
   } catch (error) {
-    console.error('Deductibility Rules DELETE Error:', error);
+    await logError(error, { endpoint: 'Deductibility Rules DELETE Error', category: 'api' }, env);
     
     return new Response(JSON.stringify({ 
       error: 'Internal server error',

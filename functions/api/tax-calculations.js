@@ -20,6 +20,7 @@
 
 import { getUserIdFromToken } from './auth.js';
 import { fromCents } from '../utils/monetary.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 
 // CORS headers
 const corsHeaders = {
@@ -81,7 +82,11 @@ async function calculateISR(env, userId, year, month) {
     try {
       brackets = JSON.parse(fiscalParams.value);
     } catch (e) {
-      console.error('Error parsing ISR brackets:', e);
+      logError(e, {
+        context: 'ISR brackets parsing',
+        category: 'business',
+        fiscalParamsId: fiscalParams?.id
+      }, env);
     }
   }
   
@@ -518,7 +523,7 @@ export async function onRequestGet(context) {
     });
     
   } catch (error) {
-    console.error('Error fetching tax calculations:', error);
+    await logError(error, { endpoint: 'Error fetching tax calculations', category: 'api' }, env);
     return new Response(JSON.stringify({
       error: 'Internal server error',
       message: error.message,
@@ -698,7 +703,7 @@ export async function onRequestPost(context) {
     });
     
   } catch (error) {
-    console.error('Error calculating taxes:', error);
+    await logError(error, { endpoint: 'Error calculating taxes', category: 'api' }, env);
     return new Response(JSON.stringify({
       error: 'Internal server error',
       message: error.message,
@@ -789,7 +794,7 @@ export async function onRequestPut(context) {
     });
     
   } catch (error) {
-    console.error('Error updating calculation:', error);
+    await logError(error, { endpoint: 'Error updating calculation', category: 'api' }, env);
     return new Response(JSON.stringify({
       error: 'Internal server error',
       message: error.message,
@@ -859,7 +864,7 @@ export async function onRequestDelete(context) {
     });
     
   } catch (error) {
-    console.error('Error deleting calculation:', error);
+    await logError(error, { endpoint: 'Error deleting calculation', category: 'api' }, env);
     return new Response(JSON.stringify({
       error: 'Internal server error',
       message: error.message,

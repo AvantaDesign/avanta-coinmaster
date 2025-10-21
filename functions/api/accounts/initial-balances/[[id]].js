@@ -79,7 +79,7 @@ export async function onRequestGet(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Initial Balances GET error:', error);
+    await logError(error, { endpoint: 'Initial Balances GET error', category: 'api' }, env);
     await logError(error, { 
       endpoint: 'account-initial-balances',
       method: 'GET',
@@ -239,7 +239,7 @@ export async function onRequestPost(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Initial Balances POST error:', error);
+    await logError(error, { endpoint: 'Initial Balances POST error', category: 'api' }, env);
     await logError(error, { 
       endpoint: 'account-initial-balances',
       method: 'POST',
@@ -384,7 +384,7 @@ export async function onRequestPut(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Initial Balances PUT error:', error);
+    await logError(error, { endpoint: 'Initial Balances PUT error', category: 'api' }, env);
     await logError(error, { 
       endpoint: 'account-initial-balances',
       method: 'PUT',
@@ -483,7 +483,7 @@ export async function onRequestDelete(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Initial Balances DELETE error:', error);
+    await logError(error, { endpoint: 'Initial Balances DELETE error', category: 'api' }, env);
     await logError(error, { 
       endpoint: 'account-initial-balances',
       method: 'DELETE',

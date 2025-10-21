@@ -8,6 +8,7 @@
 
 import { getUserIdFromToken } from './auth.js';
 import { getSecurityHeaders } from '../utils/security.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 
 /**
  * Check if user has admin role
@@ -126,7 +127,7 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
-    console.error('Migration error:', error);
+    await logError(error, { endpoint: 'Migration error', category: 'api' }, env);
     return new Response(JSON.stringify({
       error: 'Migration failed',
       message: error.message,
@@ -191,7 +192,7 @@ export async function onRequestGet(context) {
     });
 
   } catch (error) {
-    console.error('Migration info error:', error);
+    await logError(error, { endpoint: 'Migration info error', category: 'api' }, env);
     return new Response(JSON.stringify({
       error: 'Failed to get migration info',
       message: error.message

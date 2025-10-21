@@ -3,6 +3,7 @@
 // SECURITY: Uses Web Crypto API for password hashing and jose library for JWT
 
 import { SignJWT, jwtVerify } from 'jose';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../../utils/logging.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -81,7 +82,7 @@ async function verifyPassword(password, storedHash) {
     
     return result === 0;
   } catch (error) {
-    console.error('Error verifying password:', error);
+    await logError(error, { endpoint: 'Error verifying password', category: 'api' }, env);
     return false;
   }
 }
@@ -125,7 +126,7 @@ async function verifyJWT(token, secret) {
     
     return payload;
   } catch (error) {
-    console.error('Error verifying JWT:', error);
+    await logError(error, { endpoint: 'Error verifying JWT', category: 'api' }, env);
     return null;
   }
 }
@@ -268,7 +269,7 @@ async function handleLogin(request, env) {
     });
     
   } catch (error) {
-    console.error('Login error:', error);
+    await logError(error, { endpoint: 'Login error', category: 'api' }, env);
     return new Response(JSON.stringify({
       error: 'Login failed',
       message: error.message,
@@ -374,7 +375,7 @@ async function handleGoogleLogin(request, env) {
     });
     
   } catch (error) {
-    console.error('Google login error:', error);
+    await logError(error, { endpoint: 'Google login error', category: 'api' }, env);
     return new Response(JSON.stringify({
       error: 'Google login failed',
       message: error.message,
@@ -448,7 +449,7 @@ async function handleRefreshToken(request, env) {
     });
     
   } catch (error) {
-    console.error('Token refresh error:', error);
+    await logError(error, { endpoint: 'Token refresh error', category: 'api' }, env);
     return new Response(JSON.stringify({
       error: 'Token refresh failed',
       message: error.message,
@@ -506,7 +507,7 @@ async function handleGetCurrentUser(request, env) {
     });
     
   } catch (error) {
-    console.error('Get user error:', error);
+    await logError(error, { endpoint: 'Get user error', category: 'api' }, env);
     return new Response(JSON.stringify({
       error: 'Failed to get user',
       message: error.message,

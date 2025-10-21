@@ -2,6 +2,7 @@
 // Phase 41: Authentication hardening - Added getUserIdFromToken for all endpoints
 
 import { getUserIdFromToken } from '../auth.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../../utils/logging.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -119,7 +120,7 @@ export async function onRequestGet(context) {
     });
 
   } catch (error) {
-    console.error('Error fetching matches:', error);
+    await logError(error, { endpoint: 'Error fetching matches', category: 'api' }, env);
     return new Response(JSON.stringify({
       error: 'Failed to fetch matches',
       details: error.message
@@ -221,7 +222,7 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
-    console.error('Error creating manual match:', error);
+    await logError(error, { endpoint: 'Error creating manual match', category: 'api' }, env);
     
     // Check for unique constraint violation
     if (error.message.includes('UNIQUE constraint')) {

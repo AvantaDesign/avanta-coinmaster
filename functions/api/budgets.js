@@ -70,7 +70,7 @@ export async function onRequest(context) {
 
     return getApiResponse(null, 'Not found', 404);
   } catch (error) {
-    console.error('Budgets API error:', error);
+    await logError(error, { endpoint: 'Budgets API error', category: 'api' }, env);
     
     // Phase 31: Log error
     await logError(error, { 

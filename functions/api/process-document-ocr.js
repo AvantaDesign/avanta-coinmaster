@@ -308,7 +308,7 @@ function extractDate(text) {
           return `${year}-${month}-${day}`;
         }
       } catch (e) {
-        console.error('Date parsing error:', e);
+        // Silent error - date parsing failures are expected
       }
     }
   }

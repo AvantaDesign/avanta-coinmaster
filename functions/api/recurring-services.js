@@ -3,6 +3,7 @@
 
 import Decimal from 'decimal.js';
 import { getUserIdFromToken } from './auth.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 import { 
   toCents, 
   fromCents, 
@@ -149,7 +150,7 @@ export async function onRequestGet(context) {
     });
 
   } catch (error) {
-    console.error('Recurring Services GET error:', error);
+    await logError(error, { endpoint: 'Recurring Services GET error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to fetch recurring services',
       message: error.message,
@@ -279,7 +280,7 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
-    console.error('Recurring Services POST error:', error);
+    await logError(error, { endpoint: 'Recurring Services POST error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to create recurring service',
       message: error.message,
@@ -414,7 +415,7 @@ export async function onRequestPut(context) {
     });
 
   } catch (error) {
-    console.error('Recurring Services PUT error:', error);
+    await logError(error, { endpoint: 'Recurring Services PUT error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to update recurring service',
       message: error.message,
@@ -479,7 +480,7 @@ export async function onRequestDelete(context) {
     });
 
   } catch (error) {
-    console.error('Recurring Services DELETE error:', error);
+    await logError(error, { endpoint: 'Recurring Services DELETE error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to delete recurring service',
       message: error.message,

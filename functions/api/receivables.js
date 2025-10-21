@@ -137,7 +137,7 @@ export async function onRequestGet(context) {
     });
 
   } catch (error) {
-    console.error('Receivables GET error:', error);
+    await logError(error, { endpoint: 'Receivables GET error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to fetch receivables',
       message: error.message,
@@ -242,7 +242,7 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
-    console.error('Receivables POST error:', error);
+    await logError(error, { endpoint: 'Receivables POST error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to create receivable',
       message: error.message,
@@ -355,7 +355,7 @@ export async function onRequestPut(context) {
     });
 
   } catch (error) {
-    console.error('Receivables PUT error:', error);
+    await logError(error, { endpoint: 'Receivables PUT error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to update receivable',
       message: error.message,
@@ -412,7 +412,7 @@ export async function onRequestDelete(context) {
     });
 
   } catch (error) {
-    console.error('Receivables DELETE error:', error);
+    await logError(error, { endpoint: 'Receivables DELETE error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to delete receivable',
       message: error.message,

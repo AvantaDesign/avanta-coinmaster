@@ -18,6 +18,7 @@
 // - DELETE /api/sat-declarations/:id - Delete declaration
 
 import { getUserIdFromToken } from './auth.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 import { 
   fromCents, 
   fromCentsToDecimal
@@ -96,7 +97,7 @@ export async function onRequestGet(context) {
     return await listDeclarations(env, userId, url);
 
   } catch (error) {
-    console.error('Error in sat-declarations GET:', error);
+    await logError(error, { endpoint: 'Error in sat-declarations GET', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       message: error.message,
@@ -176,7 +177,7 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
-    console.error('Error in sat-declarations POST:', error);
+    await logError(error, { endpoint: 'Error in sat-declarations POST', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       message: error.message,
@@ -238,7 +239,7 @@ export async function onRequestPut(context) {
     return await updateDeclaration(env, userId, declarationId, body);
 
   } catch (error) {
-    console.error('Error in sat-declarations PUT:', error);
+    await logError(error, { endpoint: 'Error in sat-declarations PUT', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       message: error.message,
@@ -298,7 +299,7 @@ export async function onRequestDelete(context) {
     return await deleteDeclaration(env, userId, declarationId);
 
   } catch (error) {
-    console.error('Error in sat-declarations DELETE:', error);
+    await logError(error, { endpoint: 'Error in sat-declarations DELETE', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       message: error.message,

@@ -7,6 +7,7 @@
 // DELETE /api/fiscal-parameters/:id - Delete parameter
 
 import { getUserIdFromToken } from './auth.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -105,7 +106,7 @@ export async function onRequestGet(context) {
     });
 
   } catch (error) {
-    console.error('Fiscal Parameters GET error:', error);
+    await logError(error, { endpoint: 'Fiscal Parameters GET error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to fetch fiscal parameters',
       message: error.message,
@@ -147,7 +148,7 @@ async function handleGetParameterByDate(env, parameterType, date) {
     });
 
   } catch (error) {
-    console.error('Get parameter by date error:', error);
+    await logError(error, { endpoint: 'Get parameter by date error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to fetch parameter',
       message: error.message,
@@ -299,7 +300,7 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
-    console.error('Fiscal Parameters POST error:', error);
+    await logError(error, { endpoint: 'Fiscal Parameters POST error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to create parameter',
       message: error.message,
@@ -413,7 +414,7 @@ export async function onRequestPut(context) {
     });
 
   } catch (error) {
-    console.error('Fiscal Parameters PUT error:', error);
+    await logError(error, { endpoint: 'Fiscal Parameters PUT error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to update parameter',
       message: error.message,
@@ -481,7 +482,7 @@ export async function onRequestDelete(context) {
     });
 
   } catch (error) {
-    console.error('Fiscal Parameters DELETE error:', error);
+    await logError(error, { endpoint: 'Fiscal Parameters DELETE error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to delete parameter',
       message: error.message,

@@ -4,6 +4,7 @@
 
 import Decimal from 'decimal.js';
 import { getUserIdFromToken } from './auth.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 import { 
   toCents, 
   fromCents, 
@@ -204,7 +205,7 @@ export async function onRequestGet(context) {
     });
 
   } catch (error) {
-    console.error('Error fetching debts:', error);
+    await logError(error, { endpoint: 'Error fetching debts', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: error.message,
       code: 'FETCH_ERROR'
@@ -354,7 +355,7 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
-    console.error('Error creating debt:', error);
+    await logError(error, { endpoint: 'Error creating debt', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: error.message,
       code: 'CREATE_ERROR'
@@ -505,7 +506,7 @@ export async function onRequestPut(context) {
     });
 
   } catch (error) {
-    console.error('Error updating debt:', error);
+    await logError(error, { endpoint: 'Error updating debt', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: error.message,
       code: 'UPDATE_ERROR'
@@ -578,7 +579,7 @@ export async function onRequestDelete(context) {
     });
 
   } catch (error) {
-    console.error('Error deleting debt:', error);
+    await logError(error, { endpoint: 'Error deleting debt', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: error.message,
       code: 'DELETE_ERROR'

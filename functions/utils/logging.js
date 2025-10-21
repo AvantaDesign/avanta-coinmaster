@@ -38,6 +38,23 @@ export const LogCategory = {
 };
 
 /**
+ * Generate correlation ID for request tracking
+ * @returns {string} Unique correlation ID
+ */
+export function generateCorrelationId() {
+  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
+/**
+ * Extract correlation ID from request headers or generate new one
+ * @param {Request} request - Request object
+ * @returns {string} Correlation ID
+ */
+export function getCorrelationId(request) {
+  return request?.headers?.get('X-Correlation-ID') || generateCorrelationId();
+}
+
+/**
  * Create structured log entry
  * @param {string} level - Log level
  * @param {string} message - Log message
@@ -49,6 +66,9 @@ export function createLogEntry(level, message, metadata = {}) {
     timestamp: new Date().toISOString(),
     level,
     message,
+    correlationId: metadata.correlationId || null,
+    userId: metadata.userId || null,
+    endpoint: metadata.endpoint || null,
     ...metadata
   };
 }
