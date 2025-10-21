@@ -148,7 +148,8 @@ test.describe('User Journey - Transaction Management', () => {
 
     if (await searchInput.isVisible()) {
       await searchInput.fill('test');
-      await page.waitForTimeout(500);
+      // Wait for search results to appear
+      await page.waitForSelector('.transaction-row, tbody tr');
     }
   });
 
