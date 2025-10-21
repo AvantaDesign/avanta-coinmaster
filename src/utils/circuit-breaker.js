@@ -29,7 +29,19 @@
  *   const result = await breaker.execute(() => fetchData());
  */
 
-import { logger } from './errorMonitoring';
+// Safe import of logger from errorMonitoring, fallback to console if not available
+let safeLogger = console;
+try {
+  // Try to require the logger (CommonJS style)
+  // If using ES modules, replace with dynamic import as needed
+  const { logger } = require('./errorMonitoring');
+  if (logger && typeof logger === 'object') {
+    safeLogger = logger;
+  }
+} catch (e) {
+  // Fallback to console if errorMonitoring or logger is not available
+  safeLogger = console;
+}
 
 /**
  * Circuit breaker states
