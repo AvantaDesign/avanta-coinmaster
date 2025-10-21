@@ -13,8 +13,8 @@
 // - GET /api/tax-reports/declaration/:year/:month - Get declaration summary
 
 import { getUserIdFromToken } from './auth.js';
-import { 
 import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
+import { 
   fromCents, 
   convertArrayFromCents,
   MONETARY_FIELDS 

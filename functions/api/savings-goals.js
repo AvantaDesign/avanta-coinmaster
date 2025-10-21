@@ -2,8 +2,8 @@
 // Phase 30: Monetary values stored as INTEGER cents in database
 
 import { getUserIdFromToken } from './auth.js';
-import { 
 import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
+import { 
   toCents, 
   fromCents, 
   convertArrayFromCents, 

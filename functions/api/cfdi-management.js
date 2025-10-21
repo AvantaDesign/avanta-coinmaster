@@ -17,8 +17,8 @@
 // - DELETE /api/cfdi-management/:id - Delete CFDI record
 
 import { getUserIdFromToken } from './auth.js';
-import { 
 import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
+import { 
   toCents, 
   convertArrayFromCents, 
   convertObjectFromCents,
