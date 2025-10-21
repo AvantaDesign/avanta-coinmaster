@@ -19,9 +19,40 @@
 
 import { retry, RetryPolicies } from './retry-utils';
 import { createCircuitBreaker } from './circuit-breaker';
-import { logger } from './errorMonitoring';
-import { authFetch, getAuthHeaders } from './auth';
+// Fallback logger implementation
+let logger = {
+  warn: (...args) => console.warn('[WARN]', ...args),
+  error: (...args) => console.error('[ERROR]', ...args),
+  info: (...args) => console.info('[INFO]', ...args),
+  debug: (...args) => console.debug('[DEBUG]', ...args),
+};
 
+// Fallback auth implementations
+let authFetch = async (...args) => fetch(...args);
+let getAuthHeaders = () => ({});
+
+// Attempt to import errorMonitoring and auth modules dynamically
+(async () => {
+  try {
+    const errorMonitoring = await import('./errorMonitoring');
+    if (errorMonitoring && errorMonitoring.logger) {
+      logger = errorMonitoring.logger;
+    }
+  } catch (e) {
+    // Use fallback logger
+  }
+  try {
+    const auth = await import('./auth');
+    if (auth && auth.authFetch) {
+      authFetch = auth.authFetch;
+    }
+    if (auth && auth.getAuthHeaders) {
+      getAuthHeaders = auth.getAuthHeaders;
+    }
+  } catch (e) {
+    // Use fallback authFetch and getAuthHeaders
+  }
+})();
 /**
  * API Client configuration
  */
