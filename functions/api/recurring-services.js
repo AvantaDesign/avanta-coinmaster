@@ -2,6 +2,7 @@
 // Phase 30: Monetary values stored as INTEGER cents in database
 
 import Decimal from 'decimal.js';
+import { getUserIdFromToken } from './auth.js';
 import { 
   toCents, 
   fromCents, 
@@ -15,7 +16,7 @@ const corsHeaders = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
 // Helper function to calculate next payment date based on frequency
@@ -61,6 +62,19 @@ export async function onRequestGet(context) {
   const { env, request } = context;
   
   try {
+    // Phase 41: Authentication check
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     if (!env.DB) {
       return new Response(JSON.stringify({ 
         error: 'Database not available',
@@ -78,8 +92,8 @@ export async function onRequestGet(context) {
     // Get specific recurring service
     if (id) {
       const service = await env.DB.prepare(
-        'SELECT * FROM recurring_services WHERE id = ?'
-      ).bind(id).first();
+        'SELECT * FROM recurring_services WHERE id = ? AND user_id = ?'
+      ).bind(id, userId).first();
 
       if (!service) {
         return new Response(JSON.stringify({ 
@@ -102,9 +116,9 @@ export async function onRequestGet(context) {
       });
     }
 
-    // Build query
-    let query = 'SELECT * FROM recurring_services WHERE 1=1';
-    const params = [];
+    // Build query - Phase 41: Filter by user_id
+    let query = 'SELECT * FROM recurring_services WHERE user_id = ?';
+    const params = [userId];
 
     if (status) {
       query += ' AND status = ?';
@@ -120,9 +134,7 @@ export async function onRequestGet(context) {
 
     query += ' ORDER BY next_payment_date ASC, service_name ASC';
 
-    const stmt = params.length > 0 
-      ? env.DB.prepare(query).bind(...params)
-      : env.DB.prepare(query);
+    const stmt = env.DB.prepare(query).bind(...params);
 
     const result = await stmt.all();
 

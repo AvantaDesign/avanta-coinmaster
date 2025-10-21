@@ -1,7 +1,9 @@
 // Recurring Freelancers API - Manage recurring payments to freelancers
 // Phase 30: Monetary values stored as INTEGER cents in database
+// Phase 41: Authentication hardening - Added getUserIdFromToken for all endpoints
 
 import Decimal from 'decimal.js';
+import { getUserIdFromToken } from './auth.js';
 import { 
   toCents, 
   fromCents, 
@@ -15,7 +17,7 @@ const corsHeaders = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
 // Helper function to calculate next payment date based on frequency
@@ -61,6 +63,19 @@ export async function onRequestGet(context) {
   const { env, request } = context;
   
   try {
+    // Phase 41: Authentication check
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     if (!env.DB) {
       return new Response(JSON.stringify({ 
         error: 'Database not available',
@@ -78,8 +93,8 @@ export async function onRequestGet(context) {
     // Get specific recurring freelancer
     if (id) {
       const freelancer = await env.DB.prepare(
-        'SELECT * FROM recurring_freelancers WHERE id = ?'
-      ).bind(id).first();
+        'SELECT * FROM recurring_freelancers WHERE id = ? AND user_id = ?'
+      ).bind(id, userId).first();
 
       if (!freelancer) {
         return new Response(JSON.stringify({ 
@@ -102,9 +117,9 @@ export async function onRequestGet(context) {
       });
     }
 
-    // Build query
-    let query = 'SELECT * FROM recurring_freelancers WHERE 1=1';
-    const params = [];
+    // Build query - Phase 41: Filter by user_id
+    let query = 'SELECT * FROM recurring_freelancers WHERE user_id = ?';
+    const params = [userId];
 
     if (status) {
       query += ' AND status = ?';
@@ -120,9 +135,7 @@ export async function onRequestGet(context) {
 
     query += ' ORDER BY next_payment_date ASC, freelancer_name ASC';
 
-    const stmt = params.length > 0 
-      ? env.DB.prepare(query).bind(...params)
-      : env.DB.prepare(query);
+    const stmt = env.DB.prepare(query).bind(...params);
 
     const result = await stmt.all();
 
@@ -153,6 +166,19 @@ export async function onRequestPost(context) {
   const { env, request } = context;
   
   try {
+    // Phase 41: Authentication check
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     if (!env.DB) {
       return new Response(JSON.stringify({ 
         error: 'Database not available',
@@ -229,8 +255,8 @@ export async function onRequestPost(context) {
     const result = await env.DB.prepare(
       `INSERT INTO recurring_freelancers (
         freelancer_name, freelancer_rfc, amount, frequency, payment_day,
-        description, category, next_payment_date, status, type
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', ?)`
+        description, category, next_payment_date, status, type, user_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)`
     ).bind(
       freelancer_name,
       freelancer_rfc || null,
@@ -240,7 +266,8 @@ export async function onRequestPost(context) {
       description || null,
       category || null,
       nextPaymentDate,
-      type
+      type,
+      userId  // Phase 41: Use authenticated user_id
     ).run();
 
     return new Response(JSON.stringify({
@@ -269,6 +296,19 @@ export async function onRequestPut(context) {
   const { env, request } = context;
   
   try {
+    // Phase 41: Authentication check
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     if (!env.DB) {
       return new Response(JSON.stringify({ 
         error: 'Database not available',
@@ -292,10 +332,10 @@ export async function onRequestPut(context) {
       });
     }
 
-    // Get current record
+    // Get current record - Phase 41: Verify ownership
     const freelancer = await env.DB.prepare(
-      'SELECT * FROM recurring_freelancers WHERE id = ?'
-    ).bind(id).first();
+      'SELECT * FROM recurring_freelancers WHERE id = ? AND user_id = ?'
+    ).bind(id, userId).first();
 
     if (!freelancer) {
       return new Response(JSON.stringify({ 
@@ -361,9 +401,10 @@ export async function onRequestPut(context) {
 
     updates.push('updated_at = CURRENT_TIMESTAMP');
     values.push(id);
+    values.push(userId);  // Phase 41: Add user_id for ownership check
 
     await env.DB.prepare(
-      `UPDATE recurring_freelancers SET ${updates.join(', ')} WHERE id = ?`
+      `UPDATE recurring_freelancers SET ${updates.join(', ')} WHERE id = ? AND user_id = ?`
     ).bind(...values).run();
 
     return new Response(JSON.stringify({
@@ -390,6 +431,19 @@ export async function onRequestDelete(context) {
   const { env, request } = context;
   
   try {
+    // Phase 41: Authentication check
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     if (!env.DB) {
       return new Response(JSON.stringify({ 
         error: 'Database not available',
@@ -413,10 +467,10 @@ export async function onRequestDelete(context) {
       });
     }
 
-    // Delete recurring freelancer
+    // Delete recurring freelancer - Phase 41: Delete with user_id check for ownership
     await env.DB.prepare(
-      'DELETE FROM recurring_freelancers WHERE id = ?'
-    ).bind(id).run();
+      'DELETE FROM recurring_freelancers WHERE id = ? AND user_id = ?'
+    ).bind(id, userId).run();
 
     return new Response(JSON.stringify({
       success: true,

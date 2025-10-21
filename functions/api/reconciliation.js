@@ -1,10 +1,13 @@
 // Reconciliation API - Match transactions and find duplicates
+// Phase 41: Authentication hardening - Added getUserIdFromToken for all endpoints
+
+import { getUserIdFromToken } from './auth.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
 /**
@@ -20,6 +23,19 @@ export async function onRequestGet(context) {
   const limit = parseInt(url.searchParams.get('limit')) || 1000;
   
   try {
+    // Phase 41: Authentication check
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return new Response(JSON.stringify({
+        error: 'Unauthorized',
+        message: 'Valid authentication token required',
+        code: 'AUTH_REQUIRED'
+      }), {
+        status: 401,
+        headers: corsHeaders
+      });
+    }
+
     // Validate database connection
     if (!env.DB) {
       return new Response(JSON.stringify({ 
@@ -31,13 +47,13 @@ export async function onRequestGet(context) {
       });
     }
 
-    // Fetch recent transactions
+    // Fetch recent transactions - Phase 41: Filter by user_id
     const transactions = await env.DB.prepare(
       `SELECT * FROM transactions 
-       WHERE is_deleted = 0 
+       WHERE is_deleted = 0 AND user_id = ?
        ORDER BY date DESC 
        LIMIT ?`
-    ).bind(limit).all();
+    ).bind(userId, limit).all();
 
     if (!transactions.results || transactions.results.length === 0) {
       return new Response(JSON.stringify({

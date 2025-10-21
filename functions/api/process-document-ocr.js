@@ -2,6 +2,7 @@
  * OCR Processing API Endpoint
  * 
  * Phase 32: Performance and User Experience Optimization
+ * Phase 41: Authentication hardening - Added getUserIdFromToken for all endpoints
  * 
  * Handles server-side OCR processing to prevent UI freezing.
  * Accepts uploaded images and returns extracted text.
@@ -14,6 +15,7 @@
  * For production, configure external OCR service credentials.
  */
 
+import { getUserIdFromToken } from './auth.js';
 import { createErrorResponse, createSuccessResponse, ErrorType, HttpStatus } from '../utils/errors.js';
 import { withErrorHandling } from '../utils/errors.js';
 import { validateFile } from '../utils/validation.js';
@@ -43,7 +45,17 @@ export async function onRequestPost(context) {
   return withErrorHandling(async (context) => {
     const { request, env } = context;
     
-    logDebug('OCR processing request received', {}, env);
+    // Phase 41: Authentication check
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      return createErrorResponse(
+        { message: 'Valid authentication token required', type: ErrorType.AUTH, statusCode: HttpStatus.UNAUTHORIZED },
+        request,
+        env
+      );
+    }
+    
+    logDebug('OCR processing request received', { userId }, env);
     
     try {
       // Parse multipart form data
