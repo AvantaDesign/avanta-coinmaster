@@ -20,7 +20,20 @@
  */
 
 import { Component } from 'react';
-import { ErrorMonitor, logger } from '../utils/errorMonitoring';
+// Dynamically import errorMonitoring and provide fallbacks if missing
+let ErrorMonitor, logger;
+try {
+  const errorMonitoring = require('../utils/errorMonitoring');
+  ErrorMonitor = errorMonitoring.ErrorMonitor || { track: () => {} };
+  logger = errorMonitoring.logger || { error: () => {} };
+} catch (e) {
+  // Module missing, use no-op fallbacks and log warning
+  ErrorMonitor = { track: () => {} };
+  logger = { error: () => {} };
+  if (typeof console !== 'undefined' && console.warn) {
+    console.warn('Warning: ../utils/errorMonitoring module or exports missing. Using fallback error handlers.');
+  }
+}
 import ErrorFallback from './ErrorFallback';
 
 class ErrorBoundary extends Component {
