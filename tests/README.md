@@ -206,7 +206,7 @@ describe('Feature Name', () => {
 
 ### Vitest Configuration (`vitest.config.js`)
 
-- **Environment:** jsdom (for DOM testing)
+- **Environment:** happy-dom (for DOM testing)
 - **Coverage:** v8 provider with 80% threshold
 - **Timeout:** 10 seconds per test
 - **Retry:** 1 retry for flaky tests
