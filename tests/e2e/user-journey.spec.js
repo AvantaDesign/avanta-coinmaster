@@ -136,7 +136,7 @@ test.describe('User Journey - Transaction Management', () => {
     }
 
     // Wait for filtered results
-    await page.waitForTimeout(1000);
+    await expect(page.locator('.transaction-row')).toBeVisible();
   });
 
   test('should search transactions by description', async ({ page }) => {
