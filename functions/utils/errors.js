@@ -12,6 +12,7 @@
 
 import { getSecurityHeaders } from './security.js';
 import { logError } from './logging.js';
+import { getErrorCode, createStandardError, mapHttpStatusToErrorCode } from './error-codes.js';
 
 /**
  * Error types for categorization
@@ -74,25 +75,34 @@ export async function createErrorResponse(error, request = null, env = null) {
   let errorType = ErrorType.SERVER;
   let message = 'An unexpected error occurred';
   let details = null;
+  let errorCode = 'UNKNOWN_ERROR';
   
   if (error instanceof AppError) {
     statusCode = error.statusCode;
     errorType = error.type;
     message = error.message;
     details = error.context;
+    errorCode = error.context?.code || mapHttpStatusToErrorCode(statusCode);
   } else if (error.name === 'ValidationError') {
     statusCode = HttpStatus.BAD_REQUEST;
     errorType = ErrorType.VALIDATION;
     message = error.message;
+    errorCode = 'VAL_INVALID_INPUT';
   } else if (error.message) {
     message = error.message;
+    errorCode = mapHttpStatusToErrorCode(statusCode);
   }
+  
+  // Get standardized error info
+  const standardError = getErrorCode(errorCode);
   
   // Log error for monitoring
   if (env) {
     await logError(error, {
       type: errorType,
       statusCode,
+      errorCode,
+      severity: standardError?.severity,
       request: request ? {
         method: request.method,
         url: request.url,
@@ -104,8 +114,11 @@ export async function createErrorResponse(error, request = null, env = null) {
   // Create response body
   const responseBody = {
     error: true,
+    code: errorCode,
     type: errorType,
-    message: sanitizeErrorMessage(message, statusCode),
+    message: sanitizeErrorMessage(standardError?.message || message, statusCode),
+    recoverable: standardError?.recoverable ?? true,
+    retryable: standardError?.retryable ?? false,
     timestamp: new Date().toISOString()
   };
   
@@ -113,6 +126,7 @@ export async function createErrorResponse(error, request = null, env = null) {
   if (env?.ENVIRONMENT === 'preview' || env?.ENABLE_DEBUG_LOGS === 'true') {
     responseBody.details = details;
     responseBody.stack = error.stack;
+    responseBody.messageEn = standardError?.messageEn;
   }
   
   return new Response(JSON.stringify(responseBody), {
