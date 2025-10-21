@@ -39,6 +39,7 @@ import { sanitizeString, validateTransactionData, validatePagination, validateSo
 import { logRequest, logError, logAuditEvent } from '../utils/logging.js';
 import { createErrorResponse, createValidationErrorResponse, createSuccessResponse } from '../utils/errors.js';
 import { checkRateLimit, getRateLimitConfig } from '../utils/rate-limiter.js';
+import { buildSafeOrderBy } from '../utils/sql-security.js';
 
 /**
  * GET /api/transactions
@@ -290,12 +291,24 @@ export async function onRequestGet(context) {
       params.push(parseInt(linkedInvoiceId));
     }
 
-    // Add sorting
-    query += ` ORDER BY ${sortBy} ${sortOrder.toUpperCase()}`;
-    
-    // Add secondary sort for consistency
-    if (sortBy !== 'created_at') {
-      query += ', created_at DESC';
+    // Add sorting - Phase 43: Fixed SQL injection vulnerability
+    // Use validated ORDER BY clause instead of string concatenation
+    const orderByResult = buildSafeOrderBy('transactions', sortBy, sortOrder);
+    if (orderByResult.valid) {
+      query += orderByResult.clause;
+      // Add secondary sort for consistency
+      if (sortBy !== 'created_at') {
+        query += ', created_at DESC';
+      }
+    } else {
+      // Log validation error and use default sorting
+      await logError(new Error('Invalid sort parameters'), {
+        endpoint: '/api/transactions',
+        error: orderByResult.error,
+        sortBy,
+        sortOrder
+      }, env);
+      query += ' ORDER BY created_at DESC';
     }
     
     // Add pagination

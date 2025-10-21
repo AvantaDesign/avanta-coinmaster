@@ -19,6 +19,7 @@
 
 import { getUserIdFromToken } from './auth.js';
 import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
+import { buildSafeOrderBy } from '../utils/sql-security.js';
 
 /**
  * GET /api/audit-log - List audit log entries with filtering
@@ -278,11 +279,20 @@ async function handleList(env, userId, url, corsHeaders) {
     bindings.push(status);
   }
   
-  // Add sorting
-  const validSortFields = ['timestamp', 'action_type', 'severity', 'user_id'];
-  const validSortOrders = ['asc', 'desc'];
-  if (validSortFields.includes(sortBy) && validSortOrders.includes(sortOrder)) {
-    query += ` ORDER BY ${sortBy} ${sortOrder.toUpperCase()}`;
+  // Add sorting - Phase 43: Fixed SQL injection vulnerability
+  // Use validated ORDER BY clause instead of string concatenation
+  const orderByResult = buildSafeOrderBy('audit_log', sortBy || 'timestamp', sortOrder || 'desc');
+  if (orderByResult.valid) {
+    query += orderByResult.clause;
+  } else {
+    // Log validation error and use default sorting
+    await logWarn('Invalid sort parameters', {
+      endpoint: '/api/audit-log',
+      error: orderByResult.error,
+      sortBy,
+      sortOrder
+    }, env);
+    query += ' ORDER BY timestamp DESC';
   }
   
   // Add pagination

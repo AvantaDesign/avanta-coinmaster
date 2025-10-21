@@ -18,6 +18,7 @@
 
 import { getUserIdFromToken } from './auth.js';
 import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
+import { detectSqlInjection, sanitizeString } from '../utils/validation.js';
 
 // CORS headers
 const corsHeaders = {
@@ -279,17 +280,40 @@ async function listDocuments(env, userId, url) {
 
 /**
  * Helper: Search documents
+ * Phase 43: Added SQL injection detection and input sanitization
  */
 async function handleSearch(env, userId, url) {
-  const query = url.searchParams.get('q') || '';
+  const rawQuery = url.searchParams.get('q') || '';
   const limit = Math.min(parseInt(url.searchParams.get('limit')) || 20, 50);
 
-  if (!query) {
+  if (!rawQuery) {
     return new Response(JSON.stringify({ error: 'Search query required' }), {
       status: 400,
       headers: corsHeaders
     });
   }
+
+  // Phase 43: Detect SQL injection attempts
+  const injectionCheck = detectSqlInjection(rawQuery);
+  if (!injectionCheck.safe) {
+    await logWarn('SQL injection attempt detected in search', {
+      endpoint: '/api/digital-archive/search',
+      query: rawQuery,
+      reason: injectionCheck.reason,
+      userId
+    }, env);
+    
+    return new Response(JSON.stringify({ 
+      error: 'Invalid search query',
+      message: 'Search query contains potentially dangerous characters'
+    }), {
+      status: 400,
+      headers: corsHeaders
+    });
+  }
+
+  // Sanitize the search query for safe use
+  const query = sanitizeString(rawQuery);
 
   const { results } = await env.DB.prepare(`
     SELECT * FROM digital_archive
