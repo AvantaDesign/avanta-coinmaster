@@ -53,7 +53,7 @@ async function handleGet(context) {
       count: result.results?.length || 0
     });
   } catch (error) {
-    console.error('Categories GET error:', error);
+    await logError(error, { endpoint: 'Categories GET error', category: 'api' }, env);
     return createErrorResponse(error, request, env);
   }
 }
@@ -120,7 +120,7 @@ async function handlePost(context) {
       id: result.meta.last_row_id
     }, 201);
   } catch (error) {
-    console.error('Categories POST error:', error);
+    await logError(error, { endpoint: 'Categories POST error', category: 'api' }, env);
     return createErrorResponse(error, request, env);
   }
 }

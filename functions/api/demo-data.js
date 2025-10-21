@@ -328,11 +328,14 @@ async function loadDemoScenario(env, userId, scenarioId) {
           await loadDemoInvoices(env, userId, data);
           break;
         default:
-          console.warn(`Unknown data type: ${snapshot.data_type}`);
+          logWarn(`Unknown data type: ${snapshot.data_type}`, {
+            category: 'business',
+            dataType: snapshot.data_type
+          });
       }
     }
   } catch (error) {
-    console.error('Error loading demo scenario:', error);
+    await logError(error, { endpoint: 'Error loading demo scenario', category: 'api' }, env);
     throw error;
   }
 }

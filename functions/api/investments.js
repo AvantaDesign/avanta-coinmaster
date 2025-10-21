@@ -5,6 +5,7 @@
 import Decimal from 'decimal.js';
 import { getUserIdFromToken } from './auth.js';
 import { 
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
   toCents, 
   fromCents, 
   fromCentsToDecimal,
@@ -270,7 +271,7 @@ export async function onRequestGet(context) {
     });
 
   } catch (error) {
-    console.error('Error fetching investments:', error);
+    await logError(error, { endpoint: 'Error fetching investments', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: error.message,
       code: 'FETCH_ERROR'
@@ -438,7 +439,7 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
-    console.error('Error creating investment:', error);
+    await logError(error, { endpoint: 'Error creating investment', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: error.message,
       code: 'CREATE_ERROR'
@@ -609,7 +610,7 @@ export async function onRequestPut(context) {
     });
 
   } catch (error) {
-    console.error('Error updating investment:', error);
+    await logError(error, { endpoint: 'Error updating investment', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: error.message,
       code: 'UPDATE_ERROR'
@@ -682,7 +683,7 @@ export async function onRequestDelete(context) {
     });
 
   } catch (error) {
-    console.error('Error deleting investment:', error);
+    await logError(error, { endpoint: 'Error deleting investment', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: error.message,
       code: 'DELETE_ERROR'

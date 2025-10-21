@@ -3,6 +3,7 @@
 // Handles: GET, PUT, DELETE /api/digital-archive/:id
 
 import { getUserIdFromToken } from '../auth.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 
 // CORS headers
 const corsHeaders = {
@@ -28,7 +29,7 @@ async function logAuditTrail(env, userId, action, entityType, entityId, details)
       JSON.stringify(details)
     ).run();
   } catch (error) {
-    console.error('Failed to log audit trail:', error);
+    await logError(error, { endpoint: 'Failed to log audit trail', category: 'api' }, env);
   }
 }
 
@@ -89,7 +90,7 @@ export async function onRequestGet({ request, env, params }) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Error in digital-archive GET:', error);
+    await logError(error, { endpoint: 'Error in digital-archive GET', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       details: error.message 
@@ -207,7 +208,7 @@ export async function onRequestPut({ request, env, params }) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Error in digital-archive PUT:', error);
+    await logError(error, { endpoint: 'Error in digital-archive PUT', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       details: error.message 
@@ -296,7 +297,7 @@ export async function onRequestDelete({ request, env, params }) {
       });
     }
   } catch (error) {
-    console.error('Error in digital-archive DELETE:', error);
+    await logError(error, { endpoint: 'Error in digital-archive DELETE', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       details: error.message 

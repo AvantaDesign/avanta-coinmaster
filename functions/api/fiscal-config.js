@@ -10,6 +10,7 @@
  */
 
 import { getUserIdFromToken, authenticateRequest, validateRequired, generateId, getApiResponse } from './auth.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 
 /**
  * Default ISR brackets for 2025 (can be updated annually)
@@ -57,7 +58,7 @@ export async function onRequest(context) {
 
     return getApiResponse(null, 'Not found', 404);
   } catch (error) {
-    console.error('Fiscal Config API error:', error);
+    await logError(error, { endpoint: 'Fiscal Config API error', category: 'api' }, env);
     return getApiResponse(null, error.message || 'Internal server error', error.status || 500);
   }
 }

@@ -2,6 +2,7 @@
 // Phase 41: Authentication hardening - Added getUserIdFromToken for all endpoints
 
 import { getUserIdFromToken } from './auth.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -102,7 +103,7 @@ export async function onRequestGet(context) {
     });
 
   } catch (error) {
-    console.error('Reconciliation GET error:', error);
+    await logError(error, { endpoint: 'Reconciliation GET error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to perform reconciliation',
       message: error.message,
@@ -225,7 +226,7 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
-    console.error('Reconciliation POST error:', error);
+    await logError(error, { endpoint: 'Reconciliation POST error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to apply reconciliation',
       message: error.message,

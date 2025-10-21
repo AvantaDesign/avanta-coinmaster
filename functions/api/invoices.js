@@ -76,7 +76,7 @@ export async function onRequestGet(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Invoices GET error:', error);
+    await logError(error, { endpoint: 'Invoices GET error', category: 'api' }, env);
     
     // Phase 31: Log error
     await logError(error, { 
@@ -262,7 +262,7 @@ export async function onRequestPost(context) {
       throw dbError;
     }
   } catch (error) {
-    console.error('Invoices POST error:', error);
+    await logError(error, { endpoint: 'Invoices POST error', category: 'api' }, env);
     
     // Phase 31: Log error
     await logError(error, { 

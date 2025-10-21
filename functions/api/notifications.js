@@ -111,7 +111,7 @@ export async function onRequestGet(context) {
     });
 
   } catch (error) {
-    console.error('Error fetching notifications:', error);
+    await logError(error, { endpoint: 'Error fetching notifications', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to fetch notifications',
       code: 'FETCH_ERROR',
@@ -205,7 +205,7 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
-    console.error('Error creating notification:', error);
+    await logError(error, { endpoint: 'Error creating notification', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to create notification',
       code: 'CREATE_ERROR',
@@ -314,7 +314,7 @@ export async function onRequestPut(context) {
     });
 
   } catch (error) {
-    console.error('Error updating notification:', error);
+    await logError(error, { endpoint: 'Error updating notification', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to update notification',
       code: 'UPDATE_ERROR',
@@ -383,7 +383,7 @@ export async function onRequestDelete(context) {
     });
 
   } catch (error) {
-    console.error('Error deleting notification:', error);
+    await logError(error, { endpoint: 'Error deleting notification', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to delete notification',
       code: 'DELETE_ERROR',

@@ -20,6 +20,7 @@
 
 import { getUserIdFromToken } from './auth.js';
 import { fromCents } from '../utils/monetary.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 
 // CORS headers
 const corsHeaders = {
@@ -637,7 +638,7 @@ export async function onRequestGet(context) {
     return await listAnalytics(env, userId, url);
 
   } catch (error) {
-    console.error('Error in fiscal-analytics GET:', error);
+    await logError(error, { endpoint: 'Error in fiscal-analytics GET', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       message: error.message,
@@ -821,7 +822,7 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
-    console.error('Error in fiscal-analytics POST:', error);
+    await logError(error, { endpoint: 'Error in fiscal-analytics POST', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       message: error.message,
@@ -889,7 +890,7 @@ export async function onRequestDelete(context) {
     });
 
   } catch (error) {
-    console.error('Error in fiscal-analytics DELETE:', error);
+    await logError(error, { endpoint: 'Error in fiscal-analytics DELETE', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       message: error.message,

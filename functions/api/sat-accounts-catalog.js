@@ -5,6 +5,7 @@
 // GET /api/sat-accounts-catalog/search?q=term - Search accounts by description
 
 import { getUserIdFromToken } from './auth.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -122,7 +123,7 @@ export async function onRequestGet(context) {
     });
 
   } catch (error) {
-    console.error('SAT Accounts Catalog API error:', error);
+    await logError(error, { endpoint: 'SAT Accounts Catalog API error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       message: error.message,
@@ -189,7 +190,7 @@ async function handleGetAccountByCodigo(env, codigo) {
     });
 
   } catch (error) {
-    console.error('Get account by codigo error:', error);
+    await logError(error, { endpoint: 'Get account by codigo error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       message: error.message,
@@ -223,7 +224,7 @@ async function handleSearchAccounts(env, searchTerm) {
     });
 
   } catch (error) {
-    console.error('Search accounts error:', error);
+    await logError(error, { endpoint: 'Search accounts error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       message: error.message,
@@ -284,7 +285,7 @@ async function handleGetHierarchicalAccounts(env) {
     });
 
   } catch (error) {
-    console.error('Get hierarchical accounts error:', error);
+    await logError(error, { endpoint: 'Get hierarchical accounts error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       message: error.message,

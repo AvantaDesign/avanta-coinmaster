@@ -7,6 +7,7 @@
 
 import { getUserIdFromToken } from './auth.js';
 import Decimal from 'decimal.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -127,7 +128,7 @@ export async function onRequestGet(context) {
     });
 
   } catch (error) {
-    console.error('SAT Reconciliation GET error:', error);
+    await logError(error, { endpoint: 'SAT Reconciliation GET error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to get reconciliation data',
       message: error.message,
@@ -257,7 +258,7 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
-    console.error('SAT Declaration POST error:', error);
+    await logError(error, { endpoint: 'SAT Declaration POST error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to save declaration',
       message: error.message,
@@ -386,7 +387,7 @@ export async function onRequestPut(context) {
     });
 
   } catch (error) {
-    console.error('SAT Declaration PUT error:', error);
+    await logError(error, { endpoint: 'SAT Declaration PUT error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to update declaration',
       message: error.message,
@@ -472,7 +473,7 @@ async function handleGetDiscrepancies(env, userId, url) {
     });
 
   } catch (error) {
-    console.error('Get discrepancies error:', error);
+    await logError(error, { endpoint: 'Get discrepancies error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to get discrepancies',
       message: error.message,

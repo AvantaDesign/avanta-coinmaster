@@ -5,6 +5,7 @@
 import Decimal from 'decimal.js';
 import { getUserIdFromToken } from './auth.js';
 import { 
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
   toCents, 
   fromCents, 
   convertArrayFromCents, 
@@ -150,7 +151,7 @@ export async function onRequestGet(context) {
     });
 
   } catch (error) {
-    console.error('Recurring Freelancers GET error:', error);
+    await logError(error, { endpoint: 'Recurring Freelancers GET error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to fetch recurring freelancers',
       message: error.message,
@@ -280,7 +281,7 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
-    console.error('Recurring Freelancers POST error:', error);
+    await logError(error, { endpoint: 'Recurring Freelancers POST error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to create recurring freelancer',
       message: error.message,
@@ -415,7 +416,7 @@ export async function onRequestPut(context) {
     });
 
   } catch (error) {
-    console.error('Recurring Freelancers PUT error:', error);
+    await logError(error, { endpoint: 'Recurring Freelancers PUT error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to update recurring freelancer',
       message: error.message,
@@ -480,7 +481,7 @@ export async function onRequestDelete(context) {
     });
 
   } catch (error) {
-    console.error('Recurring Freelancers DELETE error:', error);
+    await logError(error, { endpoint: 'Recurring Freelancers DELETE error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to delete recurring freelancer',
       message: error.message,

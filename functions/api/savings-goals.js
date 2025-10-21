@@ -3,6 +3,7 @@
 
 import { getUserIdFromToken } from './auth.js';
 import { 
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
   toCents, 
   fromCents, 
   convertArrayFromCents, 
@@ -177,7 +178,7 @@ export async function onRequestGet(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Savings goals GET error:', error);
+    await logError(error, { endpoint: 'Savings goals GET error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to fetch savings goals',
       message: error.message,
@@ -374,7 +375,7 @@ export async function onRequestPost(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Savings goals POST error:', error);
+    await logError(error, { endpoint: 'Savings goals POST error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to create savings goal',
       message: error.message,
@@ -542,7 +543,7 @@ export async function onRequestPut(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Savings goals PUT error:', error);
+    await logError(error, { endpoint: 'Savings goals PUT error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to update savings goal',
       message: error.message,
@@ -614,7 +615,7 @@ export async function onRequestDelete(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Savings goals DELETE error:', error);
+    await logError(error, { endpoint: 'Savings goals DELETE error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to delete savings goal',
       message: error.message,

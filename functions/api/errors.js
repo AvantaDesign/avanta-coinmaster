@@ -64,7 +64,7 @@ export async function onRequestGet(context) {
       });
     }
   } catch (error) {
-    console.error('Error Monitoring GET Error:', error);
+    await logError(error, { endpoint: 'Error Monitoring GET Error', category: 'api' }, env);
     
     return new Response(JSON.stringify({
       error: 'Internal Server Error',
@@ -112,8 +112,7 @@ export async function onRequestPost(context) {
     // Store error
     storeError(errorEntry);
 
-    // Log to console
-    console.error('Error Tracked:', JSON.stringify(errorEntry, null, 2));
+    // Already tracked - no need to log again
 
     // In production, store in database:
     // await env.DB.prepare(`
@@ -145,7 +144,7 @@ export async function onRequestPost(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Error Monitoring POST Error:', error);
+    await logError(error, { endpoint: 'Error Monitoring POST Error', category: 'api' }, env);
     
     return new Response(JSON.stringify({
       error: 'Internal Server Error',
@@ -207,7 +206,7 @@ async function sendAlert(errorEntry, env) {
       })
     });
   } catch (error) {
-    console.error('Failed to send alert:', error);
+    await logError(error, { endpoint: 'Failed to send alert', category: 'api' }, env);
   }
 }
 
@@ -244,7 +243,7 @@ async function getErrorStats(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Error Stats Error:', error);
+    await logError(error, { endpoint: 'Error Stats Error', category: 'api' }, env);
     
     return new Response(JSON.stringify({
       error: 'Internal Server Error',
@@ -285,7 +284,7 @@ async function getRecentErrors(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Recent Errors Error:', error);
+    await logError(error, { endpoint: 'Recent Errors Error', category: 'api' }, env);
     
     return new Response(JSON.stringify({
       error: 'Internal Server Error',

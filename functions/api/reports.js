@@ -19,6 +19,7 @@
 import Decimal from 'decimal.js';
 import { getUserIdFromToken } from './auth.js';
 import { 
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
   fromCents, 
   fromCentsToDecimal,
   convertArrayFromCents,
@@ -105,7 +106,7 @@ export async function onRequestGet(context) {
       });
     }
   } catch (error) {
-    console.error('Reports GET Error:', error);
+    await logError(error, { endpoint: 'Reports GET Error', category: 'api' }, env);
     
     return new Response(JSON.stringify({
       error: 'Internal Server Error',
@@ -193,7 +194,7 @@ async function generateMonthlySummaryReport(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Monthly Summary Report Error:', error);
+    await logError(error, { endpoint: 'Monthly Summary Report Error', category: 'api' }, env);
     
     return new Response(JSON.stringify({
       error: 'Internal Server Error',
@@ -269,7 +270,7 @@ async function generateProfitabilityReport(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Profitability Report Error:', error);
+    await logError(error, { endpoint: 'Profitability Report Error', category: 'api' }, env);
     
     return new Response(JSON.stringify({
       error: 'Internal Server Error',
@@ -342,7 +343,7 @@ async function generateCashFlowReport(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Cash Flow Report Error:', error);
+    await logError(error, { endpoint: 'Cash Flow Report Error', category: 'api' }, env);
     
     return new Response(JSON.stringify({
       error: 'Internal Server Error',
@@ -429,7 +430,7 @@ async function generateARAgingReport(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('AR Aging Report Error:', error);
+    await logError(error, { endpoint: 'AR Aging Report Error', category: 'api' }, env);
     
     return new Response(JSON.stringify({
       error: 'Internal Server Error',
@@ -516,7 +517,7 @@ async function generateAPAgingReport(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('AP Aging Report Error:', error);
+    await logError(error, { endpoint: 'AP Aging Report Error', category: 'api' }, env);
     
     return new Response(JSON.stringify({
       error: 'Internal Server Error',
@@ -591,7 +592,7 @@ async function generateCategoryAnalysisReport(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Category Analysis Report Error:', error);
+    await logError(error, { endpoint: 'Category Analysis Report Error', category: 'api' }, env);
     
     return new Response(JSON.stringify({
       error: 'Internal Server Error',
@@ -705,7 +706,7 @@ async function generateDailyDashboardReport(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Daily Dashboard Report Error:', error);
+    await logError(error, { endpoint: 'Daily Dashboard Report Error', category: 'api' }, env);
     
     return new Response(JSON.stringify({
       error: 'Internal Server Error',
@@ -814,7 +815,7 @@ async function generateWeeklyReport(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Weekly Report Error:', error);
+    await logError(error, { endpoint: 'Weekly Report Error', category: 'api' }, env);
     
     return new Response(JSON.stringify({
       error: 'Internal Server Error',
@@ -948,7 +949,7 @@ async function generateQuarterlyBalanceSheet(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Quarterly Balance Sheet Error:', error);
+    await logError(error, { endpoint: 'Quarterly Balance Sheet Error', category: 'api' }, env);
     
     return new Response(JSON.stringify({
       error: 'Internal Server Error',

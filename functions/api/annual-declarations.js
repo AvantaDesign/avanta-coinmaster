@@ -19,6 +19,7 @@
 
 import { getUserIdFromToken } from './auth.js';
 import { 
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
   fromCents, 
   fromCentsToDecimal,
   toCents
@@ -91,7 +92,11 @@ async function calculateAnnualISR(env, userId, year) {
     try {
       brackets = JSON.parse(fiscalParams.value);
     } catch (e) {
-      console.error('Error parsing annual ISR brackets:', e);
+      logError(e, {
+        context: 'Error parsing annual ISR brackets',
+        category: 'business',
+        fiscalParamsId: fiscalParams?.id
+      }, env);
       // Use default brackets if parsing fails
       brackets = getDefaultAnnualBrackets();
     }
@@ -264,7 +269,7 @@ export async function onRequestGet(context) {
     return await listDeclarations(env, userId, url);
 
   } catch (error) {
-    console.error('Error in annual-declarations GET:', error);
+    await logError(error, { endpoint: 'Error in annual-declarations GET', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       message: error.message,
@@ -436,7 +441,7 @@ export async function onRequestPost(context) {
     return await createDeclaration(env, userId, request);
 
   } catch (error) {
-    console.error('Error in annual-declarations POST:', error);
+    await logError(error, { endpoint: 'Error in annual-declarations POST', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       message: error.message,
@@ -699,7 +704,7 @@ export async function onRequestPut(context) {
     });
 
   } catch (error) {
-    console.error('Error in annual-declarations PUT:', error);
+    await logError(error, { endpoint: 'Error in annual-declarations PUT', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       message: error.message,
@@ -795,7 +800,7 @@ export async function onRequestDelete(context) {
     });
 
   } catch (error) {
-    console.error('Error in annual-declarations DELETE:', error);
+    await logError(error, { endpoint: 'Error in annual-declarations DELETE', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       message: error.message,

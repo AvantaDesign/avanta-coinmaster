@@ -111,7 +111,7 @@ export async function onRequestGet(context) {
     });
     
   } catch (error) {
-    console.error('Admin users GET error:', error);
+    await logError(error, { endpoint: 'Admin users GET error', category: 'api' }, env);
     await logError(error, {
       endpoint: 'admin/users/[id]',
       method: 'GET'
@@ -229,7 +229,7 @@ export async function onRequestPut(context) {
     });
     
   } catch (error) {
-    console.error('Admin users PUT error:', error);
+    await logError(error, { endpoint: 'Admin users PUT error', category: 'api' }, env);
     await logError(error, {
       endpoint: 'admin/users/[id]',
       method: 'PUT'
@@ -299,7 +299,7 @@ export async function onRequestDelete(context) {
     });
     
   } catch (error) {
-    console.error('Admin users DELETE error:', error);
+    await logError(error, { endpoint: 'Admin users DELETE error', category: 'api' }, env);
     await logError(error, {
       endpoint: 'admin/users/[id]',
       method: 'DELETE'

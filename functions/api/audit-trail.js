@@ -16,6 +16,7 @@
 // - DELETE /api/audit-trail/:id - Delete audit entry (admin only)
 
 import { getUserIdFromToken } from './auth.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 
 // CORS headers
 const corsHeaders = {
@@ -65,7 +66,7 @@ export async function onRequestGet({ request, env }) {
     // Handle list with filters
     return listAuditEntries(env, userId, url);
   } catch (error) {
-    console.error('Error in audit-trail GET:', error);
+    await logError(error, { endpoint: 'Error in audit-trail GET', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       details: error.message 
@@ -150,7 +151,7 @@ export async function onRequestPost({ request, env }) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Error in audit-trail POST:', error);
+    await logError(error, { endpoint: 'Error in audit-trail POST', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       details: error.message 

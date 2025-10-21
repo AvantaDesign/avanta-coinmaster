@@ -13,6 +13,7 @@
 
 import { getUserIdFromToken, authenticateRequest, validateRequired, generateId, getApiResponse } from './auth.js';
 import Decimal from 'decimal.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 
 /**
  * Main request handler
@@ -57,7 +58,7 @@ export async function onRequest(context) {
 
     return getApiResponse(null, 'Not found', 404);
   } catch (error) {
-    console.error('Invoice Reconciliation API error:', error);
+    await logError(error, { endpoint: 'Invoice Reconciliation API error', category: 'api' }, env);
     return getApiResponse(null, error.message || 'Internal server error', error.status || 500);
   }
 }

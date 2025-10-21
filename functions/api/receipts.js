@@ -49,7 +49,7 @@ export async function onRequestPost(context) {
     // Otherwise, handle upload
     return await uploadReceipt(context);
   } catch (error) {
-    console.error('[Receipts] Error:', error);
+    await logError(error, { endpoint: '[Receipts] Error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Server error',
       message: error.message 
@@ -158,7 +158,7 @@ async function uploadReceipt(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('[Receipts] Upload error:', error);
+    await logError(error, { endpoint: '[Receipts] Upload error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to upload receipt',
       message: error.message 
@@ -234,7 +234,7 @@ async function processReceipt(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('[Receipts] Process error:', error);
+    await logError(error, { endpoint: '[Receipts] Process error', category: 'api' }, env);
     
     // Update status to failed
     try {
@@ -244,7 +244,11 @@ async function processReceipt(context) {
         WHERE id = ?
       `).bind(receiptId).run();
     } catch (updateError) {
-      console.error('[Receipts] Failed to update status:', updateError);
+      await logError(updateError, {
+        context: 'Failed to update receipt status',
+        category: 'database',
+        receiptId
+      }, env);
     }
     
     return new Response(JSON.stringify({ 
@@ -337,7 +341,7 @@ async function linkTransaction(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('[Receipts] Link transaction error:', error);
+    await logError(error, { endpoint: '[Receipts] Link transaction error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to link receipt to transaction',
       message: error.message 
@@ -403,7 +407,7 @@ export async function onRequestGet(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('[Receipts] List error:', error);
+    await logError(error, { endpoint: '[Receipts] List error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to retrieve receipts',
       message: error.message 
@@ -441,7 +445,7 @@ async function getReceipt(context, receiptId, userId) {
       try {
         receipt.extracted_data = JSON.parse(receipt.extracted_data);
       } catch (e) {
-        console.error('[Receipts] Failed to parse extracted_data:', e);
+        // Silent error - continue with raw data
       }
     }
     
@@ -453,7 +457,7 @@ async function getReceipt(context, receiptId, userId) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('[Receipts] Get receipt error:', error);
+    await logError(error, { endpoint: '[Receipts] Get receipt error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to retrieve receipt',
       message: error.message 
@@ -538,7 +542,7 @@ export async function onRequestPut(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('[Receipts] Update error:', error);
+    await logError(error, { endpoint: '[Receipts] Update error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to update receipt',
       message: error.message 
@@ -578,7 +582,11 @@ export async function onRequestDelete(context) {
       try {
         await env.RECEIPTS.delete(receipt.file_path);
       } catch (r2Error) {
-        console.error('[Receipts] R2 delete error:', r2Error);
+        await logError(r2Error, {
+          context: 'R2 delete error',
+          category: 'storage',
+          filePath: receipt.file_path
+        }, env);
         // Continue with database deletion even if R2 delete fails
       }
     }
@@ -605,7 +613,7 @@ export async function onRequestDelete(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('[Receipts] Delete error:', error);
+    await logError(error, { endpoint: '[Receipts] Delete error', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Failed to delete receipt',
       message: error.message 

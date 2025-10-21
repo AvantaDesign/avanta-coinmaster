@@ -3,6 +3,7 @@
 // Handles: GET, PUT, DELETE /api/compliance-monitoring/:id
 
 import { getUserIdFromToken } from '../auth.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 
 // CORS headers
 const corsHeaders = {
@@ -28,7 +29,7 @@ async function logAuditTrail(env, userId, action, entityType, entityId, details)
       JSON.stringify(details)
     ).run();
   } catch (error) {
-    console.error('Failed to log audit trail:', error);
+    await logError(error, { endpoint: 'Failed to log audit trail', category: 'api' }, env);
   }
 }
 
@@ -85,7 +86,7 @@ export async function onRequestGet({ request, env, params }) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Error in compliance-monitoring GET:', error);
+    await logError(error, { endpoint: 'Error in compliance-monitoring GET', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       details: error.message 
@@ -186,7 +187,7 @@ export async function onRequestPut({ request, env, params }) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Error in compliance-monitoring PUT:', error);
+    await logError(error, { endpoint: 'Error in compliance-monitoring PUT', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       details: error.message 
@@ -250,7 +251,7 @@ export async function onRequestDelete({ request, env, params }) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Error in compliance-monitoring DELETE:', error);
+    await logError(error, { endpoint: 'Error in compliance-monitoring DELETE', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
       details: error.message 

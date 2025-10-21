@@ -16,6 +16,7 @@
 // - POST /api/compliance-engine/rules/:id/toggle - Enable/disable rule
 
 import { getUserIdFromToken } from './auth.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 
 // CORS headers
 const corsHeaders = {
@@ -103,7 +104,7 @@ function checkRuleConditions(ruleConditions, transactionData) {
       evaluateCondition({ [field]: rule }, transactionData)
     );
   } catch (error) {
-    console.error('Error evaluating rule conditions:', error);
+    await logError(error, { endpoint: 'Error evaluating rule conditions', category: 'api' }, env);
     return false;
   }
 }
@@ -149,7 +150,7 @@ function applyRuleActions(ruleActions, transactionData) {
       messages
     };
   } catch (error) {
-    console.error('Error applying rule actions:', error);
+    await logError(error, { endpoint: 'Error applying rule actions', category: 'api' }, env);
     return { changes: {}, messages: { warnings: [], errors: [], info: [] } };
   }
 }
@@ -230,7 +231,7 @@ async function logRuleExecution(userId, ruleId, entityType, entityId, executionR
       executionResult.applied ? 1 : 0
     ).run();
   } catch (error) {
-    console.error('Error logging rule execution:', error);
+    await logError(error, { endpoint: 'Error logging rule execution', category: 'api' }, env);
   }
 }
 
@@ -255,7 +256,7 @@ async function createSuggestion(userId, entityType, entityId, suggestion, db) {
       suggestion.action || null
     ).run();
   } catch (error) {
-    console.error('Error creating suggestion:', error);
+    await logError(error, { endpoint: 'Error creating suggestion', category: 'api' }, env);
   }
 }
 
@@ -340,7 +341,7 @@ async function handleValidate(request, env, userId) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Error in validate:', error);
+    await logError(error, { endpoint: 'Error in validate', category: 'api' }, env);
     return new Response(JSON.stringify({
       error: 'Failed to validate transaction',
       message: error.message,
@@ -392,7 +393,7 @@ async function handleEvaluate(request, env, userId) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Error in evaluate:', error);
+    await logError(error, { endpoint: 'Error in evaluate', category: 'api' }, env);
     return new Response(JSON.stringify({
       error: 'Failed to evaluate transaction',
       message: error.message,
@@ -463,7 +464,7 @@ async function handleGetSuggestions(request, env, userId) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Error getting suggestions:', error);
+    await logError(error, { endpoint: 'Error getting suggestions', category: 'api' }, env);
     return new Response(JSON.stringify({
       error: 'Failed to get suggestions',
       message: error.message,
@@ -509,7 +510,7 @@ async function handleGetRules(request, env, userId) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Error getting rules:', error);
+    await logError(error, { endpoint: 'Error getting rules', category: 'api' }, env);
     return new Response(JSON.stringify({
       error: 'Failed to get rules',
       message: error.message,
@@ -576,7 +577,7 @@ async function handleGetExecutionLog(request, env, userId) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Error getting execution log:', error);
+    await logError(error, { endpoint: 'Error getting execution log', category: 'api' }, env);
     return new Response(JSON.stringify({
       error: 'Failed to get execution log',
       message: error.message,
@@ -654,7 +655,7 @@ export async function onRequest(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Error in compliance engine:', error);
+    await logError(error, { endpoint: 'Error in compliance engine', category: 'api' }, env);
     return new Response(JSON.stringify({
       error: 'Internal Server Error',
       message: error.message,

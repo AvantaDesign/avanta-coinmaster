@@ -3,6 +3,7 @@
 // Handles upload, parsing, matching, and reconciliation management
 
 import { 
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
   toCents, 
   fromCents,
   convertArrayFromCents, 
@@ -363,7 +364,7 @@ export async function onRequestGet(context) {
     });
 
   } catch (error) {
-    console.error('Error fetching bank statements:', error);
+    await logError(error, { endpoint: 'Error fetching bank statements', category: 'api' }, env);
     return new Response(JSON.stringify({
       error: 'Failed to fetch bank statements',
       details: error.message
@@ -482,7 +483,10 @@ export async function onRequestPost(context) {
       } catch (err) {
         // Skip duplicates
         if (!err.message.includes('UNIQUE constraint')) {
-          console.error('Error inserting match:', err);
+          await logError(err, {
+            context: 'Error inserting bank reconciliation match',
+            category: 'database'
+          }, env);
         }
       }
     }
@@ -503,7 +507,7 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
-    console.error('Error uploading bank statements:', error);
+    await logError(error, { endpoint: 'Error uploading bank statements', category: 'api' }, env);
     return new Response(JSON.stringify({
       error: 'Failed to upload bank statements',
       details: error.message
@@ -572,7 +576,7 @@ export async function onRequestPut(context) {
     });
 
   } catch (error) {
-    console.error('Error updating match:', error);
+    await logError(error, { endpoint: 'Error updating match', category: 'api' }, env);
     return new Response(JSON.stringify({
       error: 'Failed to update match',
       details: error.message
@@ -637,7 +641,7 @@ export async function onRequestDelete(context) {
     }
 
   } catch (error) {
-    console.error('Error deleting:', error);
+    await logError(error, { endpoint: 'Error deleting', category: 'api' }, env);
     return new Response(JSON.stringify({
       error: 'Failed to delete',
       details: error.message

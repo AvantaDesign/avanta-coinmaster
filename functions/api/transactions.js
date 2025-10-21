@@ -122,7 +122,7 @@ export async function onRequestGet(context) {
           headers: corsHeaders
         });
       } catch (error) {
-        console.error('Error fetching transaction by ID:', error);
+        await logError(error, { endpoint: 'Error fetching transaction by ID', category: 'api' }, env);
         return new Response(JSON.stringify({ 
           error: 'Failed to fetch transaction',
           message: error.message
@@ -408,7 +408,7 @@ export async function onRequestGet(context) {
         response.pagination.total_pages = Math.ceil((statsResult?.total || 0) / limit);
         response.pagination.current_page = Math.floor(offset / limit) + 1;
       } catch (error) {
-        console.error('Error fetching statistics:', error);
+        await logError(error, { endpoint: 'Error fetching statistics', category: 'api' }, env);
         response.warnings = ['Could not fetch statistics'];
       }
     }
@@ -419,7 +419,7 @@ export async function onRequestGet(context) {
     });
 
   } catch (error) {
-    console.error('Transactions GET Error:', error);
+    await logError(error, { endpoint: 'Transactions GET Error', category: 'api' }, env);
     
     return new Response(JSON.stringify({ 
       error: 'Internal server error',
@@ -850,7 +850,10 @@ export async function onRequestPost(context) {
       });
 
     } catch (dbError) {
-      console.error('Database error creating transaction:', dbError);
+      await logError(dbError, {
+        context: 'Database error creating transaction',
+        category: 'database'
+      }, env);
       
       // Check for specific database errors
       if (dbError.message.includes('UNIQUE constraint')) {
@@ -868,7 +871,7 @@ export async function onRequestPost(context) {
     }
 
   } catch (error) {
-    console.error('Transactions POST Error:', error);
+    await logError(error, { endpoint: 'Transactions POST Error', category: 'api' }, env);
     
     // Phase 31: Log error
     await logError(error, { 
@@ -1290,7 +1293,7 @@ export async function onRequestPut(context) {
     });
 
   } catch (error) {
-    console.error('Transactions PUT Error:', error);
+    await logError(error, { endpoint: 'Transactions PUT Error', category: 'api' }, env);
     
     // Phase 31: Log error
     await logError(error, { 
@@ -1474,7 +1477,7 @@ export async function onRequestDelete(context) {
     }
 
   } catch (error) {
-    console.error('Transactions DELETE Error:', error);
+    await logError(error, { endpoint: 'Transactions DELETE Error', category: 'api' }, env);
     
     // Phase 31: Log error
     await logError(error, { 

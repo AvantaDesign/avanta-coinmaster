@@ -2,6 +2,7 @@
 // SECURITY: Only authenticated users can access their own profile
 
 import { getUserIdFromToken } from './auth.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -65,7 +66,7 @@ async function verifyPassword(password, storedHash) {
     
     return result === 0;
   } catch (error) {
-    console.error('Error verifying password:', error);
+    await logError(error, { endpoint: 'Error verifying password', category: 'api' }, env);
     return false;
   }
 }
@@ -123,7 +124,7 @@ async function handleGetProfile(request, env) {
     });
 
   } catch (error) {
-    console.error('Get profile error:', error);
+    await logError(error, { endpoint: 'Get profile error', category: 'api' }, env);
     return new Response(JSON.stringify({
       error: 'Failed to get profile',
       message: error.message,
@@ -214,7 +215,7 @@ async function handleUpdateProfile(request, env) {
     });
 
   } catch (error) {
-    console.error('Update profile error:', error);
+    await logError(error, { endpoint: 'Update profile error', category: 'api' }, env);
     return new Response(JSON.stringify({
       error: 'Failed to update profile',
       message: error.message,
@@ -327,7 +328,7 @@ async function handleChangePassword(request, env) {
     });
 
   } catch (error) {
-    console.error('Change password error:', error);
+    await logError(error, { endpoint: 'Change password error', category: 'api' }, env);
     return new Response(JSON.stringify({
       error: 'Failed to change password',
       message: error.message,

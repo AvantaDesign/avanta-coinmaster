@@ -4,6 +4,7 @@
  */
 
 import { getUserIdFromToken } from './auth.js';
+import { logInfo, logError, logWarn, logDebug, logAuthEvent, logBusinessEvent, getCorrelationId } from '../utils/logging.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -161,7 +162,7 @@ async function getTags(request, env) {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Error fetching tags:', error);
+    await logError(error, { endpoint: 'Error fetching tags', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Error al obtener etiquetas',
       details: error.message 
@@ -227,7 +228,7 @@ async function createTag(request, env) {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Error creating tag:', error);
+    await logError(error, { endpoint: 'Error creating tag', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Error al crear etiqueta',
       details: error.message 
@@ -328,7 +329,7 @@ async function updateTag(request, env, tagId) {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Error updating tag:', error);
+    await logError(error, { endpoint: 'Error updating tag', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Error al actualizar etiqueta',
       details: error.message 
@@ -371,7 +372,7 @@ async function deleteTag(request, env, tagId) {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Error deleting tag:', error);
+    await logError(error, { endpoint: 'Error deleting tag', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Error al eliminar etiqueta',
       details: error.message 
@@ -443,7 +444,7 @@ async function applyTag(request, env, tagId) {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Error applying tag:', error);
+    await logError(error, { endpoint: 'Error applying tag', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Error al aplicar etiqueta',
       details: error.message 
@@ -490,7 +491,7 @@ async function removeTag(request, env, tagId) {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Error removing tag:', error);
+    await logError(error, { endpoint: 'Error removing tag', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Error al remover etiqueta',
       details: error.message 
@@ -570,7 +571,7 @@ async function bulkApplyTags(request, env) {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Error in bulk apply tags:', error);
+    await logError(error, { endpoint: 'Error in bulk apply tags', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Error al aplicar etiquetas masivamente',
       details: error.message 
@@ -634,7 +635,7 @@ async function getTagSuggestions(request, env) {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Error getting tag suggestions:', error);
+    await logError(error, { endpoint: 'Error getting tag suggestions', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Error al obtener sugerencias',
       details: error.message 
@@ -721,7 +722,7 @@ export async function onRequest(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Error in tags API:', error);
+    await logError(error, { endpoint: 'Error in tags API', category: 'api' }, env);
     return new Response(JSON.stringify({ 
       error: 'Error interno del servidor',
       details: error.message 

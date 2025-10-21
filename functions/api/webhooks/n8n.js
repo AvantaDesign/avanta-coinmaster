@@ -1,5 +1,6 @@
 /**
  * n8n Webhook Integration API
+ * Phase 42: Structured logging implementation
  * 
  * This endpoint handles webhooks from n8n workflows for automation:
  * - Transaction classification using AI (Claude/GPT)
@@ -13,6 +14,8 @@
  *   POST /api/webhooks/n8n/invoice-notification - Send invoice notification
  *   POST /api/webhooks/n8n/payment-reminder - Send payment reminder
  */
+
+import { logInfo, logBusinessEvent } from '../../utils/logging.js';
 
 // CORS headers for all responses
 const corsHeaders = {
@@ -83,7 +86,7 @@ export async function onRequestPost(context) {
       });
     }
   } catch (error) {
-    console.error('Webhook Error:', error);
+    await logError(error, { endpoint: 'Webhook Error', category: 'api' }, env);
     
     return new Response(JSON.stringify({
       error: 'Internal Server Error',
@@ -169,7 +172,12 @@ async function handleClassifyTransaction(context) {
       transactionId
     ).run();
 
-    console.log(`Transaction ${transactionId} classified as ${classification.category} (confidence: ${classification.confidence})`);
+    logBusinessEvent('transaction_classified', {
+      transactionId,
+      category: classification.category,
+      confidence: classification.confidence,
+      endpoint: '/api/webhooks/n8n/classify'
+    }, env);
 
     return new Response(JSON.stringify({
       success: true,
@@ -185,7 +193,7 @@ async function handleClassifyTransaction(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Classification Error:', error);
+    await logError(error, { endpoint: 'Classification Error', category: 'api' }, env);
     
     return new Response(JSON.stringify({
       error: 'Internal Server Error',
@@ -283,7 +291,11 @@ async function handleImportCSV(context) {
       }
     }
 
-    console.log(`CSV Import: ${imported} transactions imported from ${fileName}`);
+    logBusinessEvent('csv_import_completed', {
+      imported,
+      fileName,
+      endpoint: '/api/webhooks/n8n/import-csv'
+    }, env);
 
     return new Response(JSON.stringify({
       success: true,
@@ -301,7 +313,7 @@ async function handleImportCSV(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('CSV Import Error:', error);
+    await logError(error, { endpoint: 'CSV Import Error', category: 'api' }, env);
     
     return new Response(JSON.stringify({
       error: 'Internal Server Error',
@@ -393,11 +405,14 @@ async function handleInvoiceNotification(context) {
           })
         });
       } catch (error) {
-        console.error('Failed to send notification webhook:', error);
+        await logError(error, { endpoint: 'Failed to send notification webhook', category: 'api' }, env);
       }
     }
 
-    console.log(`Invoice notification sent for ${invoice.uuid}`);
+    logBusinessEvent('invoice_notification_sent', {
+      invoiceUuid: invoice.uuid,
+      endpoint: '/api/webhooks/n8n/invoice-notification'
+    }, env);
 
     return new Response(JSON.stringify({
       success: true,
@@ -410,7 +425,7 @@ async function handleInvoiceNotification(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Notification Error:', error);
+    await logError(error, { endpoint: 'Notification Error', category: 'api' }, env);
     
     return new Response(JSON.stringify({
       error: 'Internal Server Error',
@@ -499,11 +514,14 @@ async function handlePaymentReminder(context) {
           })
         });
       } catch (error) {
-        console.error('Failed to send reminder webhook:', error);
+        await logError(error, { endpoint: 'Failed to send reminder webhook', category: 'api' }, env);
       }
     }
 
-    console.log(`Payment reminder sent for ${month}`);
+    logBusinessEvent('payment_reminder_sent', {
+      month,
+      endpoint: '/api/webhooks/n8n/payment-reminder'
+    }, env);
 
     return new Response(JSON.stringify({
       success: true,
@@ -515,7 +533,7 @@ async function handlePaymentReminder(context) {
       headers: corsHeaders
     });
   } catch (error) {
-    console.error('Reminder Error:', error);
+    await logError(error, { endpoint: 'Reminder Error', category: 'api' }, env);
     
     return new Response(JSON.stringify({
       error: 'Internal Server Error',
