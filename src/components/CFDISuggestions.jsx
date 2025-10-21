@@ -9,10 +9,12 @@ import {
   getCFDIByCategory
 } from '../utils/cfdiUtils';
 import Icon from './icons/IconLibrary';
+import { useAuth } from './AuthProvider';
 
 /**
  * CFDI Suggestions Component
  * Provides intelligent CFDI usage code suggestions and validation
+ * Phase 44: Fixed to use auth context for user ID
  */
 export default function CFDISuggestions({ 
   transaction = {}, 
@@ -20,6 +22,7 @@ export default function CFDISuggestions({
   onChange,
   disabled = false 
 }) {
+  const { user } = useAuth();
   const [selectedCode, setSelectedCode] = useState(value);
   const [suggestions, setSuggestions] = useState([]);
   const [history, setHistory] = useState([]);
@@ -30,10 +33,11 @@ export default function CFDISuggestions({
 
   useEffect(() => {
     // Load user's CFDI history
-    const userId = 1; // TODO: Get from auth context
-    const userHistory = getCFDIHistory(userId);
-    setHistory(userHistory);
-  }, []);
+    if (user?.id) {
+      const userHistory = getCFDIHistory(user.id);
+      setHistory(userHistory);
+    }
+  }, [user?.id]);
 
   useEffect(() => {
     if (value) {
@@ -71,8 +75,9 @@ export default function CFDISuggestions({
     setShowSuggestions(false);
     
     // Save to history
-    const userId = 1; // TODO: Get from auth context
-    saveCFDIUsage(userId, code);
+    if (user?.id) {
+      saveCFDIUsage(user.id, code);
+    }
     
     // Notify parent
     if (onChange) {

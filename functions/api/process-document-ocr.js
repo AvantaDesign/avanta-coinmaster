@@ -185,14 +185,48 @@ async function processWithGoogleVision(file, env) {
 
 /**
  * Process image with AWS Textract (placeholder)
+ * 
+ * AWS TEXTRACT INTEGRATION REQUIREMENTS (Phase 44):
+ * ================================================
+ * 
+ * 1. AWS Configuration:
+ *    - Set up AWS account and enable Textract service
+ *    - Create IAM user with Textract permissions
+ *    - Configure environment variables:
+ *      * AWS_ACCESS_KEY_ID
+ *      * AWS_SECRET_ACCESS_KEY
+ *      * AWS_REGION (default: us-east-1)
+ *      * AWS_TEXTRACT_ENABLED=true
+ * 
+ * 2. Install Dependencies:
+ *    npm install @aws-sdk/client-textract
+ * 
+ * 3. Implementation Steps:
+ *    - Initialize TextractClient with credentials
+ *    - Upload image to temporary S3 bucket or use base64
+ *    - Call detectDocumentText or analyzeDocument API
+ *    - Parse response to extract text blocks and confidence scores
+ *    - Structure data for database storage
+ * 
+ * 4. Security Considerations:
+ *    - Store AWS credentials securely in environment variables
+ *    - Implement request rate limiting
+ *    - Add cost monitoring and alerts
+ *    - Log all API calls for audit trail
+ * 
+ * 5. Error Handling:
+ *    - Handle API rate limits (retry with exponential backoff)
+ *    - Validate file formats before sending to Textract
+ *    - Implement fallback to manual entry on failure
+ * 
  * @param {File} file - Image file
  * @param {Object} env - Environment bindings
  * @returns {Promise<Object>} OCR result
  */
 async function processWithAWSTextract(file, env) {
-  // TODO: Implement AWS Textract integration
-  // Requires AWS SDK for JavaScript and proper credentials
-  throw new Error('AWS Textract integration not yet implemented');
+  // AWS Textract integration not yet implemented
+  // See documentation above for implementation requirements
+  throw new Error('AWS Textract integration not yet implemented. Configure AWS credentials and enable service.');
 }
 
 /**
