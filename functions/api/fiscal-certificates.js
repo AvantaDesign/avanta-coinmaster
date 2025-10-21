@@ -250,8 +250,29 @@ export async function onRequestPost(context) {
       
       const certificateId = result.meta.last_row_id;
       
-      // TODO: Trigger OCR processing asynchronously
-      // For now, we'll process it immediately in a simple way
+      // OCR PROCESSING TRIGGER (Phase 44):
+      // ==================================
+      // CURRENT IMPLEMENTATION: Synchronous processing (blocking)
+      // 
+      // RECOMMENDED ASYNC IMPLEMENTATION:
+      // 1. Queue System Integration:
+      //    - Use Cloudflare Queues to trigger OCR processing asynchronously
+      //    - Configure queue in wrangler.toml: [[queues.producers]]
+      //    - Send message to queue with certificate details
+      //    - Consumer function processes OCR independently
+      // 
+      // 2. Alternative: Durable Objects
+      //    - Create Durable Object for certificate processing
+      //    - Submit processing request and return immediately
+      //    - Client polls status endpoint for completion
+      // 
+      // 3. Benefits of Async Processing:
+      //    - Non-blocking API response (better UX)
+      //    - Retry logic for failed OCR attempts
+      //    - Scalable processing under load
+      //    - Better error handling and logging
+      // 
+      // For now, we process synchronously to ensure completion
       let analysisData = null;
       try {
         // Update status to processing

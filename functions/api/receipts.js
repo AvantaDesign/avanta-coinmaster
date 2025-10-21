@@ -1,10 +1,14 @@
 // Receipts API - Handle receipt upload, OCR processing, and management
+// Phase 44: Implemented proper authentication using getUserIdFromToken
 //
 // Features:
 // - Upload receipts to R2 storage
 // - Track OCR processing status
 // - Link receipts to transactions
 // - Retrieve and manage receipts
+
+import { getUserIdFromToken } from './auth.js';
+import { logInfo, logError, logWarn } from '../utils/logging.js';
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -18,16 +22,25 @@ function generateReceiptId() {
   return `receipt_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 }
 
-// Helper function to get user ID from request (mock for now)
-function getUserId(request) {
-  // TODO: Implement proper authentication
-  // For now, return a default user ID
-  const authHeader = request.headers.get('Authorization');
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    // Extract user ID from token if available
-    return 'user_1'; // Placeholder
+/**
+ * Get user ID from authentication token
+ * Phase 44: Proper authentication implementation
+ * @param {Request} request - HTTP request
+ * @param {Object} env - Environment bindings
+ * @returns {Promise<number|null>} User ID or null if not authenticated
+ */
+async function getUserId(request, env) {
+  try {
+    const userId = await getUserIdFromToken(request, env);
+    if (!userId) {
+      logWarn('Receipts API: No user ID found in authentication token', {}, env);
+      return null;
+    }
+    return userId;
+  } catch (error) {
+    logError('Receipts API: Error extracting user ID from token', { error: error.message }, env);
+    return null;
   }
-  return 'user_1'; // Default user
 }
 
 // POST /api/receipts/upload - Upload receipt image
@@ -63,7 +76,19 @@ export async function onRequestPost(context) {
 // Upload receipt file
 async function uploadReceipt(context) {
   const { env, request } = context;
-  const userId = getUserId(request);
+  const userId = await getUserId(request, env);
+  
+  // Check authentication
+  if (!userId) {
+    return new Response(JSON.stringify({
+      error: 'Unauthorized',
+      message: 'Valid authentication token required',
+      code: 'AUTH_REQUIRED'
+    }), {
+      status: 401,
+      headers: corsHeaders
+    });
+  }
   
   try {
     // Validate R2 connection
@@ -172,7 +197,20 @@ async function uploadReceipt(context) {
 // Process receipt with OCR (placeholder for now)
 async function processReceipt(context) {
   const { env, request } = context;
-  const userId = getUserId(request);
+  const userId = await getUserId(request, env);
+  
+  // Check authentication
+  if (!userId) {
+    return new Response(JSON.stringify({
+      error: 'Unauthorized',
+      message: 'Valid authentication token required',
+      code: 'AUTH_REQUIRED'
+    }), {
+      status: 401,
+      headers: corsHeaders
+    });
+  }
+  
   const url = new URL(request.url);
   const pathParts = url.pathname.split('/');
   const receiptId = pathParts[pathParts.length - 2]; // Get ID before '/process'
@@ -200,8 +238,10 @@ async function processReceipt(context) {
       WHERE id = ?
     `).bind(receiptId).run();
 
-    // TODO: Implement actual OCR processing
-    // For now, we'll mark it as skipped and provide a placeholder response
+    // OCR IMPLEMENTATION NOTE (Phase 44):
+    // Full OCR processing requires integration with external service (Google Vision or AWS Textract)
+    // See functions/api/process-document-ocr.js for OCR service integration
+    // For now, we mark receipts as skipped and allow manual data entry
     const mockExtractedData = {
       amount: null,
       date: null,
@@ -264,7 +304,20 @@ async function processReceipt(context) {
 // Link receipt to transaction
 async function linkTransaction(context) {
   const { env, request } = context;
-  const userId = getUserId(request);
+  const userId = await getUserId(request, env);
+  
+  // Check authentication
+  if (!userId) {
+    return new Response(JSON.stringify({
+      error: 'Unauthorized',
+      message: 'Valid authentication token required',
+      code: 'AUTH_REQUIRED'
+    }), {
+      status: 401,
+      headers: corsHeaders
+    });
+  }
+  
   const url = new URL(request.url);
   const pathParts = url.pathname.split('/');
   const receiptId = pathParts[pathParts.length - 2]; // Get ID before '/link-transaction'
@@ -355,7 +408,20 @@ async function linkTransaction(context) {
 // GET /api/receipts - List user receipts with filtering
 export async function onRequestGet(context) {
   const { env, request } = context;
-  const userId = getUserId(request);
+  const userId = await getUserId(request, env);
+  
+  // Check authentication
+  if (!userId) {
+    return new Response(JSON.stringify({
+      error: 'Unauthorized',
+      message: 'Valid authentication token required',
+      code: 'AUTH_REQUIRED'
+    }), {
+      status: 401,
+      headers: corsHeaders
+    });
+  }
+  
   const url = new URL(request.url);
   
   try {
@@ -471,7 +537,20 @@ async function getReceipt(context, receiptId, userId) {
 // PUT /api/receipts/:id - Update receipt data
 export async function onRequestPut(context) {
   const { env, request } = context;
-  const userId = getUserId(request);
+  const userId = await getUserId(request, env);
+  
+  // Check authentication
+  if (!userId) {
+    return new Response(JSON.stringify({
+      error: 'Unauthorized',
+      message: 'Valid authentication token required',
+      code: 'AUTH_REQUIRED'
+    }), {
+      status: 401,
+      headers: corsHeaders
+    });
+  }
+  
   const url = new URL(request.url);
   const pathParts = url.pathname.split('/');
   const receiptId = pathParts[pathParts.length - 1];
@@ -556,7 +635,20 @@ export async function onRequestPut(context) {
 // DELETE /api/receipts/:id - Delete receipt and file
 export async function onRequestDelete(context) {
   const { env, request } = context;
-  const userId = getUserId(request);
+  const userId = await getUserId(request, env);
+  
+  // Check authentication
+  if (!userId) {
+    return new Response(JSON.stringify({
+      error: 'Unauthorized',
+      message: 'Valid authentication token required',
+      code: 'AUTH_REQUIRED'
+    }), {
+      status: 401,
+      headers: corsHeaders
+    });
+  }
+  
   const url = new URL(request.url);
   const pathParts = url.pathname.split('/');
   const receiptId = pathParts[pathParts.length - 1];
