@@ -10,6 +10,16 @@ import {
 } from '../utils/auth';
 import { getFormattedUserInfo } from '../utils/userContext';
 
+// Helper function to get user initials
+function getInitials(name) {
+  if (!name) return '?';
+  const words = name.trim().split(' ');
+  if (words.length >= 2) {
+    return (words[0][0] + words[1][0]).toUpperCase();
+  }
+  return name.substring(0, 2).toUpperCase();
+}
+
 // Create authentication context
 const AuthContext = createContext(null);
 
@@ -49,15 +59,45 @@ export function AuthProvider({ children }) {
       
       if (isAuthenticated()) {
         console.log('AuthProvider: User is authenticated, fetching user info...');
-        const userInfo = getUserInfo();
-        const formattedUser = getFormattedUserInfo();
-        const finalUser = formattedUser || userInfo;
-        console.log('AuthProvider: Setting user state:', finalUser);
-        setUser(finalUser);
+        
+        // Fetch fresh user info from server instead of localStorage
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/auth/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const serverUserInfo = await response.json();
+          console.log('AuthProvider: Server user info:', serverUserInfo);
+          
+          // Format user info with server data
+          const formattedUser = {
+            id: serverUserInfo.id,
+            name: serverUserInfo.name,
+            email: serverUserInfo.email,
+            initials: getInitials(serverUserInfo.name || serverUserInfo.email),
+            avatar: serverUserInfo.avatar_url || null,
+            is_demo: serverUserInfo.is_demo || 0,
+            current_demo_scenario_id: serverUserInfo.current_demo_scenario_id || null,
+          };
+          
+          console.log('AuthProvider: Setting user state:', formattedUser);
+          setUser(formattedUser);
 
-        // Phase 47.5: Initialize demo user if needed
-        if (finalUser && finalUser.is_demo) {
-          await initializeDemoUser(finalUser);
+          // Phase 47.5: Initialize demo user if needed
+          if (formattedUser && formattedUser.is_demo) {
+            await initializeDemoUser(formattedUser);
+          }
+        } else {
+          console.log('AuthProvider: Failed to fetch user info, falling back to localStorage');
+          const userInfo = getUserInfo();
+          const formattedUser = getFormattedUserInfo();
+          const finalUser = formattedUser || userInfo;
+          console.log('AuthProvider: Setting user state:', finalUser);
+          setUser(finalUser);
         }
       } else {
         console.log('AuthProvider: No valid authentication found');
