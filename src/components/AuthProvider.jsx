@@ -54,6 +54,11 @@ export function AuthProvider({ children }) {
         const finalUser = formattedUser || userInfo;
         console.log('AuthProvider: Setting user state:', finalUser);
         setUser(finalUser);
+
+        // Phase 47.5: Initialize demo user if needed
+        if (finalUser && finalUser.is_demo) {
+          await initializeDemoUser(finalUser);
+        }
       } else {
         console.log('AuthProvider: No valid authentication found');
         setUser(null);
@@ -64,6 +69,60 @@ export function AuthProvider({ children }) {
       setUser(null);
     } finally {
       setLoading(false);
+    }
+  };
+
+  /**
+   * Initialize demo user with default scenario and load demo data
+   */
+  const initializeDemoUser = async (user) => {
+    try {
+      console.log('AuthProvider: Initializing demo user...');
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      // Check if user already has a current scenario
+      const currentResponse = await fetch('/api/demo-data/current', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (currentResponse.ok) {
+        const currentData = await currentResponse.json();
+        
+        // If no current scenario, activate default scenario (ID=1)
+        if (!currentData.data) {
+          console.log('AuthProvider: No current scenario, activating default scenario...');
+          
+          // Activate scenario 1 (Negocio Excelente)
+          await fetch('/api/demo-scenarios/1/activate', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          // Load scenario data
+          await fetch('/api/demo-data/load-scenario', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ scenario_id: 1 })
+          });
+
+          console.log('AuthProvider: Demo user initialized with default scenario');
+        } else {
+          console.log('AuthProvider: Demo user already has active scenario:', currentData.data.scenario_name);
+        }
+      }
+    } catch (err) {
+      console.error('AuthProvider: Error initializing demo user:', err);
+      // Don't throw - initialization failure shouldn't block login
     }
   };
 
@@ -86,13 +145,24 @@ export function AuthProvider({ children }) {
         const finalUser = formattedUser || response.user;
         setUser(finalUser);
         console.log('AuthProvider: User state updated:', finalUser);
+
+        // Phase 47.5: Initialize demo user if needed
+        if (finalUser.is_demo) {
+          await initializeDemoUser(finalUser);
+        }
       } else {
         console.warn('AuthProvider: No user in login response, checking stored info');
         // Fallback: check if user info was stored
         const storedUser = getUserInfo();
         if (storedUser) {
           const formattedUser = getFormattedUserInfo();
-          setUser(formattedUser || storedUser);
+          const finalUser = formattedUser || storedUser;
+          setUser(finalUser);
+          
+          // Phase 47.5: Initialize demo user if needed
+          if (finalUser.is_demo) {
+            await initializeDemoUser(finalUser);
+          }
         }
       }
 
@@ -125,13 +195,24 @@ export function AuthProvider({ children }) {
         const finalUser = formattedUser || response.user;
         setUser(finalUser);
         console.log('AuthProvider: User state updated:', finalUser);
+
+        // Phase 47.5: Initialize demo user if needed
+        if (finalUser.is_demo) {
+          await initializeDemoUser(finalUser);
+        }
       } else {
         console.warn('AuthProvider: No user in Google login response, checking stored info');
         // Fallback: check if user info was stored
         const storedUser = getUserInfo();
         if (storedUser) {
           const formattedUser = getFormattedUserInfo();
-          setUser(formattedUser || storedUser);
+          const finalUser = formattedUser || storedUser;
+          setUser(finalUser);
+          
+          // Phase 47.5: Initialize demo user if needed
+          if (finalUser.is_demo) {
+            await initializeDemoUser(finalUser);
+          }
         }
       }
 
