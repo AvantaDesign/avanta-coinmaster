@@ -47,8 +47,12 @@ export class AvantaClient {
       ...options.headers
     };
     
-    // Add authorization header if token exists and not auth endpoint
-    if (this.token && !endpoint.startsWith('/api/auth')) {
+    // Add authorization header if token exists and not login/register endpoint
+    if (
+      this.token &&
+      !endpoint.startsWith('/api/auth/login') &&
+      !endpoint.startsWith('/api/auth/register')
+    ) {
       headers['Authorization'] = `Bearer ${this.token}`;
     }
     
