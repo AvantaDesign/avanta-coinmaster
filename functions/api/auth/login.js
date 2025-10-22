@@ -439,6 +439,7 @@ async function handleRefreshToken(request, env) {
       email: user.email,
       name: user.name,
       role: user.role || 'user',
+      is_demo: user.is_demo || 0,
     };
     
     const token = await generateJWT(payload, secret);
