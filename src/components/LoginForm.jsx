@@ -136,7 +136,7 @@ export default function LoginForm() {
    * Demo credentials helper
    */
   const fillDemoCredentials = () => {
-    setEmail('demo@avantafinance.com');
+    setEmail('demo@avanta.com');
     setPassword('Demo123!');
   };
 
