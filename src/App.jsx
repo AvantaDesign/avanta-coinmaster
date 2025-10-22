@@ -98,6 +98,7 @@ function NavigationBar() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [showDemoBanner, setShowDemoBanner] = useState(false);
   
   const handleLogout = () => {
     logout();
@@ -130,6 +131,9 @@ function NavigationBar() {
       }
       if (showNotifications && !event.target.closest('.notifications-container')) {
         setShowNotifications(false);
+      }
+      if (showDemoBanner && !event.target.closest('.demo-banner-container')) {
+        setShowDemoBanner(false);
       }
     };
 
@@ -193,15 +197,6 @@ function NavigationBar() {
       ]
     },
     {
-      name: 'Operaciones',
-      icon: '🔄',
-      type: 'dropdown',
-      items: [
-        { name: 'Freelancers Recurrentes', icon: '👥', path: '/recurring-freelancers' },
-        { name: 'Servicios Recurrentes', icon: '🔌', path: '/recurring-services' }
-      ]
-    },
-    {
       name: 'Tesorería',
       icon: '💼',
       type: 'dropdown',
@@ -209,16 +204,10 @@ function NavigationBar() {
         { name: 'Proyección de Flujo', icon: '💵', path: '/cash-flow-projection' },
         { name: 'Metas de Ahorro', icon: '🎯', path: '/savings-goals' },
         { name: 'Deudas', icon: '💳', path: '/debts' },
-        { name: 'Inversiones', icon: '📈', path: '/investments' }
-      ]
-    },
-    {
-      name: 'Automatización',
-      icon: '⚙️',
-      type: 'dropdown',
-      items: [
-        { name: 'Automatización', icon: '🤖', path: '/automation' },
-        { name: 'Automatización de Facturas', icon: '📄', path: '/invoice-automation' }
+        { name: 'Inversiones', icon: '📈', path: '/investments' },
+        // Operaciones movidas aquí
+        { name: 'Freelancers Recurrentes', icon: '👥', path: '/recurring-freelancers' },
+        { name: 'Servicios Recurrentes', icon: '🔌', path: '/recurring-services' }
       ]
     },
     {
@@ -231,29 +220,19 @@ function NavigationBar() {
       ]
     },
     {
-      name: 'Ayuda',
-      icon: '❓',
+      name: 'Ayuda y Configuración',
+      icon: '⚙️',
       type: 'dropdown',
       items: [
         { name: 'Centro de Ayuda', icon: '📚', path: '/help' },
         { name: 'Centro de Tareas', icon: '📋', path: '/tasks' },
         { name: 'Acciones Rápidas', icon: '⚡', path: '/quick-actions' },
-        { name: 'Registro de Auditoría', icon: '🔒', path: '/audit-log' }
+        { name: 'Registro de Auditoría', icon: '🔒', path: '/audit-log' },
+        { name: 'Configuración', icon: '⚙️', path: '/settings' },
+        // Automatización movida aquí
+        { name: 'Automatización', icon: '🤖', path: '/automation' },
+        { name: 'Automatización de Facturas', icon: '📄', path: '/invoice-automation' }
       ]
-    },
-    // Phase 37: Demo Mode Access
-    {
-      name: 'Demo',
-      icon: '🎓',
-      path: '/demo',
-      type: 'single'
-    },
-    // Phase 35: Centralized Settings Panel
-    {
-      name: 'Configuración',
-      icon: '⚙️',
-      path: '/settings',
-      type: 'single'
     }
   ];
 
@@ -433,6 +412,27 @@ function NavigationBar() {
               </div>
             )}
 
+            {/* Demo Mode Icon - Only show for demo users */}
+            {user && user.is_demo && (
+              <div className="relative demo-banner-container">
+                <button
+                  onClick={() => setShowDemoBanner(!showDemoBanner)}
+                  className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 transition-all duration-200 relative"
+                  aria-label="Modo Demo"
+                  title="Modo Demo - Cambiar escenarios"
+                >
+                  <span className="text-xl">🎓</span>
+                </button>
+
+                {/* Demo Banner Popover */}
+                {showDemoBanner && (
+                  <div className="absolute right-0 mt-2 w-96 bg-white dark:bg-slate-800 rounded-lg shadow-xl dark:shadow-2xl dark:shadow-black/30 ring-1 ring-black dark:ring-slate-700 ring-opacity-5 z-50 demo-banner-container">
+                    <DemoBanner />
+                  </div>
+                )}
+              </div>
+            )}
+
             {user && (
               <>
                 {/* User Profile - Clickable to Admin */}
@@ -559,10 +559,6 @@ function AuthenticatedApp() {
       <ToastContainer />
       <div className="min-h-screen bg-gray-100 dark:bg-slate-900">
         <NavigationBar />
-        {/* Phase 37: Demo Mode Banner - shown when in demo mode */}
-        <Suspense fallback={null}>
-          <DemoBanner />
-        </Suspense>
         <main id="main-content" className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
             {/* Global Filter - hidden on admin routes (Phase 34) */}
