@@ -62,12 +62,17 @@ export function AuthProvider({ children }) {
         
         // Fetch fresh user info from server instead of localStorage
         const token = localStorage.getItem('token');
+        console.log('AuthProvider: Fetching user info with token:', token ? 'exists' : 'missing');
+        
         const response = await fetch('/api/auth/me', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         });
+        
+        console.log('AuthProvider: /api/auth/me response status:', response.status);
+        console.log('AuthProvider: /api/auth/me response headers:', Object.fromEntries(response.headers.entries()));
         
         if (response.ok) {
           const serverUserInfo = await response.json();
@@ -92,7 +97,10 @@ export function AuthProvider({ children }) {
             await initializeDemoUser(formattedUser);
           }
         } else {
-          console.log('AuthProvider: Failed to fetch user info, falling back to localStorage');
+          console.log('AuthProvider: Failed to fetch user info, status:', response.status);
+          const responseText = await response.text();
+          console.log('AuthProvider: Response text:', responseText);
+          console.log('AuthProvider: Falling back to localStorage');
           const userInfo = getUserInfo();
           const formattedUser = getFormattedUserInfo();
           const finalUser = formattedUser || userInfo;
