@@ -1,5 +1,6 @@
 // DemoBanner.jsx - Demo Mode Indicator Banner
 // Phase 37: Advanced Demo Experience
+// Phase 47.5: Enhanced initialization and visibility
 //
 // This component displays a persistent banner indicating demo mode is active
 // and provides quick access to demo features
@@ -11,21 +12,32 @@ import {
   ArrowPathIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
+import { useAuth } from '../AuthProvider';
 
 export default function DemoBanner() {
+  const { user } = useAuth(); // Phase 47.5: Get user from auth context
   const [currentScenario, setCurrentScenario] = useState(null);
   const [loading, setLoading] = useState(true);
   const [dismissed, setDismissed] = useState(false);
   const [switching, setSwitching] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    loadCurrentScenario();
-  }, []);
+    // Phase 47.5: Only load if user is a demo user
+    if (user && user.is_demo) {
+      loadCurrentScenario();
+    } else {
+      setLoading(false);
+    }
+  }, [user, retryCount]);
 
   const loadCurrentScenario = async () => {
     try {
       const token = localStorage.getItem('token');
-      if (!token) return;
+      if (!token) {
+        setLoading(false);
+        return;
+      }
 
       const response = await fetch('/api/demo-data/current', {
         headers: {
@@ -36,7 +48,21 @@ export default function DemoBanner() {
 
       if (response.ok) {
         const data = await response.json();
+        
+        // Phase 47.5: If no scenario but user is demo, retry after a short delay
+        // (AuthProvider might still be initializing)
+        if (!data.data && retryCount < 3) {
+          setTimeout(() => {
+            setRetryCount(prev => prev + 1);
+            loadCurrentScenario();
+          }, 1000);
+          return;
+        }
+        
         setCurrentScenario(data.data);
+      } else if (response.status === 403) {
+        // Not a demo user, don't show banner
+        setCurrentScenario(null);
       }
     } catch (err) {
       console.error('Error loading current scenario:', err);
@@ -103,6 +129,11 @@ export default function DemoBanner() {
       default: return { name: 'Desconocido', icon: '❓', color: 'gray' };
     }
   };
+
+  // Phase 47.5: Only show banner for demo users
+  if (!user || !user.is_demo) {
+    return null;
+  }
 
   if (loading || dismissed || !currentScenario) {
     return null;
