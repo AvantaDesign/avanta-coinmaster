@@ -29,7 +29,7 @@ export default function DemoBanner() {
     } else {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, retryCount]);
 
   const loadCurrentScenario = async () => {
     try {
