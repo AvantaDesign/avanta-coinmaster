@@ -432,6 +432,9 @@ function NavigationBar() {
                 )}
               </div>
             )}
+            
+            {/* DEBUG: Log user state */}
+            {user && console.log('DEBUG: User state:', user, 'is_demo:', user.is_demo)}
 
             {user && (
               <>
