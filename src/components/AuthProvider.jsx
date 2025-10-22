@@ -58,54 +58,35 @@ export function AuthProvider({ children }) {
       console.log('AuthProvider: Checking authentication...');
       
       if (isAuthenticated()) {
-        console.log('AuthProvider: User is authenticated, fetching user info...');
+        console.log('AuthProvider: User is authenticated, using stored user info...');
         
-        // Fetch fresh user info from server instead of localStorage
+        // Use stored user info instead of making additional API call
+        const userInfo = getUserInfo();
+        const formattedUser = getFormattedUserInfo();
+        const finalUser = formattedUser || userInfo;
+        
+        // Add is_demo from JWT token if available
         const token = localStorage.getItem('token');
-        console.log('AuthProvider: Fetching user info with token:', token ? 'exists' : 'missing');
-        
-        const response = await fetch('/api/auth/me', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
+        if (token) {
+          try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            if (payload.is_demo !== undefined) {
+              finalUser.is_demo = payload.is_demo;
+            }
+            if (payload.current_demo_scenario_id !== undefined) {
+              finalUser.current_demo_scenario_id = payload.current_demo_scenario_id;
+            }
+          } catch (e) {
+            console.log('AuthProvider: Could not parse JWT token:', e);
           }
-        });
+        }
         
-        console.log('AuthProvider: /api/auth/me response status:', response.status);
-        console.log('AuthProvider: /api/auth/me response headers:', Object.fromEntries(response.headers.entries()));
-        
-        if (response.ok) {
-          const serverUserInfo = await response.json();
-          console.log('AuthProvider: Server user info:', serverUserInfo);
-          
-          // Format user info with server data
-          const formattedUser = {
-            id: serverUserInfo.id,
-            name: serverUserInfo.name,
-            email: serverUserInfo.email,
-            initials: getInitials(serverUserInfo.name || serverUserInfo.email),
-            avatar: serverUserInfo.avatar_url || null,
-            is_demo: serverUserInfo.is_demo || 0,
-            current_demo_scenario_id: serverUserInfo.current_demo_scenario_id || null,
-          };
-          
-          console.log('AuthProvider: Setting user state:', formattedUser);
-          setUser(formattedUser);
+        console.log('AuthProvider: Setting user state:', finalUser);
+        setUser(finalUser);
 
-          // Phase 47.5: Initialize demo user if needed
-          if (formattedUser && formattedUser.is_demo) {
-            await initializeDemoUser(formattedUser);
-          }
-        } else {
-          console.log('AuthProvider: Failed to fetch user info, status:', response.status);
-          const responseText = await response.text();
-          console.log('AuthProvider: Response text:', responseText);
-          console.log('AuthProvider: Falling back to localStorage');
-          const userInfo = getUserInfo();
-          const formattedUser = getFormattedUserInfo();
-          const finalUser = formattedUser || userInfo;
-          console.log('AuthProvider: Setting user state:', finalUser);
-          setUser(finalUser);
+        // Phase 47.5: Initialize demo user if needed
+        if (finalUser && finalUser.is_demo) {
+          await initializeDemoUser(finalUser);
         }
       } else {
         console.log('AuthProvider: No valid authentication found');
