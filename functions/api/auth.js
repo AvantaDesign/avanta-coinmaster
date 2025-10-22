@@ -376,6 +376,7 @@ async function handleLogin(request, env) {
         email: user.email,
         name: user.name,
         role: user.role || 'user',
+        is_demo: user.is_demo || 0,
         created_at: user.created_at,
       }
     }), {
@@ -623,7 +624,7 @@ async function handleGetCurrentUser(request, env) {
     }
     
     const user = await env.DB.prepare(
-      'SELECT id, email, name, avatar_url, role, created_at FROM users WHERE id = ? AND is_active = 1'
+      'SELECT id, email, name, avatar_url, role, is_demo, current_demo_scenario_id, created_at FROM users WHERE id = ? AND is_active = 1'
     ).bind(userId).first();
     
     if (!user) {
