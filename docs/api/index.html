@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Avanta Coinmaster API Documentation</title>
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+  <style>
+    html {
+      box-sizing: border-box;
+      overflow: -moz-scrollbars-vertical;
+      overflow-y: scroll;
+    }
+    
+    *, *:before, *:after {
+      box-sizing: inherit;
+    }
+    
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    
+    .topbar {
+      display: none;
+    }
+    
+    .swagger-ui .info {
+      margin: 50px 0;
+    }
+    
+    .swagger-ui .info .title {
+      font-size: 36px;
+      font-weight: 700;
+    }
+    
+    .custom-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 40px 20px;
+      text-align: center;
+    }
+    
+    .custom-header h1 {
+      margin: 0 0 10px 0;
+      font-size: 48px;
+      font-weight: 700;
+    }
+    
+    .custom-header p {
+      margin: 0;
+      font-size: 18px;
+      opacity: 0.9;
+    }
+    
+    .quick-links {
+      background: #f8f9fa;
+      padding: 30px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .quick-links-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+    
+    .quick-link-card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .quick-link-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    .quick-link-card h3 {
+      margin: 0 0 10px 0;
+      font-size: 18px;
+      color: #667eea;
+    }
+    
+    .quick-link-card p {
+      margin: 0;
+      font-size: 14px;
+      color: #666;
+    }
+    
+    .quick-link-card a {
+      display: inline-block;
+      margin-top: 10px;
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    
+    .quick-link-card a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="custom-header">
+    <h1>🚀 Avanta Coinmaster API</h1>
+    <p>Complete API Documentation & Interactive Explorer</p>
+  </div>
+  
+  <div class="quick-links">
+    <div class="quick-links-container">
+      <div class="quick-link-card">
+        <h3>📖 Developer Guide</h3>
+        <p>Comprehensive guide with examples and best practices</p>
+        <a href="API_GUIDE.md" target="_blank">Read Guide →</a>
+      </div>
+      
+      <div class="quick-link-card">
+        <h3>📦 Postman Collection</h3>
+        <p>Import ready-to-use Postman collection</p>
+        <a href="postman-collection.json" download>Download Collection →</a>
+      </div>
+      
+      <div class="quick-link-card">
+        <h3>💻 JavaScript SDK</h3>
+        <p>Use our ready-made JavaScript/TypeScript SDK</p>
+        <a href="examples/javascript-sdk.js" target="_blank">View SDK →</a>
+      </div>
+      
+      <div class="quick-link-card">
+        <h3>🔍 OpenAPI Spec</h3>
+        <p>Download the OpenAPI 3.0 specification</p>
+        <a href="openapi.yaml" download>Download Spec →</a>
+      </div>
+    </div>
+  </div>
+  
+  <div id="swagger-ui"></div>
+  
+  <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+  <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
+  <script>
+    window.onload = function() {
+      const ui = SwaggerUIBundle({
+        url: "openapi.yaml",
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+        plugins: [
+          SwaggerUIBundle.plugins.DownloadUrl
+        ],
+        layout: "StandaloneLayout",
+        defaultModelsExpandDepth: 1,
+        defaultModelExpandDepth: 3,
+        docExpansion: "list",
+        filter: true,
+        showRequestHeaders: true,
+        tryItOutEnabled: true,
+        persistAuthorization: true,
+        syntaxHighlight: {
+          activate: true,
+          theme: "agate"
+        }
+      });
+      
+      window.ui = ui;
+    };
+  </script>
+</body>
+</html>

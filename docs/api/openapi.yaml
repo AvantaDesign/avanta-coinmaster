@@ -1,0 +1,1170 @@
+openapi: 3.0.3
+info:
+  title: Avanta Coinmaster API
+  description: |
+    # Avanta Coinmaster API Documentation
+    
+    Welcome to the Avanta Coinmaster API documentation. This API provides comprehensive financial management capabilities for individuals with business activities in Mexico.
+    
+    ## Key Features
+    - **Authentication & Authorization**: Secure JWT-based authentication with role-based access control
+    - **Transaction Management**: Complete CRUD operations for financial transactions
+    - **Tax Calculations**: Automated ISR/IVA tax calculations for Mexican fiscal requirements
+    - **CFDI Management**: Invoice management with SAT integration
+    - **Bank Reconciliation**: Automated bank statement reconciliation
+    - **Financial Analytics**: Comprehensive financial reporting and analytics
+    - **Multi-currency Support**: Handle multiple currencies with automatic conversion
+    
+    ## Authentication
+    
+    All API endpoints (except `/api/auth/*` and `/api/health`) require authentication using JWT tokens.
+    
+    ### Getting Started
+    1. Register a new account: `POST /api/auth/register`
+    2. Login to get a token: `POST /api/auth/login`
+    3. Include the token in requests: `Authorization: Bearer YOUR_TOKEN`
+    
+    ### Token Management
+    - Tokens expire after 24 hours
+    - Refresh tokens using: `POST /api/auth/refresh`
+    - Get current user info: `GET /api/auth/me`
+    
+    ## Rate Limiting
+    
+    API requests are rate-limited to ensure fair usage:
+    - **Read operations**: 1000 requests per hour
+    - **Write operations**: 100 requests per hour
+    - **Authentication**: 10 requests per minute
+    
+    Rate limit information is included in response headers:
+    - `X-RateLimit-Limit`: Maximum requests allowed
+    - `X-RateLimit-Remaining`: Remaining requests
+    - `X-RateLimit-Reset`: Time when limit resets (Unix timestamp)
+    
+    ## Error Handling
+    
+    All errors follow a consistent format:
+    ```json
+    {
+      "error": "Error message",
+      "message": "Detailed error description",
+      "code": "ERROR_CODE",
+      "timestamp": "2025-10-22T08:00:00.000Z"
+    }
+    ```
+    
+    Common error codes:
+    - `AUTH_REQUIRED`: Authentication token missing or invalid
+    - `VALIDATION_ERROR`: Request data validation failed
+    - `NOT_FOUND`: Requested resource not found
+    - `RATE_LIMIT_EXCEEDED`: Too many requests
+    - `DB_ERROR`: Database operation failed
+    
+    ## Pagination
+    
+    List endpoints support pagination using offset/limit parameters:
+    - `limit`: Number of items to return (default: 50, max: 1000)
+    - `offset`: Number of items to skip (default: 0)
+    
+    Response includes pagination metadata:
+    ```json
+    {
+      "data": [...],
+      "pagination": {
+        "total": 150,
+        "limit": 50,
+        "offset": 0,
+        "hasMore": true
+      }
+    }
+    ```
+    
+    ## Filtering & Sorting
+    
+    List endpoints support filtering and sorting:
+    - **Filtering**: Use query parameters (e.g., `?category=food&type=expense`)
+    - **Sorting**: Use `sort` and `order` parameters (e.g., `?sort=date&order=desc`)
+    - **Search**: Use `search` parameter for full-text search
+    
+    ## Date Formats
+    
+    All dates use ISO 8601 format: `YYYY-MM-DD` or `YYYY-MM-DDTHH:mm:ss.sssZ`
+    
+    ## Monetary Values
+    
+    All monetary values are represented as decimal strings to avoid floating-point precision issues:
+    - Input: `"1234.56"` (as string or number)
+    - Output: `"1234.56"` (always as string)
+    - Database: Stored as integer cents (internally converted)
+    
+  version: 1.0.0
+  contact:
+    name: Avanta Coinmaster Support
+    email: support@avanta-coinmaster.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://avanta-coinmaster.pages.dev
+    description: Production server
+  - url: http://localhost:8788
+    description: Local development server
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Transactions
+    description: Financial transaction management
+  - name: Accounts
+    description: Bank account management
+  - name: Categories
+    description: Transaction category management
+  - name: Tax Calculations
+    description: Tax calculation and reporting
+  - name: Invoices
+    description: Invoice and CFDI management
+  - name: SAT Integration
+    description: Mexican SAT (tax authority) integration
+  - name: Bank Reconciliation
+    description: Bank statement reconciliation
+  - name: Financial Reports
+    description: Financial reporting and analytics
+  - name: Budget Management
+    description: Budget planning and tracking
+  - name: Dashboard
+    description: Dashboard and analytics
+  - name: Settings
+    description: User settings and preferences
+  - name: Health
+    description: System health and monitoring
+  - name: Admin
+    description: Administrative endpoints
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT token obtained from `/api/auth/login` or `/api/auth/register`.
+        
+        Include in request header as:
+        ```
+        Authorization: Bearer YOUR_TOKEN_HERE
+        ```
+  
+  schemas:
+    Error:
+      type: object
+      required:
+        - error
+        - code
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+          example: Invalid request
+        message:
+          type: string
+          description: Detailed error description
+          example: The 'amount' field must be a positive number
+        code:
+          type: string
+          description: Machine-readable error code
+          example: VALIDATION_ERROR
+        timestamp:
+          type: string
+          format: date-time
+          description: Error timestamp
+          example: "2025-10-22T08:00:00.000Z"
+    
+    Pagination:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Total number of items
+          example: 150
+        limit:
+          type: integer
+          description: Number of items per page
+          example: 50
+        offset:
+          type: integer
+          description: Number of items skipped
+          example: 0
+        hasMore:
+          type: boolean
+          description: Whether there are more items
+          example: true
+    
+    User:
+      type: object
+      required:
+        - id
+        - email
+        - name
+      properties:
+        id:
+          type: string
+          description: Unique user identifier
+          example: user_1729584000000_abc123
+        email:
+          type: string
+          format: email
+          description: User email address
+          example: usuario@ejemplo.com
+        name:
+          type: string
+          description: User full name
+          example: Juan Pérez
+        role:
+          type: string
+          enum: [user, admin, demo]
+          description: User role
+          example: user
+        avatar_url:
+          type: string
+          format: uri
+          description: User avatar URL
+          example: https://example.com/avatar.jpg
+        created_at:
+          type: string
+          format: date-time
+          description: Account creation timestamp
+          example: "2025-01-01T00:00:00.000Z"
+        last_login_at:
+          type: string
+          format: date-time
+          description: Last login timestamp
+          example: "2025-10-22T08:00:00.000Z"
+    
+    Transaction:
+      type: object
+      required:
+        - id
+        - user_id
+        - type
+        - amount
+        - date
+        - description
+      properties:
+        id:
+          type: string
+          description: Unique transaction identifier
+          example: txn_1729584000000_xyz789
+        user_id:
+          type: string
+          description: User who owns this transaction
+          example: user_1729584000000_abc123
+        type:
+          type: string
+          enum: [income, expense]
+          description: Transaction type
+          example: expense
+        amount:
+          type: string
+          description: Transaction amount (decimal string)
+          example: "1234.56"
+        date:
+          type: string
+          format: date
+          description: Transaction date
+          example: "2025-10-22"
+        description:
+          type: string
+          description: Transaction description
+          example: Compra de equipo de oficina
+        category_id:
+          type: string
+          description: Category identifier
+          example: cat_office_supplies
+        account_id:
+          type: string
+          description: Account identifier
+          example: acc_bank_main
+        is_deductible:
+          type: boolean
+          description: Whether expense is tax deductible
+          example: true
+        iva_amount:
+          type: string
+          description: IVA (VAT) amount
+          example: "197.53"
+        retention_amount:
+          type: string
+          description: Tax retention amount
+          example: "0.00"
+        notes:
+          type: string
+          description: Additional notes
+          example: Factura #12345
+        tags:
+          type: array
+          items:
+            type: string
+          description: Transaction tags
+          example: [office, equipment]
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2025-10-22T08:00:00.000Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2025-10-22T08:00:00.000Z"
+    
+    Account:
+      type: object
+      required:
+        - id
+        - user_id
+        - name
+        - type
+        - currency
+      properties:
+        id:
+          type: string
+          description: Unique account identifier
+          example: acc_1729584000000_def456
+        user_id:
+          type: string
+          description: User who owns this account
+          example: user_1729584000000_abc123
+        name:
+          type: string
+          description: Account name
+          example: Cuenta Principal BBVA
+        type:
+          type: string
+          enum: [checking, savings, credit_card, cash, investment]
+          description: Account type
+          example: checking
+        currency:
+          type: string
+          enum: [MXN, USD, EUR]
+          description: Account currency
+          example: MXN
+        balance:
+          type: string
+          description: Current account balance
+          example: "15432.50"
+        is_active:
+          type: boolean
+          description: Whether account is active
+          example: true
+        bank_name:
+          type: string
+          description: Bank name
+          example: BBVA México
+        account_number:
+          type: string
+          description: Account number (last 4 digits)
+          example: ****1234
+        color:
+          type: string
+          description: UI color for account
+          example: "#0066CC"
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-01-01T00:00:00.000Z"
+    
+    Category:
+      type: object
+      required:
+        - id
+        - name
+        - type
+      properties:
+        id:
+          type: string
+          description: Unique category identifier
+          example: cat_1729584000000_ghi789
+        user_id:
+          type: string
+          description: User who owns this category (null for system categories)
+          example: user_1729584000000_abc123
+        name:
+          type: string
+          description: Category name
+          example: Alimentos y Bebidas
+        type:
+          type: string
+          enum: [income, expense, both]
+          description: Category type
+          example: expense
+        parent_id:
+          type: string
+          description: Parent category for subcategories
+          example: cat_food_main
+        is_deductible:
+          type: boolean
+          description: Default deductibility for expenses
+          example: true
+        deduction_percentage:
+          type: number
+          format: float
+          description: Deduction percentage (0-100)
+          example: 100
+        color:
+          type: string
+          description: UI color for category
+          example: "#FF6B6B"
+        icon:
+          type: string
+          description: Icon identifier
+          example: shopping-cart
+        is_system:
+          type: boolean
+          description: Whether this is a system category
+          example: false
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-01-01T00:00:00.000Z"
+    
+    TaxCalculation:
+      type: object
+      properties:
+        id:
+          type: string
+          example: tax_1729584000000_jkl012
+        user_id:
+          type: string
+          example: user_1729584000000_abc123
+        period_type:
+          type: string
+          enum: [monthly, quarterly, annual]
+          example: monthly
+        period_year:
+          type: integer
+          example: 2025
+        period_month:
+          type: integer
+          minimum: 1
+          maximum: 12
+          example: 10
+        total_income:
+          type: string
+          example: "50000.00"
+        deductible_expenses:
+          type: string
+          example: "15000.00"
+        net_income:
+          type: string
+          example: "35000.00"
+        isr_amount:
+          type: string
+          description: ISR (income tax) amount
+          example: "5250.00"
+        iva_collected:
+          type: string
+          description: IVA collected from customers
+          example: "8000.00"
+        iva_paid:
+          type: string
+          description: IVA paid to suppliers
+          example: "2400.00"
+        iva_balance:
+          type: string
+          description: IVA balance (to pay or refund)
+          example: "5600.00"
+        status:
+          type: string
+          enum: [draft, calculated, submitted, paid]
+          example: calculated
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-10-22T08:00:00.000Z"
+    
+    Health:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+          example: healthy
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-10-22T08:00:00.000Z"
+        environment:
+          type: string
+          example: production
+        version:
+          type: string
+          example: "1.0.0"
+        checks:
+          type: object
+          properties:
+            database:
+              type: string
+              enum: [healthy, unhealthy, not_configured]
+              example: healthy
+            storage:
+              type: string
+              enum: [healthy, unhealthy, not_configured]
+              example: healthy
+
+  responses:
+    UnauthorizedError:
+      description: Authentication required or token invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Unauthorized
+            message: Valid authentication token required
+            code: AUTH_REQUIRED
+            timestamp: "2025-10-22T08:00:00.000Z"
+    
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Not found
+            message: The requested resource was not found
+            code: NOT_FOUND
+            timestamp: "2025-10-22T08:00:00.000Z"
+    
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Validation failed
+            message: The 'amount' field is required
+            code: VALIDATION_ERROR
+            timestamp: "2025-10-22T08:00:00.000Z"
+    
+    RateLimitError:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Rate limit exceeded
+            message: Too many requests. Please try again later.
+            code: RATE_LIMIT_EXCEEDED
+            timestamp: "2025-10-22T08:00:00.000Z"
+
+paths:
+  /api/health:
+    get:
+      tags:
+        - Health
+      summary: Health check
+      description: Check system health status including database and storage connectivity
+      operationId: getHealth
+      responses:
+        '200':
+          description: System is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        '503':
+          description: System is unhealthy or degraded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+
+  /api/auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register new user
+      description: Create a new user account with email and password
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: nuevo@ejemplo.com
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  example: Password123!
+                name:
+                  type: string
+                  example: Nuevo Usuario
+      responses:
+        '200':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  user:
+                    $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticate user with email and password
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: usuario@ejemplo.com
+                password:
+                  type: string
+                  format: password
+                  example: Password123!
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: Get current user
+      description: Get information about the currently authenticated user
+      operationId: getCurrentUser
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh token
+      description: Get a new JWT token using current valid token
+      operationId: refreshToken
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/transactions:
+    get:
+      tags:
+        - Transactions
+      summary: List transactions
+      description: Get a paginated list of transactions with optional filtering and sorting
+      operationId: listTransactions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          description: Number of items to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 50
+        - name: offset
+          in: query
+          description: Number of items to skip
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: search
+          in: query
+          description: Search term for description
+          schema:
+            type: string
+        - name: type
+          in: query
+          description: Filter by transaction type
+          schema:
+            type: string
+            enum: [income, expense]
+        - name: category_id
+          in: query
+          description: Filter by category
+          schema:
+            type: string
+        - name: account_id
+          in: query
+          description: Filter by account
+          schema:
+            type: string
+        - name: start_date
+          in: query
+          description: Filter by start date (inclusive)
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          description: Filter by end date (inclusive)
+          schema:
+            type: string
+            format: date
+        - name: is_deductible
+          in: query
+          description: Filter by deductibility
+          schema:
+            type: boolean
+        - name: sort
+          in: query
+          description: Field to sort by
+          schema:
+            type: string
+            enum: [date, amount, created_at]
+            default: date
+        - name: order
+          in: query
+          description: Sort order
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        '200':
+          description: Transactions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Transaction'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    
+    post:
+      tags:
+        - Transactions
+      summary: Create transaction
+      description: Create a new financial transaction
+      operationId: createTransaction
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+                - amount
+                - date
+                - description
+              properties:
+                type:
+                  type: string
+                  enum: [income, expense]
+                  example: expense
+                amount:
+                  type: string
+                  example: "1234.56"
+                date:
+                  type: string
+                  format: date
+                  example: "2025-10-22"
+                description:
+                  type: string
+                  example: Compra de equipo de oficina
+                category_id:
+                  type: string
+                  example: cat_office_supplies
+                account_id:
+                  type: string
+                  example: acc_bank_main
+                is_deductible:
+                  type: boolean
+                  example: true
+                iva_amount:
+                  type: string
+                  example: "197.53"
+                retention_amount:
+                  type: string
+                  example: "0.00"
+                notes:
+                  type: string
+                  example: Factura #12345
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  example: [office, equipment]
+      responses:
+        '201':
+          description: Transaction created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/accounts:
+    get:
+      tags:
+        - Accounts
+      summary: List accounts
+      description: Get all bank accounts for the authenticated user
+      operationId: listAccounts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: is_active
+          in: query
+          description: Filter by active status
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Accounts retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Account'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    
+    post:
+      tags:
+        - Accounts
+      summary: Create account
+      description: Create a new bank account
+      operationId: createAccount
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - type
+                - currency
+              properties:
+                name:
+                  type: string
+                  example: Mi Cuenta BBVA
+                type:
+                  type: string
+                  enum: [checking, savings, credit_card, cash, investment]
+                  example: checking
+                currency:
+                  type: string
+                  enum: [MXN, USD, EUR]
+                  example: MXN
+                initial_balance:
+                  type: string
+                  example: "10000.00"
+                bank_name:
+                  type: string
+                  example: BBVA México
+                account_number:
+                  type: string
+                  example: "1234"
+                color:
+                  type: string
+                  example: "#0066CC"
+      responses:
+        '201':
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/categories:
+    get:
+      tags:
+        - Categories
+      summary: List categories
+      description: Get all transaction categories (system and user-defined)
+      operationId: listCategories
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: type
+          in: query
+          description: Filter by category type
+          schema:
+            type: string
+            enum: [income, expense, both]
+      responses:
+        '200':
+          description: Categories retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    
+    post:
+      tags:
+        - Categories
+      summary: Create category
+      description: Create a new custom category
+      operationId: createCategory
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - type
+              properties:
+                name:
+                  type: string
+                  example: Gastos de Oficina
+                type:
+                  type: string
+                  enum: [income, expense, both]
+                  example: expense
+                parent_id:
+                  type: string
+                is_deductible:
+                  type: boolean
+                  example: true
+                deduction_percentage:
+                  type: number
+                  example: 100
+                color:
+                  type: string
+                  example: "#4CAF50"
+                icon:
+                  type: string
+                  example: briefcase
+      responses:
+        '201':
+          description: Category created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/dashboard:
+    get:
+      tags:
+        - Dashboard
+      summary: Get dashboard data
+      description: Get comprehensive dashboard data including balances, recent transactions, and analytics
+      operationId: getDashboard
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Dashboard data retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalBalance:
+                    type: string
+                    example: "125430.50"
+                  totalIncome:
+                    type: string
+                    example: "50000.00"
+                  totalExpenses:
+                    type: string
+                    example: "35000.00"
+                  recentTransactions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Transaction'
+                  accountBalances:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Account'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/tax-calculations:
+    get:
+      tags:
+        - Tax Calculations
+      summary: List tax calculations
+      description: Get all tax calculations for the authenticated user
+      operationId: listTaxCalculations
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: year
+          in: query
+          description: Filter by year
+          schema:
+            type: integer
+        - name: month
+          in: query
+          description: Filter by month (1-12)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+      responses:
+        '200':
+          description: Tax calculations retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaxCalculation'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    
+    post:
+      tags:
+        - Tax Calculations
+      summary: Calculate taxes
+      description: Calculate ISR and IVA taxes for a specific period
+      operationId: calculateTaxes
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - period_type
+                - period_year
+              properties:
+                period_type:
+                  type: string
+                  enum: [monthly, quarterly, annual]
+                  example: monthly
+                period_year:
+                  type: integer
+                  example: 2025
+                period_month:
+                  type: integer
+                  minimum: 1
+                  maximum: 12
+                  example: 10
+      responses:
+        '201':
+          description: Tax calculation created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaxCalculation'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+security:
+  - bearerAuth: []
