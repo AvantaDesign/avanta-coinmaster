@@ -70,15 +70,20 @@ export function AuthProvider({ children }) {
         if (token) {
           try {
             const payload = JSON.parse(atob(token.split('.')[1]));
+            console.log('AuthProvider: JWT payload:', payload);
             if (payload.is_demo !== undefined) {
               finalUser.is_demo = payload.is_demo;
+              console.log('AuthProvider: Added is_demo from JWT:', payload.is_demo);
             }
             if (payload.current_demo_scenario_id !== undefined) {
               finalUser.current_demo_scenario_id = payload.current_demo_scenario_id;
+              console.log('AuthProvider: Added current_demo_scenario_id from JWT:', payload.current_demo_scenario_id);
             }
           } catch (e) {
             console.log('AuthProvider: Could not parse JWT token:', e);
           }
+        } else {
+          console.log('AuthProvider: No token found in localStorage');
         }
         
         console.log('AuthProvider: Setting user state:', finalUser);
