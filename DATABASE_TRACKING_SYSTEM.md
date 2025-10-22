@@ -7,7 +7,7 @@
 
 ## 📊 **Current Database Status (Verified)**
 
-### **Tables (43 Total)**
+### **Tables (45 Total)**
 | # | Table Name | Purpose | API Usage | Status |
 |---|------------|---------|-----------|--------|
 | 1 | `account_initial_balances` | Account opening balances | ✅ | ✅ |
