@@ -1,6 +1,8 @@
+import { memo } from 'react';
 import { formatCurrency } from '../utils/calculations';
 
-export default function AccountBreakdown({ accounts }) {
+// Phase 48.5: Memoize component to prevent unnecessary re-renders
+function AccountBreakdown({ accounts }) {
   if (!accounts || accounts.length === 0) {
     return (
       <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-md text-center text-gray-500 dark:text-gray-400">
@@ -94,3 +96,6 @@ export default function AccountBreakdown({ accounts }) {
     </div>
   );
 }
+
+// Phase 48.5: Export memoized component
+export default memo(AccountBreakdown);

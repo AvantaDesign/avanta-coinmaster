@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { fetchDashboard } from '../utils/api';
 import { fetchFiscal } from '../utils/api';
 import BalanceCard from '../components/BalanceCard';
@@ -47,7 +47,8 @@ export default function Home() {
     }
   }, [data, fiscalData]);
 
-  const calculateHealthScore = () => {
+  // Phase 48.5: Memoize expensive financial calculations
+  const calculateHealthScore = useCallback(() => {
     try {
       const financialData = {
         currentAssets: data?.totalBalance || 0,
@@ -66,9 +67,9 @@ export default function Home() {
     } catch (error) {
       console.error('Error calculating health score:', error);
     }
-  };
+  }, [data, fiscalData]);
 
-  const loadDashboard = async () => {
+  const loadDashboard = useCallback(async () => {
     try {
       setLoading(true);
       const result = await fetchDashboard({ period });
@@ -78,9 +79,9 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [period]);
 
-  const loadFiscalSummary = async () => {
+  const loadFiscalSummary = useCallback(async () => {
     try {
       const currentMonth = new Date().getMonth() + 1;
       const currentYear = new Date().getFullYear();
@@ -89,15 +90,15 @@ export default function Home() {
     } catch (err) {
       console.error('Error loading fiscal summary:', err);
     }
-  };
+  }, []);
 
-  const loadCreditsData = async () => {
+  const loadCreditsData = useCallback(async () => {
     try {
       await loadCredits(true, true); // include balance and active only
     } catch (err) {
       console.error('Error loading credits:', err);
     }
-  };
+  }, [loadCredits]);
 
   const handlePaymentClick = (credit) => {
     navigate('/credits', { state: { openPaymentFor: credit.id } });

@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { formatCurrency } from '../utils/calculations';
 
 /**
  * Interactive Charts Component
+ * Phase 48.5: Memoized for performance optimization
  * 
  * Provides advanced, interactive data visualization:
  * - Interactive bar charts with hover effects

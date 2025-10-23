@@ -15,6 +15,7 @@ import { fromCents, convertArrayFromCents, MONETARY_FIELDS } from '../utils/mone
 import { getSecurityHeaders } from '../utils/security.js';
 import { logRequest, logError } from '../utils/logging.js';
 import { createErrorResponse } from '../utils/errors.js';
+import { getFromCache, setInCache, CacheTTL, generateCacheKey } from '../utils/cache.js';
 
 /**
  * GET /api/dashboard
@@ -36,13 +37,17 @@ export async function onRequestGet(context) {
   const includeTrends = url.searchParams.get('include_trends') !== 'false';
   const recentLimit = Math.min(parseInt(url.searchParams.get('recent_limit') || '10'), 50);
 
-  // Phase 31: Security headers with cache control
+  // Phase 48.5: Performance optimization with cache control headers
   const corsHeaders = {
     ...getSecurityHeaders(),
-    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Cache-Control': 'public, max-age=300', // 5 minutes for dashboard data
+    'X-Response-Time': '0ms', // Will be updated at the end
   };
   
   try {
+    // Phase 48.5: Track response time
+    const requestStartTime = Date.now();
+    
     // Phase 31: Log request
     logRequest(request, { endpoint: 'dashboard', method: 'GET', period }, env);
     
@@ -66,6 +71,28 @@ export async function onRequestGet(context) {
         code: 'DB_NOT_CONFIGURED'
       }), {
         status: 503,
+        headers: corsHeaders
+      });
+    }
+
+    // Phase 48.5: Try to get dashboard data from cache
+    const cacheKey = generateCacheKey('dashboard', { 
+      userId, 
+      period, 
+      includeCategories, 
+      includeAccounts, 
+      includeTrends, 
+      recentLimit 
+    });
+    
+    const cachedData = await getFromCache(cacheKey, env);
+    if (cachedData) {
+      const responseTime = Date.now() - requestStartTime;
+      corsHeaders['X-Response-Time'] = `${responseTime}ms`;
+      corsHeaders['X-Cache'] = 'HIT';
+      
+      return new Response(JSON.stringify(cachedData), {
+        status: 200,
         headers: corsHeaders
       });
     }
@@ -264,6 +291,14 @@ export async function onRequestGet(context) {
         : 0,
       isPositive: dashboardData.thisMonth.net >= 0
     };
+
+    // Phase 48.5: Cache the dashboard data for 5 minutes
+    await setInCache(cacheKey, dashboardData, CacheTTL.DASHBOARD, env);
+    
+    // Add response time header
+    const responseTime = Date.now() - requestStartTime;
+    corsHeaders['X-Response-Time'] = `${responseTime}ms`;
+    corsHeaders['X-Cache'] = 'MISS';
 
     return new Response(JSON.stringify(dashboardData), {
       status: 200,

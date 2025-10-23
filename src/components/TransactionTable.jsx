@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, memo, useMemo } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { formatCurrency, formatDate } from '../utils/calculations';
 import { deleteTransaction, updateTransaction, restoreTransaction } from '../utils/api';
@@ -10,7 +10,8 @@ import TableFilters from './TableFilters';
 import Icon from './icons/IconLibrary';
 import { handleSwipeGesture, isTouchDevice, createSwipeableListItem } from '../utils/touchUtils';
 
-export default function TransactionTable({ transactions: propTransactions, onUpdate }) {
+// Phase 48.5: Memoize expensive table component to prevent unnecessary re-renders
+function TransactionTable({ transactions: propTransactions, onUpdate }) {
   // Use store if available, otherwise fall back to props
   const storeTransactions = useTransactionStore((state) => state.transactions);
   const transactions = propTransactions || storeTransactions;
@@ -872,3 +873,6 @@ export default function TransactionTable({ transactions: propTransactions, onUpd
     </div>
   );
 }
+
+// Phase 48.5: Export memoized component for better performance
+export default memo(TransactionTable);
