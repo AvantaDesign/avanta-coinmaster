@@ -34,11 +34,11 @@
     "@tanstack/react-virtual": "^3.13.12",
     "decimal.js": "^10.6.0",
     "jose": "^6.1.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.20.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-router-dom": "7.9.4",
     "tesseract.js": "^6.0.1",
-    "zustand": "^4.5.7"
+    "zustand": "5.0.8"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.1",
