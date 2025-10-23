@@ -6,6 +6,22 @@ This guide helps developers understand the changes made in Phase 48 and how to w
 
 ## 🔄 Quick Start
 
+**⚠️ Important: Node.js 20+ Required**
+
+Vitest 4.0.2 requires Node.js 20 or higher. Please ensure you have the correct version installed:
+
+```bash
+# Check your Node.js version
+node --version
+# Should be v20.0.0 or higher
+
+# If you need to upgrade, use nvm (recommended):
+nvm install 20
+nvm use 20
+
+# Or download from https://nodejs.org/
+```
+
 ```bash
 # Pull the latest changes
 git pull origin main

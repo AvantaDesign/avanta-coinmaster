@@ -11,6 +11,8 @@
 
 Successfully updated all major dependencies to their latest stable versions while maintaining 100% test coverage and zero security vulnerabilities. All 113 tests continue to pass, and the build process works without errors.
 
+**⚠️ Important:** This update requires **Node.js 20+** due to Vitest 4.0.2's dependency on newer Node.js APIs (`node:inspector/promises`). The CI/CD workflows have been updated accordingly.
+
 ---
 
 ## 📊 Update Summary
@@ -73,11 +75,24 @@ Successfully updated all major dependencies to their latest stable versions whil
    - All 113 tests passing
    - Test execution time: ~1.6s (improved)
    - Removed 60 unnecessary packages (optimization)
+   - **⚠️ Requires Node.js 20+** (uses `node:inspector/promises` API)
 
 2. **@vitejs/plugin-react 4.7.0 → 5.0.4**
    - Build successful
    - No configuration changes needed
    - React Fast Refresh working correctly
+
+### Phase 3.5: Infrastructure Updates ✅
+**Node.js Version Requirement**
+- Updated CI/CD workflows from Node.js 18 → Node.js 20
+- Updated all GitHub Actions jobs (unit-tests, e2e-tests, security-scan, lint-check, build-check)
+- Added `engines` field to package.json specifying Node.js >=20.0.0
+- **Reason:** Vitest 4.0.2 requires Node.js 20+ due to usage of `node:inspector/promises` built-in module
+
+**Files Updated:**
+- `.github/workflows/test.yml` - All jobs now use Node.js 20
+- `.github/workflows/deploy.yml` - Updated for consistency
+- `package.json` - Added engines field
 
 ### Phase 4: Major Framework Updates ✅
 
