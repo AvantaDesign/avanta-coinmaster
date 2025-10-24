@@ -233,6 +233,9 @@ DB_HEALTH_MONITORING = "true"
 DB_SCHEMA_VALIDATION = "true"
 DB_MIGRATION_TRACKING = "true"
 
+# JWT Secret for authentication (preview environment)
+JWT_SECRET = "avanta-coinmaster-secret-key-preview-change-in-production"
+
 # ============================================================================
 # CRITICAL: PREVIEW ENVIRONMENT DATABASE ISOLATION
 # ============================================================================
@@ -303,6 +306,9 @@ RATE_LIMIT_WRITE_REQUESTS = "50"
 CACHE_TTL_SECONDS = "300"
 CACHE_DASHBOARD_TTL = "300"
 CACHE_REPORTS_TTL = "600"
+
+# JWT Secret for authentication (production environment)
+JWT_SECRET = "avanta-coinmaster-secret-key-change-in-production"
 
 # D1 Database binding for production
 [[env.production.d1_databases]]
