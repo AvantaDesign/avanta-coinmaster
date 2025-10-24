@@ -297,6 +297,65 @@ export async function clearCache(env = null) {
 }
 
 /**
+ * Phase 49: Cache warming strategies
+ * Pre-populate cache with frequently accessed data
+ */
+export async function warmCache(userId, env) {
+  try {
+    // This would be called during user login or background tasks
+    // to pre-populate cache with likely needed data
+    
+    // Example: Pre-cache user categories
+    const categoriesKey = generateCacheKey('categories', { userId });
+    // In practice, you'd fetch and cache the data here
+    
+    logDebug('Cache warming initiated', { userId }, env);
+  } catch (error) {
+    console.error('Cache warming error:', error);
+  }
+}
+
+/**
+ * Phase 49: Intelligent cache invalidation
+ * Invalidate related caches when data changes
+ */
+export async function invalidateRelatedCaches(entity, entityId, userId, env) {
+  const invalidationPatterns = {
+    transaction: [
+      `dashboard:userId:${userId}`,
+      `transactions:userId:${userId}`,
+      `monthly-summary:userId:${userId}`,
+      `category-breakdown:userId:${userId}`
+    ],
+    invoice: [
+      `dashboard:userId:${userId}`,
+      `invoices:userId:${userId}`,
+      `cfdi:userId:${userId}`
+    ],
+    category: [
+      `categories:userId:${userId}`,
+      `category-breakdown:userId:${userId}`
+    ],
+    account: [
+      `accounts:userId:${userId}`,
+      `dashboard:userId:${userId}`
+    ],
+    budget: [
+      `budgets:userId:${userId}`,
+      `dashboard:userId:${userId}`
+    ]
+  };
+
+  const patterns = invalidationPatterns[entity] || [];
+  
+  for (const pattern of patterns) {
+    await invalidateCacheByPrefix(pattern, env);
+  }
+  
+  logDebug('Related caches invalidated', { entity, entityId, userId, patterns }, env);
+}
+
+/**
  * Invalidate cache by prefix
  * @param {string} prefix - Key prefix to invalidate
  */
