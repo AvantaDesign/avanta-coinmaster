@@ -15,9 +15,15 @@
  * - Clear all cache (admin only)
  */
 
-import { corsHeaders } from '../../utils/cors.js';
+import { getUserIdFromToken } from '../auth.js';
+import { getSecurityHeaders } from '../../utils/security.js';
 import { logInfo, logError } from '../../utils/logging.js';
-import { getUserIdFromToken } from '../../utils/auth.js';
+
+// CORS headers
+const corsHeaders = {
+  ...getSecurityHeaders(),
+  'Cache-Control': 'no-cache, no-store, must-revalidate',
+};
 
 // Import cache utilities - note: cacheStats is module-level
 let cacheStats;

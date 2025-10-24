@@ -8,9 +8,9 @@
  * - Generate rollback script
  */
 
-import { corsHeaders } from '../../utils/cors.js';
+import { getUserIdFromToken } from '../auth.js';
+import { getSecurityHeaders } from '../../utils/security.js';
 import { logInfo, logError } from '../../utils/logging.js';
-import { getUserIdFromToken } from '../../utils/auth.js';
 import { 
   parseSQLStatements, 
   validateMigrationStatements,
@@ -18,6 +18,12 @@ import {
   generateRollbackScript,
   dryRunMigration
 } from '../../utils/migrationDryRun.js';
+
+// CORS headers
+const corsHeaders = {
+  ...getSecurityHeaders(),
+  'Cache-Control': 'no-cache, no-store, must-revalidate',
+};
 
 /**
  * Main handler
