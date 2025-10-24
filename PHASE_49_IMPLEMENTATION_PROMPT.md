@@ -184,6 +184,11 @@ npm run test:database
 4. **Document Changes:** Update relevant documentation files
 5. **Performance Focus:** Measure improvements at each step
 6. **Compatibility:** Ensure all changes work with existing React 19.2.0 and Cloudflare Workers architecture
+7. **CRITICAL FIX:** Resolve dynamic import error: "Failed to fetch dynamically imported module: https://avanta-coinmaster.pages.dev/assets/GlobalFilter-BOgpZrAZ.js"
+   - Check GlobalFilter component dynamic imports
+   - Verify Vite build configuration for dynamic imports
+   - Ensure proper asset bundling and chunking
+   - Test dynamic imports in production environment
 
 ---
 
