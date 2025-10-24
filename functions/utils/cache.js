@@ -172,6 +172,30 @@ export function generateCacheKey(prefix, params = {}) {
 }
 
 /**
+ * Alias for generateCacheKey for consistency with Phase 50 APIs
+ * @param {string} prefix - Key prefix (e.g., 'transactions', 'dashboard')
+ * @param {...any} args - Additional arguments (userId, extra params)
+ * @returns {string} Cache key
+ */
+export function getCacheKey(prefix, ...args) {
+  // Support both old style: getCacheKey('prefix', userId, 'extra')
+  // and new style: getCacheKey('prefix', { userId, extra })
+  if (args.length === 1 && typeof args[0] === 'object') {
+    return generateCacheKey(prefix, args[0]);
+  }
+  
+  // Convert variadic args to params object
+  const params = {};
+  args.forEach((arg, index) => {
+    if (arg !== undefined && arg !== null) {
+      params[`arg${index}`] = arg;
+    }
+  });
+  
+  return generateCacheKey(prefix, params);
+}
+
+/**
  * Get item from cache
  * @param {string} key - Cache key
  * @param {Object} env - Environment bindings
