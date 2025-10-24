@@ -18,22 +18,13 @@
 import { getUserIdFromToken } from '../auth.js';
 import { getSecurityHeaders } from '../../utils/security.js';
 import { logInfo, logError } from '../../utils/logging.js';
+import { getCacheStats, generateCacheKey, setInCache, CacheTTL, clearCache } from '../../utils/cache.js';
 
 // CORS headers
 const corsHeaders = {
   ...getSecurityHeaders(),
   'Cache-Control': 'no-cache, no-store, must-revalidate',
 };
-
-// Import cache utilities - note: cacheStats is module-level
-let cacheStats;
-try {
-  const cacheModule = await import('../../utils/cache.js');
-  cacheStats = cacheModule.cacheStats || { hits: 0, misses: 0, sets: 0, deletes: 0, errors: 0 };
-} catch (error) {
-  console.error('Failed to import cache module:', error);
-  cacheStats = { hits: 0, misses: 0, sets: 0, deletes: 0, errors: 0 };
-}
 
 /**
  * Main handler
@@ -101,6 +92,9 @@ async function handleGetCachePerformance(context, userId) {
   const startTime = Date.now();
 
   try {
+    // Get cache statistics from the cache utility
+    const cacheStats = getCacheStats();
+    
     // Calculate cache statistics
     const totalRequests = (cacheStats?.hits || 0) + (cacheStats?.misses || 0);
     const hitRate = totalRequests > 0 ? (cacheStats?.hits || 0) / totalRequests : 0;
@@ -166,8 +160,6 @@ async function handleWarmCache(context, userId) {
   const { env } = context;
 
   try {
-    const { generateCacheKey, setInCache, CacheTTL } = await import('../../utils/cache.js');
-
     // Pre-cache user categories
     const categoriesStmt = env.DB.prepare(
       'SELECT * FROM categories WHERE user_id = ? AND is_active = 1 ORDER BY name'
@@ -210,8 +202,6 @@ async function handleClearCache(context, userId) {
   const { env } = context;
 
   try {
-    const { clearCache } = await import('../../utils/cache.js');
-    
     await clearCache(env);
 
     logInfo('Cache cleared by admin', { userId }, env);
