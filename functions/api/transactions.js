@@ -40,6 +40,7 @@ import { logRequest, logError, logAuditEvent } from '../utils/logging.js';
 import { createErrorResponse, createValidationErrorResponse, createSuccessResponse } from '../utils/errors.js';
 import { checkRateLimit, getRateLimitConfig } from '../utils/rate-limiter.js';
 import { buildSafeOrderBy } from '../utils/sql-security.js';
+import { invalidateCacheByPrefix } from '../utils/cache.js';
 
 /**
  * GET /api/transactions
@@ -837,6 +838,10 @@ export async function onRequestPost(context) {
         amount: numAmount
       }, env);
 
+      // Phase 48.5: Invalidate cache for user's dashboard and transactions
+      await invalidateCacheByPrefix(`dashboard:userId:${userId}`);
+      await invalidateCacheByPrefix(`transactions:userId:${userId}`);
+
       // Prepare response
       const response = {
         success: true,
@@ -1296,6 +1301,10 @@ export async function onRequestPut(context) {
       updatedFields: Object.keys(data)
     }, env);
 
+    // Phase 48.5: Invalidate cache for user's dashboard and transactions
+    await invalidateCacheByPrefix(`dashboard:userId:${userId}`);
+    await invalidateCacheByPrefix(`transactions:userId:${userId}`);
+
     return new Response(JSON.stringify({
       success: true,
       data: convertedTransaction,
@@ -1453,6 +1462,10 @@ export async function onRequestDelete(context) {
         amount: fromCents(existingTransaction.amount)
       }, env);
       
+      // Phase 48.5: Invalidate cache for user's dashboard and transactions
+      await invalidateCacheByPrefix(`dashboard:userId:${userId}`);
+      await invalidateCacheByPrefix(`transactions:userId:${userId}`);
+      
       return new Response(JSON.stringify({
         success: true,
         message: 'Transaction permanently deleted',
@@ -1478,6 +1491,10 @@ export async function onRequestDelete(context) {
         category: existingTransaction.category,
         amount: fromCents(existingTransaction.amount)
       }, env);
+      
+      // Phase 48.5: Invalidate cache for user's dashboard and transactions
+      await invalidateCacheByPrefix(`dashboard:userId:${userId}`);
+      await invalidateCacheByPrefix(`transactions:userId:${userId}`);
       
       return new Response(JSON.stringify({
         success: true,

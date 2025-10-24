@@ -137,6 +137,17 @@ class InMemoryCacheStore {
 const cache = new InMemoryCacheStore();
 
 /**
+ * Global cache statistics
+ */
+const cacheStats = {
+  hits: 0,
+  misses: 0,
+  sets: 0,
+  deletes: 0,
+  errors: 0,
+};
+
+/**
  * Cache TTL configurations for different data types
  */
 export const CacheTTL = {
@@ -173,10 +184,12 @@ export async function getFromCache(key, env = null) {
       try {
         const value = await env.CACHE_KV.get(key);
         if (value !== null) {
+          cacheStats.hits++;
           logDebug('KV cache hit', { key }, env);
           return JSON.parse(value);
         }
       } catch (kvError) {
+        cacheStats.errors++;
         console.error('KV cache get error:', kvError);
         // Fall through to in-memory cache
       }
@@ -186,13 +199,16 @@ export async function getFromCache(key, env = null) {
     const value = cache.get(key);
     
     if (value !== null) {
+      cacheStats.hits++;
       logDebug('Memory cache hit', { key }, env);
       return value;
     }
     
+    cacheStats.misses++;
     logDebug('Cache miss', { key }, env);
     return null;
   } catch (error) {
+    cacheStats.errors++;
     console.error('Cache get error:', error);
     return null;
   }
@@ -213,9 +229,11 @@ export async function setInCache(key, value, ttlSeconds = CacheTTL.MEDIUM, env =
         await env.CACHE_KV.put(key, JSON.stringify(value), {
           expirationTtl: ttlSeconds
         });
+        cacheStats.sets++;
         logDebug('KV cache set', { key, ttl: ttlSeconds }, env);
         return;
       } catch (kvError) {
+        cacheStats.errors++;
         console.error('KV cache set error:', kvError);
         // Fall through to in-memory cache
       }
@@ -223,8 +241,10 @@ export async function setInCache(key, value, ttlSeconds = CacheTTL.MEDIUM, env =
     
     // Use in-memory cache as fallback
     cache.set(key, value, ttlSeconds);
+    cacheStats.sets++;
     logDebug('Memory cache set', { key, ttl: ttlSeconds }, env);
   } catch (error) {
+    cacheStats.errors++;
     console.error('Cache set error:', error);
   }
 }
@@ -240,14 +260,18 @@ export async function deleteFromCache(key, env = null) {
     if (env && env.CACHE_KV) {
       try {
         await env.CACHE_KV.delete(key);
+        cacheStats.deletes++;
       } catch (kvError) {
+        cacheStats.errors++;
         console.error('KV cache delete error:', kvError);
       }
     }
     
     // Also delete from in-memory cache
     cache.delete(key);
+    cacheStats.deletes++;
   } catch (error) {
+    cacheStats.errors++;
     console.error('Cache delete error:', error);
   }
 }
@@ -278,12 +302,16 @@ export async function clearCache(env = null) {
  */
 export async function invalidateCacheByPrefix(prefix) {
   try {
+    let deleteCount = 0;
     for (const key of cache.store.keys()) {
       if (key.startsWith(prefix + ':')) {
         cache.delete(key);
+        deleteCount++;
       }
     }
+    cacheStats.deletes += deleteCount;
   } catch (error) {
+    cacheStats.errors++;
     console.error('Cache invalidate error:', error);
   }
 }
@@ -377,7 +405,32 @@ export function cacheMiddleware(options = {}) {
  * @returns {Object} Cache statistics
  */
 export function getCacheStats() {
-  return cache.getStats();
+  const storeStats = cache.getStats();
+  const totalRequests = cacheStats.hits + cacheStats.misses;
+  const hitRate = totalRequests > 0 
+    ? ((cacheStats.hits / totalRequests) * 100).toFixed(2) 
+    : '0.00';
+  
+  return {
+    hits: cacheStats.hits,
+    misses: cacheStats.misses,
+    sets: cacheStats.sets,
+    deletes: cacheStats.deletes,
+    errors: cacheStats.errors,
+    size: storeStats.size,
+    hitRate: hitRate,
+  };
+}
+
+/**
+ * Reset cache statistics
+ */
+export function resetCacheStats() {
+  cacheStats.hits = 0;
+  cacheStats.misses = 0;
+  cacheStats.sets = 0;
+  cacheStats.deletes = 0;
+  cacheStats.errors = 0;
 }
 
 /**

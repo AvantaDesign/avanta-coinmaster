@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../utils/calculations';
 import Icon from './icons/IconLibrary';
 
-export default function MonthlyChart({ data, showFiscal = false }) {
+// Phase 48.5: Memoize expensive chart component to prevent unnecessary re-renders
+function MonthlyChart({ data, showFiscal = false }) {
   const navigate = useNavigate();
   const [hoveredMonth, setHoveredMonth] = useState(null);
   if (!data || data.length === 0) {
@@ -157,3 +158,6 @@ export default function MonthlyChart({ data, showFiscal = false }) {
     </div>
   );
 }
+
+// Phase 48.5: Export memoized component for better performance
+export default memo(MonthlyChart);
